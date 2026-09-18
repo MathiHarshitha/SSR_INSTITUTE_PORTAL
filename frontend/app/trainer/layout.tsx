@@ -1,0 +1,7 @@
+"use client";
+
+import { RoleDashboardLayout } from "@/components/layout/role-dashboard-layout";
+
+export default function TrainerLayout({ children }: { children: React.ReactNode }) {
+  return <RoleDashboardLayout role="TRAINER">{children}</RoleDashboardLayout>;
+}
