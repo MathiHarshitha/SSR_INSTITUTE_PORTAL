@@ -122,9 +122,65 @@ errors }` on failure. Base path: `/api/v1`.
 
 ### Courses (`/courses`)
 
-| Method | Path | Auth | Body |
-|--------|------|------|------|
-| GET    | `/`  | –    | – (published courses only — used by the registration form's course picker) |
+| Method | Path            | Auth        | Body |
+|--------|-----------------|-------------|------|
+| GET    | `/`             | –           | – (published only — used by the registration form's course picker) |
+| GET    | `/admin`        | ADMIN       | query: page, limit, search, status, sortBy, sortOrder |
+| POST   | `/`             | ADMIN       | name, shortDescription, duration, fee, category?, fullDescription?, thumbnailUrl?, requirements?, learningOutcomes? |
+| GET    | `/:id`          | ADMIN       | – |
+| PATCH  | `/:id`          | ADMIN       | any subset of the create fields |
+| PATCH  | `/:id/status`   | ADMIN       | status: DRAFT \| PUBLISHED \| ARCHIVED |
+
+Courses are never hard-deleted — `PATCH /:id/status` with `ARCHIVED` is the soft-delete path.
+
+### Batches (`/batches`) — ADMIN only
+
+| Method | Path                          | Body |
+|--------|-------------------------------|------|
+| GET    | `/`                           | query: page, limit, search, status, course, sortBy, sortOrder |
+| POST   | `/`                           | name, course, trainer?, startDate, endDate, classDays, startTime, endTime, mode, location?, capacity |
+| GET    | `/:id`                        | – |
+| PATCH  | `/:id`                        | any subset of the create fields |
+| PATCH  | `/:id/status`                 | status: UPCOMING \| ACTIVE \| COMPLETED \| CANCELLED |
+| GET    | `/:id/students`               | – (enrolled roster) |
+| POST   | `/:id/students`               | studentId (rejects if not ACTIVE, already enrolled, or batch is full) |
+| DELETE | `/:id/students/:studentId`    | – |
+
+### Fees (`/fees`) — ADMIN only
+
+| Method | Path                              | Body |
+|--------|-----------------------------------|------|
+| GET    | `/status`                         | query: page, limit, search, batch, status — per-enrollment fee status, computed live from course fee − discount − sum(payments) |
+| GET    | `/payments`                       | query: page, limit, search, batch, paymentMethod, sortBy, sortOrder |
+| POST   | `/payments`                       | student, batch, amount, paymentMethod, paymentDate?, transactionRef?, notes? (student must already be enrolled in the batch) |
+| GET    | `/payments/:studentId/:batchId`   | – (payment history) |
+| PATCH  | `/enrollments/:enrollmentId/discount` | discount |
+
+### Jobs / Placements (`/jobs`) — ADMIN only
+
+| Method | Path                                    | Body |
+|--------|------------------------------------------|------|
+| GET    | `/`                                      | query: page, limit, search, status, sortBy, sortOrder |
+| POST   | `/`                                      | company, title, description, workMode, applicationDeadline, openings, location?, salaryRange?, skills?, minExperienceYears?, educationRequirement?, jobLink?, eligibleCourses? |
+| GET    | `/:id`                                   | – |
+| PATCH  | `/:id`                                   | any subset of the create fields |
+| PATCH  | `/:id/status`                            | status: DRAFT \| PUBLISHED \| CLOSED |
+| GET    | `/:id/applications`                      | query: page, limit, status |
+| PATCH  | `/applications/:applicationId/status`    | status, statusNote? |
+
+### Announcements (`/announcements`)
+
+| Method | Path   | Auth  | Body |
+|--------|--------|-------|------|
+| GET    | `/`    | any authenticated user | query: page, limit, audience |
+| POST   | `/`    | ADMIN | title, content, audience, priority, batch? (required if audience=BATCH), course? (required if audience=COURSE), publishAt?, expiresAt? |
+| DELETE | `/:id` | ADMIN | – |
+
+### Audit Logs (`/audit-logs`) — ADMIN only
+
+| Method | Path | Body |
+|--------|------|------|
+| GET    | `/`  | query: page, limit, action, entity |
 
 ## Roadmap
 
@@ -146,8 +202,23 @@ Built so far (Phase 3, in progress):
       no hardcoded numbers
 - [x] Admin Users page: search, role/status filters, pagination, view profile, approve, reject
       (with reason), block, unblock, suspend, reactivate — all backed by the endpoints above
-- [ ] Course/module/batch CRUD, fee & payment management, placements, reports, announcements,
-      audit log UI (still later in Phase 3 / subsequent phases)
+- [x] Admin Courses page: create, edit, and publish/draft/archive courses (soft-delete only —
+      no hard delete), with search, status filter, and pagination
+- [x] Admin Batches page: create/edit batches (course, trainer, schedule, mode, capacity),
+      publish/cancel/complete status transitions, and a student roster dialog (search active
+      students, enroll, remove) — capacity and duplicate-enrollment are enforced server-side
+- [x] Admin Fees page: per-student fee status (final fee − discount, paid, due, computed status)
+      and a payment ledger, with a "Record payment" flow that validates the student is actually
+      enrolled in the chosen batch
+- [x] Admin Placements page: post/edit jobs, publish/close, and an applications dialog for
+      moving each applicant through the pipeline (applied → ... → selected/rejected)
+- [x] Admin Announcements page: publish to everyone/students/trainers/a batch/a course, with
+      priority and an optional expiry date
+- [x] Admin Audit Logs page: read-only feed of every admin action recorded above
+- [ ] Modules/Lessons (syllabus structure within a course — still not built)
+- [ ] Full Reports module — deferred: meaningful attendance/course-completion reports need the
+      Attendance and Task models from Phase 5/6, which don't exist yet. Building it now would
+      mean either fake data or an empty shell, so it's left for after those phases land.
 
 Not built yet (later phases — see the full spec for detail):
 

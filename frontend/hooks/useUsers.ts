@@ -15,6 +15,39 @@ export function useUserStats() {
   });
 }
 
+export function useActiveTrainers() {
+  return useQuery({
+    queryKey: [USERS_KEY, "active-trainers"],
+    queryFn: () =>
+      usersService.list({
+        role: "TRAINER",
+        status: "ACTIVE",
+        page: 1,
+        limit: 100,
+        sortBy: "name",
+        sortOrder: "asc",
+      }),
+    staleTime: 60_000,
+  });
+}
+
+export function useActiveStudents(search?: string) {
+  return useQuery({
+    queryKey: [USERS_KEY, "active-students", search],
+    queryFn: () =>
+      usersService.list({
+        role: "STUDENT",
+        status: "ACTIVE",
+        search,
+        page: 1,
+        limit: 20,
+        sortBy: "name",
+        sortOrder: "asc",
+      }),
+    staleTime: 30_000,
+  });
+}
+
 export function useUsers(query: UserListQuery) {
   return useQuery({
     queryKey: [USERS_KEY, query],

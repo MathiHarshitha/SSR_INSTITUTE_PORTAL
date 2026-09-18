@@ -1,10 +1,49 @@
 import { Router } from "express";
 import * as courseController from "../controllers/course.controller";
+import { authenticate } from "../middleware/authenticate";
+import { authorize } from "../middleware/authorize";
+import { validateBody, validateQuery } from "../middleware/validate";
+import {
+  createCourseSchema,
+  listCoursesQuerySchema,
+  updateCourseSchema,
+  updateCourseStatusSchema,
+} from "../validators/course.validator";
 
 const router = Router();
 
 // Public — needed by the registration form's course picker, before the user has an account.
-// Full admin course management (create/edit/archive) lands in a later phase.
 router.get("/", courseController.listPublicCourses);
+
+// Admin course management.
+router.get(
+  "/admin",
+  authenticate,
+  authorize("ADMIN"),
+  validateQuery(listCoursesQuerySchema),
+  courseController.listAdminCourses
+);
+router.post(
+  "/",
+  authenticate,
+  authorize("ADMIN"),
+  validateBody(createCourseSchema),
+  courseController.createCourse
+);
+router.get("/:id", authenticate, authorize("ADMIN"), courseController.getCourse);
+router.patch(
+  "/:id",
+  authenticate,
+  authorize("ADMIN"),
+  validateBody(updateCourseSchema),
+  courseController.updateCourse
+);
+router.patch(
+  "/:id/status",
+  authenticate,
+  authorize("ADMIN"),
+  validateBody(updateCourseStatusSchema),
+  courseController.updateCourseStatus
+);
 
 export default router;

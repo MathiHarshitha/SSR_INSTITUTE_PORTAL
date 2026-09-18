@@ -1,6 +1,7 @@
-import { Types } from "mongoose";
-import { AuditLog } from "../models/AuditLog";
+import { FilterQuery, Types } from "mongoose";
+import { AuditLog, IAuditLog } from "../models/AuditLog";
 import { logger } from "../utils/logger";
+import { ListAuditLogsQuery } from "../validators/auditLog.validator";
 
 interface RecordAuditParams {
   userId: Types.ObjectId | string;
@@ -25,4 +26,24 @@ export async function recordAudit(params: RecordAuditParams): Promise<void> {
     // Auditing must never break the primary request flow.
     logger.error("Failed to write audit log", error);
   }
+}
+
+export async function listAuditLogs(query: ListAuditLogsQuery) {
+  const filter: FilterQuery<IAuditLog> = {};
+  if (query.action) filter.action = query.action;
+  if (query.entity) filter.entity = query.entity;
+
+  const skip = (query.page - 1) * query.limit;
+
+  const [logs, total] = await Promise.all([
+    AuditLog.find(filter)
+      .populate("user", "name email role")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(query.limit)
+      .lean(),
+    AuditLog.countDocuments(filter),
+  ]);
+
+  return { logs, total };
 }
