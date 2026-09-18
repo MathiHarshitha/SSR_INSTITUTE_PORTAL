@@ -48,8 +48,14 @@ router.patch(
   courseController.updateCourseStatus
 );
 
-// Curriculum (modules) nested under their course.
-router.get("/:courseId/modules", authenticate, authorize("ADMIN"), moduleController.listModules);
+// Curriculum (modules) nested under their course. Trainers get read access too — they
+// tag materials/tasks to a module — but only admins can author the curriculum itself.
+router.get(
+  "/:courseId/modules",
+  authenticate,
+  authorize("ADMIN", "TRAINER"),
+  moduleController.listModules
+);
 router.post(
   "/:courseId/modules",
   authenticate,

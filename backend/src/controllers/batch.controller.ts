@@ -7,12 +7,12 @@ import { BatchStatus } from "../models/Batch";
 
 export const listBatches = asyncHandler(async (req: Request, res: Response) => {
   const query = req.query as unknown as ListBatchesQuery;
-  const { batches, total } = await batchService.listBatchesAdmin(query);
+  const { batches, total } = await batchService.listBatchesAdmin(req.user!.id, req.user!.role, query);
   sendSuccess(res, 200, "Batches fetched", batches, buildPaginationMeta(query.page, query.limit, total));
 });
 
 export const getBatch = asyncHandler(async (req: Request, res: Response) => {
-  const batch = await batchService.getBatchById(req.params.id as string);
+  const batch = await batchService.getBatchById(req.params.id as string, req.user!.id, req.user!.role);
   sendSuccess(res, 200, "Batch fetched", batch);
 });
 
@@ -37,7 +37,11 @@ export const updateBatchStatus = asyncHandler(async (req: Request, res: Response
 });
 
 export const listBatchStudents = asyncHandler(async (req: Request, res: Response) => {
-  const students = await batchService.listBatchStudents(req.params.id as string);
+  const students = await batchService.listBatchStudents(
+    req.params.id as string,
+    req.user!.id,
+    req.user!.role
+  );
   sendSuccess(res, 200, "Enrolled students fetched", students);
 });
 

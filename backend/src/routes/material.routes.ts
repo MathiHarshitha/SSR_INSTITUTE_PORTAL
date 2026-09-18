@@ -1,0 +1,21 @@
+import { Router } from "express";
+import * as materialController from "../controllers/material.controller";
+import { authenticate } from "../middleware/authenticate";
+import { authorize } from "../middleware/authorize";
+import { validateBody, validateQuery } from "../middleware/validate";
+import {
+  createMaterialSchema,
+  listMaterialsQuerySchema,
+  updateMaterialSchema,
+} from "../validators/material.validator";
+
+const router = Router();
+
+router.use(authenticate, authorize("ADMIN", "TRAINER"));
+
+router.get("/", validateQuery(listMaterialsQuerySchema), materialController.listMaterials);
+router.post("/", validateBody(createMaterialSchema), materialController.createMaterial);
+router.patch("/:id", validateBody(updateMaterialSchema), materialController.updateMaterial);
+router.delete("/:id", materialController.deleteMaterial);
+
+export default router;

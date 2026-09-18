@@ -4,7 +4,9 @@ import { Enrollment } from "../models/Enrollment";
 import { Course } from "../models/Course";
 import { User } from "../models/User";
 import { ApiError } from "../utils/ApiError";
+import { assertBatchAccess } from "../utils/batchAccess";
 import { recordAudit } from "./auditLog.service";
+import { Role } from "../constants/enums";
 import { CreateBatchInput, ListBatchesQuery, UpdateBatchInput } from "../validators/batch.validator";
 
 async function assertCourseExists(courseId: string): Promise<void> {
@@ -42,8 +44,9 @@ async function withEnrollmentCounts(batches: IBatch[]) {
   return batches.map((b) => ({ ...b, enrolledCount: countMap.get(String(b._id)) ?? 0 }));
 }
 
-export async function listBatchesAdmin(query: ListBatchesQuery) {
+export async function listBatchesAdmin(userId: string, role: Role, query: ListBatchesQuery) {
   const filter: FilterQuery<IBatch> = {};
+  if (role === "TRAINER") filter.trainer = userId;
   if (query.status) filter.status = query.status;
   if (query.course) filter.course = query.course;
   if (query.search) filter.name = new RegExp(query.search, "i");
@@ -66,7 +69,9 @@ export async function listBatchesAdmin(query: ListBatchesQuery) {
   return { batches: withCounts, total };
 }
 
-export async function getBatchById(id: string) {
+export async function getBatchById(id: string, userId: string, role: Role) {
+  await assertBatchAccess(id, userId, role);
+
   const batch = await Batch.findById(id)
     .populate("course", "name duration fee")
     .populate("trainer", "name email")
@@ -123,9 +128,8 @@ export async function updateBatchStatus(adminId: string, id: string, status: IBa
   return batch;
 }
 
-export async function listBatchStudents(batchId: string) {
-  const batch = await Batch.findById(batchId).select("_id").lean();
-  if (!batch) throw ApiError.notFound("Batch not found");
+export async function listBatchStudents(batchId: string, userId: string, role: Role) {
+  await assertBatchAccess(batchId, userId, role);
 
   const enrollments = await Enrollment.find({ batch: batchId })
     .populate("student", "name email phone status")

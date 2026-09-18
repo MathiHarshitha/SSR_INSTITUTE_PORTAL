@@ -201,6 +201,71 @@ on top of it.
 |--------|------|------|
 | GET    | `/`  | query: page, limit, action, entity |
 
+### Materials (`/materials`) — ADMIN, TRAINER
+
+Trainers are scoped to their own batches automatically (`assertBatchAccess`); admins see everything.
+
+| Method | Path   | Body |
+|--------|--------|------|
+| GET    | `/`    | query: page, limit, batch, module, search |
+| POST   | `/`    | title, fileUrl, fileType, batch, description?, module? |
+| PATCH  | `/:id` | any subset of the create fields |
+| DELETE | `/:id` | – |
+
+### Class Schedule (`/classes`) — ADMIN, TRAINER
+
+| Method | Path   | Body |
+|--------|--------|------|
+| GET    | `/`    | query: batch, from, to |
+| POST   | `/`    | batch, date, startTime, endTime, topic, module?, description?, meetingLink?, location? |
+| PATCH  | `/:id` | any subset of the create fields |
+| DELETE | `/:id` | – |
+
+### Attendance (`/attendance`) — ADMIN, TRAINER
+
+| Method | Path                  | Body |
+|--------|-----------------------|------|
+| GET    | `/`                   | query: batch, student, date, from, to |
+| POST   | `/mark`               | batch, date, records: [{ student, status, notes? }] — upserts per (student, batch, date), so re-marking edits in place instead of creating duplicates |
+| GET    | `/summary/:batchId`   | – (per-student total/present/absent/late/leave + percentage) |
+
+### Tasks (`/tasks`)
+
+| Method | Path                       | Auth              | Body |
+|--------|----------------------------|-------------------|------|
+| GET    | `/`                        | ADMIN, TRAINER    | query: batch, status, type |
+| POST   | `/`                        | ADMIN, TRAINER    | discriminated on `type`: ASSIGNMENT / QUIZ (questions[]) / PROJECT — see `task.validator.ts` |
+| GET    | `/:id`                     | ADMIN, TRAINER    | – |
+| PATCH  | `/:id`                     | ADMIN, TRAINER    | any subset of the type's fields |
+| PATCH  | `/:id/status`              | ADMIN, TRAINER    | status: DRAFT \| PUBLISHED \| CLOSED |
+| DELETE | `/:id`                     | ADMIN, TRAINER    | – (DRAFT only — publish/close instead of deleting a live task) |
+| GET    | `/:taskId/submissions`     | ADMIN, TRAINER    | – |
+| GET    | `/:taskId/my-submission`   | STUDENT           | – |
+| POST   | `/:taskId/submit`          | STUDENT           | content?, fileUrl?, comments? (rejects if not enrolled in the task's batch; auto-flags LATE past the due date) |
+
+### Submissions (`/submissions`)
+
+| Method | Path                       | Auth           | Body |
+|--------|----------------------------|----------------|------|
+| GET    | `/pending`                 | ADMIN, TRAINER | – (all SUBMITTED/LATE submissions across the trainer's batches, oldest first) |
+| PATCH  | `/:submissionId/evaluate`  | ADMIN, TRAINER | marks, feedback? (rejects marks over the task's maxMarks) |
+
+### Mock Interviews (`/interviews`)
+
+| Method | Path             | Auth                    | Body |
+|--------|------------------|-------------------------|------|
+| GET    | `/`              | any authenticated user  | Trainers see only interviews they're interviewing; students see only their own; admins can filter by student/interviewer |
+| POST   | `/`              | ADMIN, TRAINER          | student, date, time, type, batch?, meetingLink?, topics?, notes? |
+| PATCH  | `/:id`           | ADMIN, TRAINER          | any subset of the schedule fields |
+| PATCH  | `/:id/feedback`  | ADMIN, TRAINER          | rating, result, strengths?, weaknesses?, feedback?, recommendation? |
+| DELETE | `/:id`           | ADMIN, TRAINER          | – |
+
+### Trainer Dashboard (`/dashboard`) — TRAINER only
+
+| Method | Path        | Body |
+|--------|-------------|------|
+| GET    | `/trainer`  | – (assignedBatches, totalStudents, todaysClasses, pendingEvaluations, upcomingInterviews, recentAnnouncements) |
+
 ## Roadmap
 
 Built so far (Phase 1–2 of the spec's implementation order):
@@ -240,12 +305,36 @@ Built so far (Phase 3, in progress):
       Attendance and Task models from Phase 5/6, which don't exist yet. Building it now would
       mean either fake data or an empty shell, so it's left for after those phases land.
 
+Built so far (Phase 5, complete):
+
+- [x] Trainer Dashboard: assigned batches, total students, today's classes, pending evaluations,
+      upcoming interviews, and recent announcements — one aggregation endpoint, no hardcoded numbers
+- [x] My Batches: read-only view of a trainer's own assigned batches with a student roster and
+      per-student attendance % (enforced server-side — a trainer can never see another trainer's
+      batch, verified with a live cross-trainer 403 test)
+- [x] Class Schedule: create/edit/delete classes per batch, upcoming/past split
+- [x] Materials: upload notes/videos/links (as URLs — real file storage is still a later infra
+      phase) tagged to a course module, searchable and filterable by batch
+- [x] Tasks: create Assignments, Quizzes (MCQ builder), and Projects; publish/close lifecycle;
+      students can submit (needed to make evaluation testable); trainers evaluate with a
+      server-enforced marks-cannot-exceed-max-marks check
+- [x] Submissions: both a per-task view and a cross-batch "pending evaluations" queue
+- [x] Attendance: mark a whole batch for a date in one action, upsert-based so re-marking edits
+      in place rather than creating duplicates (verified live), plus a live percentage summary
+- [x] Mock Interviews: schedule, and record rating/strengths/weaknesses/feedback/result
+
+Every batch-scoped endpoint above (materials, schedule, attendance, tasks, submissions) shares one
+authorization helper (`assertBatchAccess`) that re-fetches the batch and checks its stored trainer
+against the requester — never trusting a role or id the client sends.
+
 Not built yet (later phases — see the full spec for detail):
 
-- [ ] Trainer: batches, schedule, materials, tasks, submissions, attendance, mock interviews
 - [ ] Student: course progress, materials, tasks, attendance, jobs, fees, certificates
-- [ ] Notifications (in-app + email), announcements, audit log UI
-- [ ] File storage abstraction (local dev → S3/Cloudinary-compatible in production)
+      (the trainer-side counterparts above are done; the student-facing views are Phase 6)
+- [ ] Notifications (in-app + email) — the email service abstraction exists but isn't wired to
+      these new events (task published, submission evaluated, interview scheduled, etc.) yet
+- [ ] File storage abstraction (local dev → S3/Cloudinary-compatible in production) — materials
+      and task attachments currently take a plain URL
 - [ ] Automated tests (auth/authorization boundaries especially)
 
 ## Production checklist (partial — grows with each phase)

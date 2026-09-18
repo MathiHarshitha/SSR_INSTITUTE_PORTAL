@@ -13,15 +13,34 @@ import {
 
 const router = Router();
 
-router.use(authenticate, authorize("ADMIN"));
+router.use(authenticate);
 
-router.get("/", validateQuery(listBatchesQuerySchema), batchController.listBatches);
-router.post("/", validateBody(createBatchSchema), batchController.createBatch);
-router.get("/:id", batchController.getBatch);
-router.patch("/:id", validateBody(updateBatchSchema), batchController.updateBatch);
-router.patch("/:id/status", validateBody(updateBatchStatusSchema), batchController.updateBatchStatus);
-router.get("/:id/students", batchController.listBatchStudents);
-router.post("/:id/students", validateBody(enrollStudentSchema), batchController.enrollStudent);
-router.delete("/:id/students/:studentId", batchController.removeStudent);
+// Read access: admins see everything, trainers see only their own assigned batches
+// (enforced in the service layer, not just here — never trust the client's role alone).
+router.get(
+  "/",
+  authorize("ADMIN", "TRAINER"),
+  validateQuery(listBatchesQuerySchema),
+  batchController.listBatches
+);
+router.get("/:id", authorize("ADMIN", "TRAINER"), batchController.getBatch);
+router.get("/:id/students", authorize("ADMIN", "TRAINER"), batchController.listBatchStudents);
+
+// Mutations (create/edit/enrollment) stay admin-only.
+router.post("/", authorize("ADMIN"), validateBody(createBatchSchema), batchController.createBatch);
+router.patch("/:id", authorize("ADMIN"), validateBody(updateBatchSchema), batchController.updateBatch);
+router.patch(
+  "/:id/status",
+  authorize("ADMIN"),
+  validateBody(updateBatchStatusSchema),
+  batchController.updateBatchStatus
+);
+router.post(
+  "/:id/students",
+  authorize("ADMIN"),
+  validateBody(enrollStudentSchema),
+  batchController.enrollStudent
+);
+router.delete("/:id/students/:studentId", authorize("ADMIN"), batchController.removeStudent);
 
 export default router;

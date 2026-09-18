@@ -9,6 +9,13 @@ import announcementRoutes from "./announcement.routes";
 import auditLogRoutes from "./auditLog.routes";
 import moduleRoutes from "./module.routes";
 import lessonRoutes from "./lesson.routes";
+import materialRoutes from "./material.routes";
+import classScheduleRoutes from "./classSchedule.routes";
+import attendanceRoutes from "./attendance.routes";
+import taskRoutes from "./task.routes";
+import submissionRoutes from "./submission.routes";
+import mockInterviewRoutes from "./mockInterview.routes";
+import trainerDashboardRoutes from "./trainerDashboard.routes";
 
 const router = Router();
 
@@ -22,5 +29,12 @@ router.use("/announcements", announcementRoutes);
 router.use("/audit-logs", auditLogRoutes);
 router.use("/modules", moduleRoutes);
 router.use("/lessons", lessonRoutes);
+router.use("/materials", materialRoutes);
+router.use("/classes", classScheduleRoutes);
+router.use("/attendance", attendanceRoutes);
+router.use("/tasks", taskRoutes);
+router.use("/submissions", submissionRoutes);
+router.use("/interviews", mockInterviewRoutes);
+router.use("/dashboard", trainerDashboardRoutes);
 
 export default router;
