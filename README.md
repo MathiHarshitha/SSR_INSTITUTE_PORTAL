@@ -133,6 +133,25 @@ errors }` on failure. Base path: `/api/v1`.
 
 Courses are never hard-deleted — `PATCH /:id/status` with `ARCHIVED` is the soft-delete path.
 
+### Modules & Lessons (curriculum, nested under a course)
+
+| Method | Path                                    | Auth  | Body |
+|--------|------------------------------------------|-------|------|
+| GET    | `/courses/:courseId/modules`             | ADMIN | – |
+| POST   | `/courses/:courseId/modules`             | ADMIN | name, description?, estimatedDuration? |
+| PATCH  | `/courses/:courseId/modules/reorder`     | ADMIN | orderedIds: string[] (sets `order` = array index) |
+| PATCH  | `/modules/:id`                           | ADMIN | any subset of the create fields |
+| DELETE | `/modules/:id`                           | ADMIN | – (cascades: deletes the module's lessons too) |
+| GET    | `/modules/:moduleId/lessons`             | ADMIN | – |
+| POST   | `/modules/:moduleId/lessons`             | ADMIN | title, description?, estimatedMinutes? |
+| PATCH  | `/modules/:moduleId/lessons/reorder`     | ADMIN | orderedIds: string[] |
+| PATCH  | `/lessons/:id`                           | ADMIN | any subset of the create fields |
+| DELETE | `/lessons/:id`                           | ADMIN | – |
+
+Managed from `/admin/courses/[id]` (reached via "Manage curriculum" on a course row) — this is
+what Trainer materials/tasks and Student course-progress will reference once those phases build
+on top of it.
+
 ### Batches (`/batches`) — ADMIN only
 
 | Method | Path                          | Body |
@@ -215,7 +234,8 @@ Built so far (Phase 3, in progress):
 - [x] Admin Announcements page: publish to everyone/students/trainers/a batch/a course, with
       priority and an optional expiry date
 - [x] Admin Audit Logs page: read-only feed of every admin action recorded above
-- [ ] Modules/Lessons (syllabus structure within a course — still not built)
+- [x] Modules/Lessons: curriculum management nested under each course, with drag-free up/down
+      reordering for both modules and lessons within a module
 - [ ] Full Reports module — deferred: meaningful attendance/course-completion reports need the
       Attendance and Task models from Phase 5/6, which don't exist yet. Building it now would
       mean either fake data or an empty shell, so it's left for after those phases land.

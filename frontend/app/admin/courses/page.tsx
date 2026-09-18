@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, ChevronLeft, ChevronRight, MoreHorizontal, Plus, Pencil } from "lucide-react";
+import Link from "next/link";
+import { Search, ChevronLeft, ChevronRight, MoreHorizontal, Plus, Pencil, ListTree } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLinkItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -198,6 +200,10 @@ export default function AdminCoursesPage() {
                             <MoreHorizontal className="h-4 w-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                            <DropdownMenuLinkItem render={<Link href={`/admin/courses/${course._id}`} />}>
+                              <ListTree className="h-4 w-4" />
+                              Manage curriculum
+                            </DropdownMenuLinkItem>
                             <DropdownMenuItem onClick={() => openEdit(course)}>
                               <Pencil className="h-4 w-4" />
                               Edit

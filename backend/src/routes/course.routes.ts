@@ -1,5 +1,6 @@
 import { Router } from "express";
 import * as courseController from "../controllers/course.controller";
+import * as moduleController from "../controllers/module.controller";
 import { authenticate } from "../middleware/authenticate";
 import { authorize } from "../middleware/authorize";
 import { validateBody, validateQuery } from "../middleware/validate";
@@ -9,6 +10,7 @@ import {
   updateCourseSchema,
   updateCourseStatusSchema,
 } from "../validators/course.validator";
+import { createModuleSchema, reorderModulesSchema } from "../validators/module.validator";
 
 const router = Router();
 
@@ -44,6 +46,23 @@ router.patch(
   authorize("ADMIN"),
   validateBody(updateCourseStatusSchema),
   courseController.updateCourseStatus
+);
+
+// Curriculum (modules) nested under their course.
+router.get("/:courseId/modules", authenticate, authorize("ADMIN"), moduleController.listModules);
+router.post(
+  "/:courseId/modules",
+  authenticate,
+  authorize("ADMIN"),
+  validateBody(createModuleSchema),
+  moduleController.createModule
+);
+router.patch(
+  "/:courseId/modules/reorder",
+  authenticate,
+  authorize("ADMIN"),
+  validateBody(reorderModulesSchema),
+  moduleController.reorderModules
 );
 
 export default router;
