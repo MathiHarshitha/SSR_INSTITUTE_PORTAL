@@ -88,9 +88,10 @@ export async function listPayments(query: ListPaymentsQuery) {
   return { payments, total };
 }
 
-export async function listFeeStatus(query: ListFeeStatusQuery) {
+export async function listFeeStatus(query: ListFeeStatusQuery, studentId?: string) {
   const filter: FilterQuery<Record<string, unknown>> = {};
   if (query.batch) filter.batch = query.batch;
+  if (studentId) filter.student = studentId;
 
   const enrollments = await Enrollment.find(filter)
     .populate("student", "name email")
@@ -155,6 +156,14 @@ export async function getPaymentHistory(studentId: string, batchId: string) {
   return Payment.find({ student: studentId, batch: batchId })
     .sort({ paymentDate: -1 })
     .populate("recordedBy", "name")
+    .lean();
+}
+
+export async function getMyPayments(studentId: string) {
+  return Payment.find({ student: studentId })
+    .populate("batch", "name")
+    .populate("course", "name")
+    .sort({ paymentDate: -1 })
     .lean();
 }
 

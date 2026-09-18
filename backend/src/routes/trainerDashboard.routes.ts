@@ -6,5 +6,6 @@ import { authorize } from "../middleware/authorize";
 const router = Router();
 
 router.get("/trainer", authenticate, authorize("TRAINER"), trainerDashboardController.getTrainerDashboard);
+router.get("/student", authenticate, authorize("STUDENT"), trainerDashboardController.getStudentDashboard);
 
 export default router;

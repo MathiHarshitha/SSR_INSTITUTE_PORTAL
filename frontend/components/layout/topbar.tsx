@@ -1,21 +1,19 @@
 "use client";
 
-import { Bell, LogOut, Menu, User as UserIcon } from "lucide-react";
+import { useState } from "react";
+import { Bell, Menu } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuLinkItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ProfileSheet } from "@/components/layout/profile-sheet";
 import { AuthUser } from "@/types/auth";
-import { useLogout } from "@/hooks/useAuth";
-import Link from "next/link";
 
 interface TopbarProps {
   user: AuthUser;
@@ -33,8 +31,7 @@ function initials(name: string): string {
 }
 
 export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
-  const logout = useLogout();
-  const profileHref = `/${user.role.toLowerCase()}/profile`;
+  const [profileOpen, setProfileOpen] = useState(false);
 
   return (
     <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 sm:px-6">
@@ -71,36 +68,21 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger className="flex items-center gap-2 rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring">
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
-                {initials(user.name)}
-              </AvatarFallback>
-            </Avatar>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>
-              <p className="text-sm font-medium">{user.name}</p>
-              <p className="truncate text-xs font-normal text-muted-foreground">{user.email}</p>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuLinkItem render={<Link href={profileHref} />}>
-              <UserIcon className="h-4 w-4" />
-              Profile
-            </DropdownMenuLinkItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => logout.mutate()}
-              disabled={logout.isPending}
-            >
-              <LogOut className="h-4 w-4" />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <button
+          type="button"
+          onClick={() => setProfileOpen(true)}
+          className="flex items-center gap-2 rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Open account panel"
+        >
+          <Avatar className="h-9 w-9">
+            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+              {initials(user.name)}
+            </AvatarFallback>
+          </Avatar>
+        </button>
       </div>
+
+      <ProfileSheet user={user} open={profileOpen} onOpenChange={setProfileOpen} />
     </header>
   );
 }

@@ -3,6 +3,8 @@ import { ApiSuccessResponse } from "@/types/auth";
 import {
   PendingSubmissionRow,
   SubmissionRow,
+  StudentTask,
+  SubmitTaskInput,
   TaskFormInput,
   TaskListQuery,
   TaskStatus,
@@ -54,6 +56,26 @@ export const taskService = {
     const { data } = await apiClient.patch<ApiSuccessResponse<SubmissionRow>>(
       `/submissions/${submissionId}/evaluate`,
       { marks, feedback }
+    );
+    return data.data;
+  },
+
+  async listForStudent(query: TaskListQuery) {
+    const { data } = await apiClient.get<ApiSuccessResponse<StudentTask[]>>("/tasks", { params: query });
+    return data.data;
+  },
+
+  async getMySubmission(taskId: string) {
+    const { data } = await apiClient.get<ApiSuccessResponse<SubmissionRow | null>>(
+      `/tasks/${taskId}/my-submission`
+    );
+    return data.data;
+  },
+
+  async submitTask(taskId: string, input: SubmitTaskInput) {
+    const { data } = await apiClient.post<ApiSuccessResponse<SubmissionRow>>(
+      `/tasks/${taskId}/submit`,
+      input
     );
     return data.data;
   },

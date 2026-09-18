@@ -15,9 +15,14 @@ const router = Router();
 
 router.use(authenticate);
 
-router.get("/", authorize("ADMIN", "TRAINER"), validateQuery(listTasksQuerySchema), taskController.listTasks);
+router.get(
+  "/",
+  authorize("ADMIN", "TRAINER", "STUDENT"),
+  validateQuery(listTasksQuerySchema),
+  taskController.listTasks
+);
 router.post("/", authorize("ADMIN", "TRAINER"), validateBody(createTaskSchema), taskController.createTask);
-router.get("/:id", authorize("ADMIN", "TRAINER"), taskController.getTask);
+router.get("/:id", authorize("ADMIN", "TRAINER", "STUDENT"), taskController.getTask);
 router.patch(
   "/:id",
   authorize("ADMIN", "TRAINER"),

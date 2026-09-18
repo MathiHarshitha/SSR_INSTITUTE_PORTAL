@@ -57,3 +57,29 @@ export interface JobApplicationRow {
   statusNote?: string;
   appliedAt: string;
 }
+
+export interface StudentJob {
+  _id: string;
+  company: string;
+  title: string;
+  description: string;
+  location?: string;
+  workMode: WorkMode;
+  salaryRange?: string;
+  skills: string[];
+  minExperienceYears: number;
+  educationRequirement?: string;
+  applicationDeadline: string;
+  openings: number;
+  jobLink?: string;
+  isEligible: boolean;
+  applicationStatus: ApplicationStatus | null;
+}
+
+export interface StudentApplication {
+  _id: string;
+  job: { _id: string; company: string; title: string; applicationDeadline: string; status: JobStatus };
+  status: ApplicationStatus;
+  statusNote?: string;
+  appliedAt: string;
+}

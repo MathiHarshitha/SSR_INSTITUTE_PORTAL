@@ -7,10 +7,20 @@ import { listAttendanceQuerySchema, markAttendanceSchema } from "../validators/a
 
 const router = Router();
 
-router.use(authenticate, authorize("ADMIN", "TRAINER"));
+router.use(authenticate);
 
-router.get("/", validateQuery(listAttendanceQuerySchema), attendanceController.listAttendance);
-router.post("/mark", validateBody(markAttendanceSchema), attendanceController.markAttendance);
-router.get("/summary/:batchId", attendanceController.getSummary);
+router.get(
+  "/",
+  authorize("ADMIN", "TRAINER", "STUDENT"),
+  validateQuery(listAttendanceQuerySchema),
+  attendanceController.listAttendance
+);
+router.post(
+  "/mark",
+  authorize("ADMIN", "TRAINER"),
+  validateBody(markAttendanceSchema),
+  attendanceController.markAttendance
+);
+router.get("/summary/:batchId", authorize("ADMIN", "TRAINER", "STUDENT"), attendanceController.getSummary);
 
 export default router;

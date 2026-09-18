@@ -53,6 +53,27 @@ export const listApplications = asyncHandler(async (req: Request, res: Response)
   );
 });
 
+export const listPublicJobs = asyncHandler(async (req: Request, res: Response) => {
+  const jobs = await jobService.listPublishedJobsForStudent(req.user!.id);
+  sendSuccess(res, 200, "Jobs fetched", jobs);
+});
+
+export const applyToJob = asyncHandler(async (req: Request, res: Response) => {
+  const { resumeUrl } = req.body as { resumeUrl?: string };
+  const application = await jobService.applyToJob(req.user!.id, req.params.id as string, resumeUrl);
+  sendSuccess(res, 201, "Application submitted", application);
+});
+
+export const listMyApplications = asyncHandler(async (req: Request, res: Response) => {
+  const applications = await jobService.listMyApplications(req.user!.id);
+  sendSuccess(res, 200, "Applications fetched", applications);
+});
+
+export const withdrawApplication = asyncHandler(async (req: Request, res: Response) => {
+  const application = await jobService.withdrawApplication(req.user!.id, req.params.applicationId as string);
+  sendSuccess(res, 200, "Application withdrawn", application);
+});
+
 export const updateApplicationStatus = asyncHandler(async (req: Request, res: Response) => {
   const { status, statusNote } = req.body as { status: ApplicationStatus; statusNote?: string };
   const application = await jobService.updateApplicationStatus(

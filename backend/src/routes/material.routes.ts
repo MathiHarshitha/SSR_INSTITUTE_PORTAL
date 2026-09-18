@@ -11,11 +11,21 @@ import {
 
 const router = Router();
 
-router.use(authenticate, authorize("ADMIN", "TRAINER"));
+router.use(authenticate);
 
-router.get("/", validateQuery(listMaterialsQuerySchema), materialController.listMaterials);
-router.post("/", validateBody(createMaterialSchema), materialController.createMaterial);
-router.patch("/:id", validateBody(updateMaterialSchema), materialController.updateMaterial);
-router.delete("/:id", materialController.deleteMaterial);
+router.get(
+  "/",
+  authorize("ADMIN", "TRAINER", "STUDENT"),
+  validateQuery(listMaterialsQuerySchema),
+  materialController.listMaterials
+);
+router.post("/", authorize("ADMIN", "TRAINER"), validateBody(createMaterialSchema), materialController.createMaterial);
+router.patch(
+  "/:id",
+  authorize("ADMIN", "TRAINER"),
+  validateBody(updateMaterialSchema),
+  materialController.updateMaterial
+);
+router.delete("/:id", authorize("ADMIN", "TRAINER"), materialController.deleteMaterial);
 
 export default router;

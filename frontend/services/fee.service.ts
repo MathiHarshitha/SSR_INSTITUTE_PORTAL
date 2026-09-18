@@ -42,4 +42,14 @@ export const feeService = {
     );
     return data.data;
   },
+
+  async getMyStatus() {
+    const { data } = await apiClient.get<ApiSuccessResponse<FeeStatusRow[]>>("/fees/my-status");
+    return data.data;
+  },
+
+  async getMyPayments() {
+    const { data } = await apiClient.get<ApiSuccessResponse<PaymentRecord[]>>("/fees/my-payments");
+    return data.data;
+  },
 };

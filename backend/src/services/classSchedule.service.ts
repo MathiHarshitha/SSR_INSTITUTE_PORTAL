@@ -1,7 +1,7 @@
 import { FilterQuery } from "mongoose";
 import { ClassSchedule, IClassSchedule } from "../models/ClassSchedule";
 import { ApiError } from "../utils/ApiError";
-import { assertBatchAccess, listTrainerBatchIds } from "../utils/batchAccess";
+import { assertBatchAccess, listStudentBatchIds, listTrainerBatchIds } from "../utils/batchAccess";
 import { recordAudit } from "./auditLog.service";
 import { Role } from "../constants/enums";
 import {
@@ -37,6 +37,8 @@ export async function listClasses(userId: string, role: Role, query: ListClassSc
     filter.batch = query.batch;
   } else if (role === "TRAINER") {
     filter.batch = { $in: await listTrainerBatchIds(userId) };
+  } else if (role === "STUDENT") {
+    filter.batch = { $in: await listStudentBatchIds(userId) };
   }
 
   if (query.from || query.to) {

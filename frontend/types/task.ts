@@ -84,6 +84,16 @@ export interface SubmissionRow {
   feedback?: string;
 }
 
+export interface StudentTask extends Omit<TrainerTask, "submissionCount"> {
+  mySubmission: { task: string; status: SubmissionStatus; marks?: number } | null;
+}
+
+export interface SubmitTaskInput {
+  content?: string;
+  fileUrl?: string;
+  comments?: string;
+}
+
 export interface PendingSubmissionRow {
   _id: string;
   task: { _id: string; title: string; type: TaskType; maxMarks: number; dueDate: string };

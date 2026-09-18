@@ -3,7 +3,7 @@ import { Task, ITask } from "../models/Task";
 import { Submission } from "../models/Submission";
 import { Enrollment } from "../models/Enrollment";
 import { ApiError } from "../utils/ApiError";
-import { assertBatchAccess, listTrainerBatchIds } from "../utils/batchAccess";
+import { assertBatchAccess, listStudentBatchIds, listTrainerBatchIds } from "../utils/batchAccess";
 import { recordAudit } from "./auditLog.service";
 import { Role } from "../constants/enums";
 import {
@@ -29,12 +29,31 @@ export async function listTasks(userId: string, role: Role, query: ListTasksQuer
     filter.batch = query.batch;
   } else if (role === "TRAINER") {
     filter.batch = { $in: await listTrainerBatchIds(userId) };
+  } else if (role === "STUDENT") {
+    filter.batch = { $in: await listStudentBatchIds(userId) };
   }
 
-  if (query.status) filter.status = query.status;
   if (query.type) filter.type = query.type;
 
+  if (role === "STUDENT") {
+    // Students never see drafts, regardless of what status filter they ask for.
+    filter.status = query.status && query.status !== "DRAFT" ? query.status : { $ne: "DRAFT" };
+  } else if (query.status) {
+    filter.status = query.status;
+  }
+
   const tasks = await Task.find(filter).sort({ dueDate: 1 }).lean();
+
+  if (role === "STUDENT") {
+    const mySubmissions = await Submission.find({
+      student: userId,
+      task: { $in: tasks.map((t) => t._id) },
+    })
+      .select("task status marks")
+      .lean();
+    const subMap = new Map(mySubmissions.map((s) => [String(s.task), s]));
+    return tasks.map((t) => ({ ...t, mySubmission: subMap.get(String(t._id)) ?? null }));
+  }
 
   const submissionCounts = await Submission.aggregate<{ _id: unknown; count: number }>([
     { $match: { task: { $in: tasks.map((t) => t._id) } } },

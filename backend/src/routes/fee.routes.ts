@@ -12,14 +12,30 @@ import {
 
 const router = Router();
 
-router.use(authenticate, authorize("ADMIN"));
+router.use(authenticate);
 
-router.get("/status", validateQuery(listFeeStatusQuerySchema), feeController.listFeeStatus);
-router.get("/payments", validateQuery(listPaymentsQuerySchema), feeController.listPayments);
-router.post("/payments", validateBody(recordPaymentSchema), feeController.recordPayment);
-router.get("/payments/:studentId/:batchId", feeController.getPaymentHistory);
+// Student-facing — read-only, always scoped to the requester themselves.
+router.get("/my-status", authorize("STUDENT"), feeController.getMyFeeStatus);
+router.get("/my-payments", authorize("STUDENT"), feeController.getMyPayments);
+
+// Admin fee management.
+router.get(
+  "/status",
+  authorize("ADMIN"),
+  validateQuery(listFeeStatusQuerySchema),
+  feeController.listFeeStatus
+);
+router.get(
+  "/payments",
+  authorize("ADMIN"),
+  validateQuery(listPaymentsQuerySchema),
+  feeController.listPayments
+);
+router.post("/payments", authorize("ADMIN"), validateBody(recordPaymentSchema), feeController.recordPayment);
+router.get("/payments/:studentId/:batchId", authorize("ADMIN"), feeController.getPaymentHistory);
 router.patch(
   "/enrollments/:enrollmentId/discount",
+  authorize("ADMIN"),
   validateBody(updateDiscountSchema),
   feeController.updateDiscount
 );

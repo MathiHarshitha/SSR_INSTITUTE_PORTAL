@@ -30,6 +30,20 @@ export function usePaymentHistory(studentId: string | null, batchId: string | nu
   });
 }
 
+export function useMyFeeStatus() {
+  return useQuery({
+    queryKey: [FEES_KEY, "my-status"],
+    queryFn: () => feeService.getMyStatus(),
+  });
+}
+
+export function useMyPayments() {
+  return useQuery({
+    queryKey: [FEES_KEY, "my-payments"],
+    queryFn: () => feeService.getMyPayments(),
+  });
+}
+
 export function useRecordPayment() {
   const queryClient = useQueryClient();
   return useMutation({

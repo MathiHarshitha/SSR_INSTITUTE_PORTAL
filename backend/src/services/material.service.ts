@@ -1,7 +1,7 @@
 import { FilterQuery } from "mongoose";
 import { Material, IMaterial } from "../models/Material";
 import { ApiError } from "../utils/ApiError";
-import { assertBatchAccess, listTrainerBatchIds } from "../utils/batchAccess";
+import { assertBatchAccess, listStudentBatchIds, listTrainerBatchIds } from "../utils/batchAccess";
 import { recordAudit } from "./auditLog.service";
 import { Role } from "../constants/enums";
 import {
@@ -42,6 +42,8 @@ export async function listMaterials(userId: string, role: Role, query: ListMater
   } else if (role === "TRAINER") {
     // No specific batch requested — scope to batches this trainer owns.
     filter.batch = { $in: await listTrainerBatchIds(userId) };
+  } else if (role === "STUDENT") {
+    filter.batch = { $in: await listStudentBatchIds(userId) };
   }
 
   if (query.module) filter.module = query.module;

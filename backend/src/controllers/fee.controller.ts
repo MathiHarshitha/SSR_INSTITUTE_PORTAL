@@ -25,6 +25,16 @@ export const listFeeStatus = asyncHandler(async (req: Request, res: Response) =>
   sendSuccess(res, 200, "Fee status fetched", rows, buildPaginationMeta(query.page, query.limit, total));
 });
 
+export const getMyFeeStatus = asyncHandler(async (req: Request, res: Response) => {
+  const { rows } = await feeService.listFeeStatus({ page: 1, limit: 100 }, req.user!.id);
+  sendSuccess(res, 200, "Fee status fetched", rows);
+});
+
+export const getMyPayments = asyncHandler(async (req: Request, res: Response) => {
+  const payments = await feeService.getMyPayments(req.user!.id);
+  sendSuccess(res, 200, "Payments fetched", payments);
+});
+
 export const getPaymentHistory = asyncHandler(async (req: Request, res: Response) => {
   const history = await feeService.getPaymentHistory(
     req.params.studentId as string,

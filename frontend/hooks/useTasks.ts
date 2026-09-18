@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { taskService } from "@/services/task.service";
 import { extractErrorMessage } from "@/lib/api-client";
-import { TaskFormInput, TaskListQuery, TaskStatus } from "@/types/task";
+import { SubmitTaskInput, TaskFormInput, TaskListQuery, TaskStatus } from "@/types/task";
 
 const KEY = "tasks";
 
@@ -85,6 +85,33 @@ export function useEvaluateSubmission(taskId: string) {
     onSuccess: () => {
       toast.success("Submission evaluated");
       queryClient.invalidateQueries({ queryKey: [KEY, "submissions", taskId] });
+      queryClient.invalidateQueries({ queryKey: [KEY] });
+    },
+    onError: (error) => toast.error(extractErrorMessage(error)),
+  });
+}
+
+export function useStudentTasks(query: TaskListQuery) {
+  return useQuery({
+    queryKey: [KEY, "student", query],
+    queryFn: () => taskService.listForStudent(query),
+  });
+}
+
+export function useMySubmission(taskId: string | null) {
+  return useQuery({
+    queryKey: [KEY, "my-submission", taskId],
+    queryFn: () => taskService.getMySubmission(taskId as string),
+    enabled: !!taskId,
+  });
+}
+
+export function useSubmitTask(taskId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: SubmitTaskInput) => taskService.submitTask(taskId, input),
+    onSuccess: () => {
+      toast.success("Task submitted");
       queryClient.invalidateQueries({ queryKey: [KEY] });
     },
     onError: (error) => toast.error(extractErrorMessage(error)),

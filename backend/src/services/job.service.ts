@@ -1,6 +1,8 @@
-import { FilterQuery } from "mongoose";
+import mongoose, { FilterQuery } from "mongoose";
 import { Job, IJob } from "../models/Job";
 import { JobApplication, IJobApplication } from "../models/JobApplication";
+import { Enrollment } from "../models/Enrollment";
+import { Attendance } from "../models/Attendance";
 import { ApiError } from "../utils/ApiError";
 import { recordAudit } from "./auditLog.service";
 import {
@@ -104,6 +106,100 @@ export async function listApplicationsForJob(jobId: string, query: ListApplicati
   ]);
 
   return { applications, total };
+}
+
+async function getStudentOverallAttendancePercent(studentId: string): Promise<number | null> {
+  const stats = await Attendance.aggregate<{ total: number; present: number }>([
+    { $match: { student: new mongoose.Types.ObjectId(studentId) } },
+    {
+      $group: {
+        _id: null,
+        total: { $sum: 1 },
+        present: { $sum: { $cond: [{ $in: ["$status", ["PRESENT", "LATE"]] }, 1, 0] } },
+      },
+    },
+  ]);
+  if (!stats.length || stats[0].total === 0) return null;
+  return Math.round((stats[0].present / stats[0].total) * 100);
+}
+
+export async function listPublishedJobsForStudent(studentId: string) {
+  const enrolledCourseIds = (await Enrollment.find({ student: studentId }).select("course").lean()).map(
+    (e) => String(e.course)
+  );
+  const attendancePercent = await getStudentOverallAttendancePercent(studentId);
+
+  const jobs = await Job.find({ status: "PUBLISHED", applicationDeadline: { $gte: new Date() } })
+    .populate("eligibleCourses", "name")
+    .sort({ applicationDeadline: 1 })
+    .lean();
+
+  const myApplications = await JobApplication.find({ student: studentId })
+    .select("job status")
+    .lean();
+  const appliedMap = new Map(myApplications.map((a) => [String(a.job), a.status]));
+
+  return jobs.map((job) => {
+    const courseMatch =
+      job.eligibleCourses.length === 0 ||
+      job.eligibleCourses.some((c) => enrolledCourseIds.includes(String((c as { _id: unknown })._id)));
+    const attendanceMatch =
+      job.minAttendancePercent == null ||
+      attendancePercent == null ||
+      attendancePercent >= job.minAttendancePercent;
+
+    return {
+      ...job,
+      isEligible: courseMatch && attendanceMatch,
+      applicationStatus: appliedMap.get(String(job._id)) ?? null,
+    };
+  });
+}
+
+export async function applyToJob(studentId: string, jobId: string, resumeUrl?: string) {
+  const job = await Job.findById(jobId).lean();
+  if (!job) throw ApiError.notFound("Job not found");
+  if (job.status !== "PUBLISHED") throw ApiError.badRequest("This job is not accepting applications");
+  if (job.applicationDeadline < new Date()) {
+    throw ApiError.badRequest("The application deadline has passed");
+  }
+
+  const existing = await JobApplication.findOne({ job: jobId, student: studentId }).lean();
+  if (existing) throw ApiError.conflict("You have already applied to this job");
+
+  const application = await JobApplication.create({
+    job: jobId,
+    student: studentId,
+    resumeUrl,
+  });
+
+  await recordAudit({
+    userId: studentId,
+    action: "JOB_APPLICATION_SUBMITTED",
+    entity: "JobApplication",
+    entityId: application._id,
+  });
+
+  return application;
+}
+
+export async function listMyApplications(studentId: string) {
+  return JobApplication.find({ student: studentId })
+    .populate("job", "title company applicationDeadline status")
+    .sort({ appliedAt: -1 })
+    .lean();
+}
+
+export async function withdrawApplication(studentId: string, applicationId: string) {
+  const application = await JobApplication.findOne({ _id: applicationId, student: studentId });
+  if (!application) throw ApiError.notFound("Application not found");
+  if (["SELECTED", "REJECTED", "WITHDRAWN"].includes(application.status)) {
+    throw ApiError.badRequest(`Cannot withdraw an application that is already ${application.status}`);
+  }
+
+  application.status = "WITHDRAWN";
+  await application.save();
+  return application;
 }
 
 export async function updateApplicationStatus(

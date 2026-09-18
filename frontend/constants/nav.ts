@@ -39,6 +39,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: "Reports", href: "/admin/reports", icon: BarChart3 },
     { label: "Announcements", href: "/admin/announcements", icon: Megaphone },
     { label: "Audit Logs", href: "/admin/audit-logs", icon: ShieldCheck },
+    { label: "Profile", href: "/admin/profile", icon: User },
   ],
   TRAINER: [
     { label: "Dashboard", href: "/trainer/dashboard", icon: LayoutDashboard },

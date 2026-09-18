@@ -14,6 +14,11 @@ import {
   ResetPasswordInput,
   VerifyOtpInput,
 } from "../validators/auth.validator";
+import {
+  UpdateMeInput,
+  UpdateStudentProfileInput,
+  UpdateTrainerProfileInput,
+} from "../validators/profile.validator";
 
 const REFRESH_COOKIE_NAME = "refreshToken";
 
@@ -62,6 +67,27 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 export const getMe = asyncHandler(async (req: Request, res: Response) => {
   const result = await authService.getCurrentUser(req.user!.id);
   sendSuccess(res, 200, "Current user fetched", result);
+});
+
+export const updateMe = asyncHandler(async (req: Request, res: Response) => {
+  const result = await authService.updateOwnUser(req.user!.id, req.body as UpdateMeInput);
+  sendSuccess(res, 200, "Profile updated", result);
+});
+
+export const updateMyStudentProfile = asyncHandler(async (req: Request, res: Response) => {
+  const profile = await authService.updateOwnStudentProfile(
+    req.user!.id,
+    req.body as UpdateStudentProfileInput
+  );
+  sendSuccess(res, 200, "Profile updated", profile);
+});
+
+export const updateMyTrainerProfile = asyncHandler(async (req: Request, res: Response) => {
+  const profile = await authService.updateOwnTrainerProfile(
+    req.user!.id,
+    req.body as UpdateTrainerProfileInput
+  );
+  sendSuccess(res, 200, "Profile updated", profile);
 });
 
 export const refreshAccessToken = asyncHandler(async (req: Request, res: Response) => {

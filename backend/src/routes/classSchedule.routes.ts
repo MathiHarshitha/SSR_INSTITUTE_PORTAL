@@ -11,11 +11,21 @@ import {
 
 const router = Router();
 
-router.use(authenticate, authorize("ADMIN", "TRAINER"));
+router.use(authenticate);
 
-router.get("/", validateQuery(listClassSchedulesQuerySchema), classScheduleController.listClasses);
-router.post("/", validateBody(createClassScheduleSchema), classScheduleController.createClass);
-router.patch("/:id", validateBody(updateClassScheduleSchema), classScheduleController.updateClass);
-router.delete("/:id", classScheduleController.deleteClass);
+router.get(
+  "/",
+  authorize("ADMIN", "TRAINER", "STUDENT"),
+  validateQuery(listClassSchedulesQuerySchema),
+  classScheduleController.listClasses
+);
+router.post("/", authorize("ADMIN", "TRAINER"), validateBody(createClassScheduleSchema), classScheduleController.createClass);
+router.patch(
+  "/:id",
+  authorize("ADMIN", "TRAINER"),
+  validateBody(updateClassScheduleSchema),
+  classScheduleController.updateClass
+);
+router.delete("/:id", authorize("ADMIN", "TRAINER"), classScheduleController.deleteClass);
 
 export default router;

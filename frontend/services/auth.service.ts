@@ -6,6 +6,13 @@ import {
   RegisterStudentFormValues,
   RegisterTrainerFormValues,
 } from "@/schemas/auth.schema";
+import {
+  StudentProfileData,
+  TrainerProfileData,
+  UpdateMeInput,
+  UpdateStudentProfileInput,
+  UpdateTrainerProfileInput,
+} from "@/types/profile";
 
 /** Empty strings from untouched optional inputs (date/select) must become
  * `undefined` so JSON.stringify drops them — the backend's `.optional()`
@@ -80,6 +87,27 @@ export const authService = {
 
   async getMe() {
     const { data } = await apiClient.get<ApiSuccessResponse<AuthUser>>("/auth/me");
+    return data.data;
+  },
+
+  async updateMe(input: UpdateMeInput) {
+    const { data } = await apiClient.patch<ApiSuccessResponse<AuthUser>>("/auth/me", input);
+    return data.data;
+  },
+
+  async updateStudentProfile(input: UpdateStudentProfileInput) {
+    const { data } = await apiClient.patch<ApiSuccessResponse<StudentProfileData>>(
+      "/auth/me/student-profile",
+      pruneEmptyStrings(input)
+    );
+    return data.data;
+  },
+
+  async updateTrainerProfile(input: UpdateTrainerProfileInput) {
+    const { data } = await apiClient.patch<ApiSuccessResponse<TrainerProfileData>>(
+      "/auth/me/trainer-profile",
+      pruneEmptyStrings(input)
+    );
     return data.data;
   },
 };

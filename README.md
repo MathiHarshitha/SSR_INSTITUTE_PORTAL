@@ -260,11 +260,42 @@ Trainers are scoped to their own batches automatically (`assertBatchAccess`); ad
 | PATCH  | `/:id/feedback`  | ADMIN, TRAINER          | rating, result, strengths?, weaknesses?, feedback?, recommendation? |
 | DELETE | `/:id`           | ADMIN, TRAINER          | – |
 
-### Trainer Dashboard (`/dashboard`) — TRAINER only
+### Dashboards (`/dashboard`)
 
-| Method | Path        | Body |
-|--------|-------------|------|
-| GET    | `/trainer`  | – (assignedBatches, totalStudents, todaysClasses, pendingEvaluations, upcomingInterviews, recentAnnouncements) |
+| Method | Path        | Auth    | Body |
+|--------|-------------|---------|------|
+| GET    | `/trainer`  | TRAINER | – (assignedBatches, totalStudents, todaysClasses, pendingEvaluations, upcomingInterviews, recentAnnouncements) |
+| GET    | `/student`  | STUDENT | – (enrollment, courseProgress, attendancePercentage, pendingTasksCount, upcomingClasses, upcomingInterviews, feeDue, recentAnnouncements, recentGrades) |
+
+### Course Progress (`/progress`) — STUDENT only
+
+| Method | Path                          | Body |
+|--------|-------------------------------|------|
+| GET    | `/courses/:courseId`          | – (overall %, per-module %, per-lesson completed flag) |
+| POST   | `/lessons/:lessonId/complete` | – |
+| DELETE | `/lessons/:lessonId/complete` | – |
+
+### Student read access on existing modules
+
+These reuse the same routes documented above, with `STUDENT` added to `authorize(...)` and scoped
+to the student's own enrolled batches (never another student's):
+
+| Module      | Route(s)                                    | Student-specific behavior |
+|-------------|----------------------------------------------|----------------------------|
+| Materials   | `GET /materials`                              | scoped to enrolled batches |
+| Schedule    | `GET /classes`                                | scoped to enrolled batches |
+| Tasks       | `GET /tasks`, `GET /tasks/:id`                | never returns DRAFT tasks; each task includes the student's own `mySubmission` |
+| Attendance  | `GET /attendance`, `GET /attendance/summary/:batchId` | always forced to the requester's own student id, regardless of query params |
+| Fees        | `GET /fees/my-status`, `GET /fees/my-payments` | own records only |
+
+### Jobs — student side (`/jobs`)
+
+| Method | Path                                    | Body |
+|--------|-------------------------------------------|------|
+| GET    | `/public`                                 | – (published, non-expired jobs with `isEligible` and `applicationStatus` computed) |
+| POST   | `/:id/apply`                              | resumeUrl? (rejects if not PUBLISHED, deadline passed, or already applied) |
+| GET    | `/applications/me`                        | – |
+| POST   | `/applications/:applicationId/withdraw`   | – (blocked once SELECTED/REJECTED/WITHDRAWN) |
 
 ## Roadmap
 
@@ -327,10 +358,34 @@ Every batch-scoped endpoint above (materials, schedule, attendance, tasks, submi
 authorization helper (`assertBatchAccess`) that re-fetches the batch and checks its stored trainer
 against the requester — never trusting a role or id the client sends.
 
+Built so far (Phase 6, complete):
+
+- [x] Course Progress: a new `LessonProgress` model (nothing tracked completion before this) +
+      per-module and overall percentage computed from completed/total lessons; students toggle
+      lessons complete/incomplete from `/student/course` (verified live: 0% → 50% after completing
+      1 of 2 lessons)
+- [x] Student Dashboard: course progress, attendance %, pending tasks, upcoming classes, upcoming
+      interviews, fee due, recent announcements, recent grades — one aggregation endpoint, every
+      number cross-checked live against the individual endpoints it's built from
+- [x] Materials, Class Schedule, Tasks, Attendance: read access opened to STUDENT, scoped to their
+      own enrolled batches via the same `assertBatchAccess` helper trainers use (extended to check
+      enrollment, not just trainer assignment) — a student querying a batch they're not enrolled in
+      gets a real 403, verified live with a second student account
+- [x] Tasks: students see only PUBLISHED/CLOSED tasks (never DRAFT) plus their own submission
+      status per task; can submit/update a submission until it's evaluated
+- [x] Attendance: a student's own view and summary are filtered to their own row only — never
+      classmates' records, even though the underlying aggregation computes all of them
+- [x] Mock Interviews: read-only, already scoped by role from Phase 5 (no changes needed)
+- [x] Jobs & Applications (completing Phase 8): students browse published jobs with eligibility
+      computed from course match + overall attendance %, apply (blocked on duplicate/expired/
+      unpublished), track status, and withdraw — verified live including the 409 on double-apply
+- [x] Fees (completing Phase 7 for students): read-only own fee status and payment history,
+      reusing the same live-computed status logic admins see
+
 Not built yet (later phases — see the full spec for detail):
 
-- [ ] Student: course progress, materials, tasks, attendance, jobs, fees, certificates
-      (the trainer-side counterparts above are done; the student-facing views are Phase 6)
+- [ ] Certificates (Phase 9) — generation and the public verification page are still stubs
+- [ ] Full Reports module (Phase 10) — deferred, see the Phase 3 note above
 - [ ] Notifications (in-app + email) — the email service abstraction exists but isn't wired to
       these new events (task published, submission evaluated, interview scheduled, etc.) yet
 - [ ] File storage abstraction (local dev → S3/Cloudinary-compatible in production) — materials

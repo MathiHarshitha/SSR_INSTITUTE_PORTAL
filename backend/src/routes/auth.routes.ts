@@ -2,6 +2,7 @@ import { Router } from "express";
 import * as authController from "../controllers/auth.controller";
 import { validateBody } from "../middleware/validate";
 import { authenticate } from "../middleware/authenticate";
+import { authorize } from "../middleware/authorize";
 import { authLimiter, otpLimiter } from "../middleware/rateLimiters";
 import {
   forgotPasswordSchema,
@@ -11,6 +12,11 @@ import {
   resetPasswordSchema,
   verifyOtpSchema,
 } from "../validators/auth.validator";
+import {
+  updateMeSchema,
+  updateStudentProfileSchema,
+  updateTrainerProfileSchema,
+} from "../validators/profile.validator";
 import { z } from "zod";
 
 const router = Router();
@@ -54,5 +60,20 @@ router.post(
 );
 
 router.get("/me", authenticate, authController.getMe);
+router.patch("/me", authenticate, validateBody(updateMeSchema), authController.updateMe);
+router.patch(
+  "/me/student-profile",
+  authenticate,
+  authorize("STUDENT"),
+  validateBody(updateStudentProfileSchema),
+  authController.updateMyStudentProfile
+);
+router.patch(
+  "/me/trainer-profile",
+  authenticate,
+  authorize("TRAINER"),
+  validateBody(updateTrainerProfileSchema),
+  authController.updateMyTrainerProfile
+);
 
 export default router;

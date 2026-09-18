@@ -12,6 +12,11 @@ import { ApiError } from "../utils/ApiError";
 import { emailService } from "./email.service";
 import { env } from "../config/env";
 import { RegisterStudentInput, RegisterTrainerInput } from "../validators/auth.validator";
+import {
+  UpdateMeInput,
+  UpdateStudentProfileInput,
+  UpdateTrainerProfileInput,
+} from "../validators/profile.validator";
 
 async function createOtpForUser(userId: mongoose.Types.ObjectId, email: string): Promise<void> {
   const otp = generateOtp(6);
@@ -267,6 +272,50 @@ export async function getCurrentUser(userId: string) {
     lastLoginAt: user.lastLoginAt,
     profile,
   };
+}
+
+export async function updateOwnUser(userId: string, input: UpdateMeInput) {
+  const user = await User.findById(userId);
+  if (!user) throw ApiError.notFound("Account not found");
+
+  Object.assign(user, input);
+  await user.save();
+
+  return getCurrentUser(userId);
+}
+
+export async function updateOwnStudentProfile(userId: string, input: UpdateStudentProfileInput) {
+  const user = await User.findById(userId).select("role").lean();
+  if (!user || user.role !== "STUDENT") throw ApiError.forbidden("Only students have this profile");
+
+  const sanitized = Object.fromEntries(
+    Object.entries(input).filter(([, value]) => value !== "")
+  );
+
+  const profile = await StudentProfile.findOneAndUpdate(
+    { user: userId },
+    { $set: sanitized },
+    { new: true, upsert: true }
+  );
+
+  return profile;
+}
+
+export async function updateOwnTrainerProfile(userId: string, input: UpdateTrainerProfileInput) {
+  const user = await User.findById(userId).select("role").lean();
+  if (!user || user.role !== "TRAINER") throw ApiError.forbidden("Only trainers have this profile");
+
+  const sanitized = Object.fromEntries(
+    Object.entries(input).filter(([, value]) => value !== "")
+  );
+
+  const profile = await TrainerProfile.findOneAndUpdate(
+    { user: userId },
+    { $set: sanitized },
+    { new: true, upsert: true }
+  );
+
+  return profile;
 }
 
 export async function forgotPassword(email: string): Promise<void> {

@@ -1,6 +1,6 @@
 import mongoose, { FilterQuery } from "mongoose";
 import { Attendance, IAttendance } from "../models/Attendance";
-import { assertBatchAccess, listTrainerBatchIds } from "../utils/batchAccess";
+import { assertBatchAccess, listStudentBatchIds, listTrainerBatchIds } from "../utils/batchAccess";
 import { recordAudit } from "./auditLog.service";
 import { Role } from "../constants/enums";
 import { ListAttendanceQuery, MarkAttendanceInput } from "../validators/attendance.validator";
@@ -51,9 +51,15 @@ export async function listAttendance(userId: string, role: Role, query: ListAtte
     filter.batch = query.batch;
   } else if (role === "TRAINER") {
     filter.batch = { $in: await listTrainerBatchIds(userId) };
+  } else if (role === "STUDENT") {
+    filter.batch = { $in: await listStudentBatchIds(userId) };
   }
 
-  if (query.student) filter.student = query.student;
+  // Students can only ever see their own attendance — ignore any `student`
+  // filter they pass and force it to themselves; other roles may filter freely.
+  if (role === "STUDENT") filter.student = userId;
+  else if (query.student) filter.student = query.student;
+
   if (query.date) filter.date = toDayStart(query.date);
   else if (query.from || query.to) {
     filter.date = {};
@@ -91,8 +97,8 @@ export async function getAttendanceSummary(batchId: string, userId: string, role
     },
   ]);
 
-  return summary.map((s) => ({
-    student: s._id,
+  const rows = summary.map((s) => ({
+    student: String(s._id),
     total: s.total,
     present: s.present,
     absent: s.absent,
@@ -100,4 +106,7 @@ export async function getAttendanceSummary(batchId: string, userId: string, role
     leave: s.leave,
     percentage: s.total > 0 ? Math.round(((s.present + s.late) / s.total) * 100) : 0,
   }));
+
+  // A student's own summary never includes classmates' rows.
+  return role === "STUDENT" ? rows.filter((r) => r.student === userId) : rows;
 }
