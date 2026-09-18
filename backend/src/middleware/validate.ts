@@ -18,10 +18,22 @@ export function validateBody(schema: ZodType) {
   };
 }
 
+/**
+ * Express 5 makes req.query a getter with no setter (`req.query = x` throws
+ * "Cannot set property query of #<IncomingMessage> which has only a getter").
+ * It's defined per-request as a configurable own property, so redefining it
+ * via defineProperty works where plain assignment doesn't.
+ */
 export function validateQuery(schema: ZodType) {
   return (req: Request, _res: Response, next: NextFunction): void => {
     try {
-      req.query = schema.parse(req.query) as unknown as Request["query"];
+      const parsed = schema.parse(req.query);
+      Object.defineProperty(req, "query", {
+        value: parsed,
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
       next();
     } catch (error) {
       if (error instanceof ZodError) {

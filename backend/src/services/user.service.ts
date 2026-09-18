@@ -2,11 +2,40 @@ import { FilterQuery } from "mongoose";
 import { User, IUser } from "../models/User";
 import { StudentProfile } from "../models/StudentProfile";
 import { TrainerProfile } from "../models/TrainerProfile";
+import { Course } from "../models/Course";
 import { ApiError } from "../utils/ApiError";
 import { emailService } from "./email.service";
 import { recordAudit } from "./auditLog.service";
 import { ListUsersQuery } from "../validators/user.validator";
 import { UserStatus } from "../constants/enums";
+
+interface RoleStatusBucket {
+  _id: { role: string; status: string };
+  count: number;
+}
+
+export async function getUserStats() {
+  const [buckets, totalCourses] = await Promise.all([
+    User.aggregate<RoleStatusBucket>([
+      { $group: { _id: { role: "$role", status: "$status" }, count: { $sum: 1 } } },
+    ]),
+    Course.countDocuments({ status: "PUBLISHED" }),
+  ]);
+
+  const empty = { total: 0, active: 0, pending: 0, blocked: 0, rejected: 0, suspended: 0 };
+  const students = { ...empty };
+  const trainers = { ...empty };
+
+  for (const bucket of buckets) {
+    const target = bucket._id.role === "STUDENT" ? students : bucket._id.role === "TRAINER" ? trainers : null;
+    if (!target) continue;
+    target.total += bucket.count;
+    const key = bucket._id.status.toLowerCase() as keyof typeof empty;
+    if (key in target) target[key] += bucket.count;
+  }
+
+  return { students, trainers, totalCourses };
+}
 
 export async function listUsers(query: ListUsersQuery) {
   const filter: FilterQuery<IUser> = {};

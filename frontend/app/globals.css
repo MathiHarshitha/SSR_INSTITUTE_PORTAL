@@ -23,6 +23,13 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-series-student: var(--series-student);
+  --color-series-trainer: var(--series-trainer);
+  --color-status-good: var(--status-good);
+  --color-status-warning: var(--status-warning);
+  --color-status-serious: var(--status-serious);
+  --color-status-critical: var(--status-critical);
+  --color-status-neutral: var(--status-neutral);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -73,6 +80,15 @@
   --chart-3: #f97316;
   --chart-4: #7c3aed;
   --chart-5: #059669;
+  /* Chart series colors — validated for CVD-safe adjacent separation (dataviz skill) */
+  --series-student: #2a78d6;
+  --series-trainer: #eb6834;
+  /* Status colors — reserved for status chips (always paired with a text label), not chart series */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --status-neutral: #64748b;
   --radius: 0.625rem;
   --sidebar: #0f172a;
   --sidebar-foreground: #e2e8f0;
@@ -108,6 +124,13 @@
   --chart-3: #fb923c;
   --chart-4: #a78bfa;
   --chart-5: #34d399;
+  --series-student: #3987e5;
+  --series-trainer: #d95926;
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --status-neutral: #94a3b8;
   --sidebar: #060b14;
   --sidebar-foreground: #e2e8f0;
   --sidebar-primary: #14b8a6;

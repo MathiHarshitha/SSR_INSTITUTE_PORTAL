@@ -10,6 +10,7 @@ const router = Router();
 router.use(authenticate, authorize("ADMIN"));
 
 router.get("/", validateQuery(listUsersQuerySchema), userController.listUsers);
+router.get("/stats", userController.getUserStats);
 router.get("/:id", userController.getUser);
 router.patch("/:id/approve", userController.approveUser);
 router.patch("/:id/reject", validateBody(rejectUserSchema), userController.rejectUser);

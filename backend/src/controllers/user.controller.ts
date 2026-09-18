@@ -4,6 +4,11 @@ import { sendSuccess, buildPaginationMeta } from "../utils/apiResponse";
 import * as userService from "../services/user.service";
 import { ListUsersQuery } from "../validators/user.validator";
 
+export const getUserStats = asyncHandler(async (_req: Request, res: Response) => {
+  const stats = await userService.getUserStats();
+  sendSuccess(res, 200, "User stats fetched", stats);
+});
+
 export const listUsers = asyncHandler(async (req: Request, res: Response) => {
   const query = req.query as unknown as ListUsersQuery;
   const { users, total } = await userService.listUsers(query);

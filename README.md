@@ -111,6 +111,7 @@ errors }` on failure. Base path: `/api/v1`.
 | Method | Path                    | Body            |
 |--------|-------------------------|-----------------|
 | GET    | `/`                     | query: page, limit, search, role, status, sortBy, sortOrder |
+| GET    | `/stats`                | – (counts by role × status, plus published course count) |
 | GET    | `/:id`                  | –               |
 | PATCH  | `/:id/approve`          | –               |
 | PATCH  | `/:id/reject`           | reason?         |
@@ -118,6 +119,12 @@ errors }` on failure. Base path: `/api/v1`.
 | PATCH  | `/:id/unblock`          | –               |
 | PATCH  | `/:id/suspend`          | reason?         |
 | PATCH  | `/:id/reactivate`       | –               |
+
+### Courses (`/courses`)
+
+| Method | Path | Auth | Body |
+|--------|------|------|------|
+| GET    | `/`  | –    | – (published courses only — used by the registration form's course picker) |
 
 ## Roadmap
 
@@ -130,10 +137,20 @@ Built so far (Phase 1–2 of the spec's implementation order):
       email service abstraction
 - [x] Responsive dashboard shell (sidebar, topbar, mobile nav) with role-based navigation
 - [x] Landing page, all auth pages, certificate-verification route stub
+- [x] Placeholder pages for every dashboard route (no dead links while later phases are built)
+- [x] Public course listing endpoint + course selection on student registration
+
+Built so far (Phase 3, in progress):
+
+- [x] Admin dashboard: real user/course stats (`GET /users/stats`) and a status-breakdown chart —
+      no hardcoded numbers
+- [x] Admin Users page: search, role/status filters, pagination, view profile, approve, reject
+      (with reason), block, unblock, suspend, reactivate — all backed by the endpoints above
+- [ ] Course/module/batch CRUD, fee & payment management, placements, reports, announcements,
+      audit log UI (still later in Phase 3 / subsequent phases)
 
 Not built yet (later phases — see the full spec for detail):
 
-- [ ] Admin: user management UI, course/module/batch CRUD, fee & payment management, reports
 - [ ] Trainer: batches, schedule, materials, tasks, submissions, attendance, mock interviews
 - [ ] Student: course progress, materials, tasks, attendance, jobs, fees, certificates
 - [ ] Notifications (in-app + email), announcements, audit log UI
