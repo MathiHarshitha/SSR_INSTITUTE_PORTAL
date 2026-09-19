@@ -3,6 +3,8 @@ import { MockInterview, IMockInterview } from "../models/MockInterview";
 import { User } from "../models/User";
 import { ApiError } from "../utils/ApiError";
 import { recordAudit } from "./auditLog.service";
+import { notifyUser } from "./notification.service";
+import { emailService } from "./email.service";
 import { Role } from "../constants/enums";
 import {
   ListInterviewsQuery,
@@ -11,16 +13,17 @@ import {
   UpdateInterviewInput,
 } from "../validators/mockInterview.validator";
 
-async function assertStudentValid(studentId: string): Promise<void> {
-  const student = await User.findOne({ _id: studentId, role: "STUDENT" }).select("_id").lean();
+async function assertStudentValid(studentId: string) {
+  const student = await User.findOne({ _id: studentId, role: "STUDENT" }).select("name email").lean();
   if (!student) throw ApiError.badRequest("Selected student does not exist");
+  return student;
 }
 
 export async function scheduleInterview(
   interviewerId: string,
   input: ScheduleInterviewInput
 ) {
-  await assertStudentValid(input.student);
+  const student = await assertStudentValid(input.student);
 
   const interview = await MockInterview.create({
     ...input,
@@ -28,6 +31,19 @@ export async function scheduleInterview(
     interviewer: interviewerId,
     createdBy: interviewerId,
   });
+
+  await notifyUser(input.student, {
+    type: "INTERVIEW_SCHEDULED",
+    title: "Mock interview scheduled",
+    message: `A ${input.type.toLowerCase()} interview is scheduled on ${interview.date.toDateString()} at ${interview.time}.`,
+    link: "/student/interviews",
+  });
+  await emailService.sendInterviewScheduled(
+    student.email,
+    student.name,
+    interview.date.toDateString(),
+    interview.time
+  );
 
   await recordAudit({
     userId: interviewerId,

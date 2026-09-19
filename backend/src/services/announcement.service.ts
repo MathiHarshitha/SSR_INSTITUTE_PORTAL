@@ -1,17 +1,54 @@
 import { Announcement } from "../models/Announcement";
+import { User } from "../models/User";
+import { Enrollment } from "../models/Enrollment";
 import { ApiError } from "../utils/ApiError";
 import { recordAudit } from "./auditLog.service";
+import { notifyUsers } from "./notification.service";
 import {
   CreateAnnouncementInput,
   ListAnnouncementsQuery,
 } from "../validators/announcement.validator";
 
+async function resolveAudienceUserIds(
+  audience: CreateAnnouncementInput["audience"],
+  batch?: string,
+  course?: string
+): Promise<string[]> {
+  switch (audience) {
+    case "EVERYONE":
+      return (await User.find({ status: "ACTIVE" }).select("_id").lean()).map((u) => String(u._id));
+    case "STUDENTS":
+      return (await User.find({ status: "ACTIVE", role: "STUDENT" }).select("_id").lean()).map((u) =>
+        String(u._id)
+      );
+    case "TRAINERS":
+      return (await User.find({ status: "ACTIVE", role: "TRAINER" }).select("_id").lean()).map((u) =>
+        String(u._id)
+      );
+    case "BATCH":
+      return (await Enrollment.find({ batch }).select("student").lean()).map((e) => String(e.student));
+    case "COURSE":
+      return (await Enrollment.find({ course }).select("student").lean()).map((e) => String(e.student));
+  }
+}
+
 export async function createAnnouncement(adminId: string, input: CreateAnnouncementInput) {
+  const publishAt = input.publishAt ?? new Date();
+
   const announcement = await Announcement.create({
     ...input,
-    publishAt: input.publishAt ?? new Date(),
+    publishAt,
     createdBy: adminId,
   });
+
+  if (publishAt <= new Date()) {
+    const recipientIds = await resolveAudienceUserIds(input.audience, input.batch, input.course);
+    await notifyUsers(recipientIds, {
+      type: "ANNOUNCEMENT",
+      title: announcement.title,
+      message: announcement.content,
+    });
+  }
 
   await recordAudit({
     userId: adminId,

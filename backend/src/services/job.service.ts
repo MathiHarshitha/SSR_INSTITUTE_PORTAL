@@ -3,8 +3,11 @@ import { Job, IJob } from "../models/Job";
 import { JobApplication, IJobApplication } from "../models/JobApplication";
 import { Enrollment } from "../models/Enrollment";
 import { Attendance } from "../models/Attendance";
+import { User } from "../models/User";
 import { ApiError } from "../utils/ApiError";
 import { recordAudit } from "./auditLog.service";
+import { notifyUser } from "./notification.service";
+import { emailService } from "./email.service";
 import {
   CreateJobInput,
   ListApplicationsQuery,
@@ -214,6 +217,20 @@ export async function updateApplicationStatus(
   application.status = status;
   if (statusNote !== undefined) application.statusNote = statusNote;
   await application.save();
+
+  const [job, student] = await Promise.all([
+    Job.findById(application.job).select("title company").lean(),
+    User.findById(application.student).select("name email").lean(),
+  ]);
+  if (job && student) {
+    await notifyUser(String(application.student), {
+      type: "APPLICATION_STATUS_CHANGED",
+      title: `Application update: ${job.title}`,
+      message: `Your application to ${job.company} is now ${status.replace("_", " ").toLowerCase()}.`,
+      link: "/student/jobs",
+    });
+    await emailService.sendApplicationStatusChanged(student.email, student.name, job.title, job.company, status);
+  }
 
   await recordAudit({
     userId: adminId,

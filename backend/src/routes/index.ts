@@ -20,6 +20,7 @@ import progressRoutes from "./progress.routes";
 import certificateRoutes from "./certificate.routes";
 import uploadRoutes from "./upload.routes";
 import reportRoutes from "./report.routes";
+import notificationRoutes from "./notification.routes";
 
 const router = Router();
 
@@ -44,5 +45,6 @@ router.use("/progress", progressRoutes);
 router.use("/certificates", certificateRoutes);
 router.use("/uploads", uploadRoutes);
 router.use("/reports", reportRoutes);
+router.use("/notifications", notificationRoutes);
 
 export default router;

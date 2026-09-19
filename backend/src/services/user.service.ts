@@ -6,6 +6,7 @@ import { Course } from "../models/Course";
 import { ApiError } from "../utils/ApiError";
 import { emailService } from "./email.service";
 import { recordAudit } from "./auditLog.service";
+import { notifyUser } from "./notification.service";
 import { ListUsersQuery } from "../validators/user.validator";
 import { UserStatus } from "../constants/enums";
 
@@ -88,6 +89,12 @@ export async function approveUser(adminId: string, userId: string) {
   await user.save();
 
   await emailService.sendAccountApproved(user.email, user.name);
+  await notifyUser(user._id.toString(), {
+    type: "ACCOUNT_APPROVED",
+    title: "Account approved",
+    message: "Your account has been approved. You can now log in to SSR Portal.",
+    link: "/login",
+  });
   await recordAudit({ userId: adminId, action: "USER_APPROVED", entity: "User", entityId: user._id });
 
   return user;

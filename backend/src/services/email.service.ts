@@ -51,4 +51,32 @@ export const emailService = {
       subject: "Reset your SSR Portal password",
       html: `<p>Click the link below to reset your password. This link expires in ${env.resetTokenExpiresMinutes} minutes.</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
     }),
+
+  sendSubmissionEvaluated: (to: string, name: string, taskTitle: string, marks: number, maxMarks: number) =>
+    send({
+      to,
+      subject: `Your submission for "${taskTitle}" has been evaluated`,
+      html: `<p>Hi ${name}, your submission for <strong>${taskTitle}</strong> has been evaluated: ${marks}/${maxMarks}.</p>`,
+    }),
+
+  sendInterviewScheduled: (to: string, name: string, date: string, time: string) =>
+    send({
+      to,
+      subject: "A mock interview has been scheduled for you",
+      html: `<p>Hi ${name}, a mock interview has been scheduled on ${date} at ${time}.</p>`,
+    }),
+
+  sendCertificateIssued: (to: string, name: string, courseName: string, certificateNumber: string) =>
+    send({
+      to,
+      subject: "Your certificate is ready",
+      html: `<p>Hi ${name}, your certificate for <strong>${courseName}</strong> has been issued. Certificate number: ${certificateNumber}.</p>`,
+    }),
+
+  sendApplicationStatusChanged: (to: string, name: string, jobTitle: string, company: string, status: string) =>
+    send({
+      to,
+      subject: `Update on your application to ${company}`,
+      html: `<p>Hi ${name}, your application for <strong>${jobTitle}</strong> at ${company} is now <strong>${status}</strong>.</p>`,
+    }),
 };

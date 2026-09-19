@@ -351,6 +351,23 @@ present/late-out-of-total formula Attendance uses, so the report can never drift
 see on those pages. CSV export is client-side (the browser turns the already-fetched JSON into a
 download) — there is no separate export endpoint.
 
+### Notifications (`/notifications`)
+
+| Method | Path            | Auth | Body |
+|--------|-----------------|------|------|
+| GET    | `/`             | any authenticated user | query: page, limit |
+| GET    | `/unread-count` | any authenticated user | – |
+| PATCH  | `/:id/read`     | any authenticated user | – (only the owning user's notification; 404 for anyone else's) |
+| PATCH  | `/read-all`     | any authenticated user | – |
+
+In-app notifications are created server-side alongside the existing email abstraction at the
+points the README used to flag as "not wired": a task is published (enrolled students), a
+submission is evaluated (that student), a mock interview is scheduled (that student), a
+certificate is issued (that student), a job application's status changes (that student), an
+announcement is published (its resolved audience — batch/course enrollment, or all
+students/trainers/everyone), and a user is approved (rejected users never get an in-app one, since
+a rejected account can never log in to see it — email is the only channel that reaches them).
+
 ## Roadmap
 
 Built so far (Phase 1–2 of the spec's implementation order):
@@ -505,8 +522,23 @@ Built so far (Phase 10, complete):
 
 Not built yet (later phases — see the full spec for detail):
 
-- [ ] Notifications (in-app + email) — the email service abstraction exists but isn't wired to
-      these new events (task published, submission evaluated, interview scheduled, etc.) yet
+Built so far (Phase 11, complete):
+
+- [x] `Notification` model + service (list/unread-count/mark-read/mark-all-read), mounted at
+      `/notifications` for any authenticated role — not admin-only, since every role receives them
+- [x] Wired into 7 event points: task published, submission evaluated, mock interview scheduled,
+      certificate issued, job application status changed, announcement published (audience-resolved:
+      batch/course enrollment or all students/trainers/everyone), and user approved — each pairs an
+      in-app notification with the existing email abstraction, except rejection (email only, since a
+      rejected account can never authenticate to see an in-app one) and announcements (in-app only,
+      to avoid mass-emailing on every admin post)
+- [x] Topbar notification bell: real unread-count badge (polled every 30s), a scrollable dropdown of
+      recent notifications, click-to-navigate for ones with a link, and "mark all read" — replacing
+      the static "0 / you're all caught up" placeholder that was already there
+- [x] Verified live end-to-end (publish a task → enrolled student's unread count increments;
+      an unenrolled student's does not) and with 2 new automated tests covering the cross-user
+      privacy boundary (marking another user's notification read 404s, not just "succeeds on the
+      wrong row")
 
 ## Production checklist (partial — grows with each phase)
 

@@ -2,9 +2,12 @@ import { FilterQuery } from "mongoose";
 import { Task, ITask } from "../models/Task";
 import { Submission } from "../models/Submission";
 import { Enrollment } from "../models/Enrollment";
+import { User } from "../models/User";
 import { ApiError } from "../utils/ApiError";
 import { assertBatchAccess, listStudentBatchIds, listTrainerBatchIds } from "../utils/batchAccess";
 import { recordAudit } from "./auditLog.service";
+import { notifyUser, notifyUsers } from "./notification.service";
+import { emailService } from "./email.service";
 import { Role } from "../constants/enums";
 import {
   CreateTaskInput,
@@ -92,6 +95,18 @@ export async function updateTaskStatus(userId: string, role: Role, id: string, s
 
   task.status = status;
   await task.save();
+
+  if (status === "PUBLISHED") {
+    const studentIds = (await Enrollment.find({ batch: task.batch }).select("student").lean()).map((e) =>
+      String(e.student)
+    );
+    await notifyUsers(studentIds, {
+      type: "TASK_PUBLISHED",
+      title: `New task: ${task.title}`,
+      message: `A new ${task.type.toLowerCase()} is due ${task.dueDate.toDateString()}.`,
+      link: "/student/tasks",
+    });
+  }
 
   await recordAudit({
     userId,
@@ -189,7 +204,7 @@ export async function evaluateSubmission(
 
   await assertBatchAccess(String(submission.batch), userId, role);
 
-  const task = await Task.findById(submission.task).select("maxMarks").lean();
+  const task = await Task.findById(submission.task).select("title maxMarks").lean();
   if (task && marks > task.maxMarks) {
     throw ApiError.badRequest(`Marks cannot exceed the maximum of ${task.maxMarks}`);
   }
@@ -200,6 +215,20 @@ export async function evaluateSubmission(
   submission.set("evaluatedBy", userId);
   submission.evaluatedAt = new Date();
   await submission.save();
+
+  if (task) {
+    await notifyUser(String(submission.student), {
+      type: "SUBMISSION_EVALUATED",
+      title: `"${task.title}" has been evaluated`,
+      message: `You scored ${marks}/${task.maxMarks}.`,
+      link: "/student/tasks",
+    });
+
+    const student = await User.findById(submission.student).select("name email").lean();
+    if (student) {
+      await emailService.sendSubmissionEvaluated(student.email, student.name, task.title, marks, task.maxMarks);
+    }
+  }
 
   await recordAudit({
     userId,

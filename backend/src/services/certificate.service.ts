@@ -7,6 +7,8 @@ import { Enrollment } from "../models/Enrollment";
 import { User } from "../models/User";
 import { ApiError } from "../utils/ApiError";
 import { recordAudit } from "./auditLog.service";
+import { notifyUser } from "./notification.service";
+import { emailService } from "./email.service";
 import { IssueCertificateInput, ListCertificatesQuery } from "../validators/certificate.validator";
 
 function generateCertificateNumber(): string {
@@ -33,7 +35,7 @@ export async function issueCertificate(adminId: string, input: IssueCertificateI
   if (existing) throw ApiError.conflict("An active certificate already exists for this student and batch");
 
   const [student, course] = await Promise.all([
-    User.findById(input.student).select("name").lean(),
+    User.findById(input.student).select("name email").lean(),
     Course.findById(batch.course).select("name").lean(),
   ]);
   if (!student) throw ApiError.notFound("Student not found");
@@ -56,6 +58,19 @@ export async function issueCertificate(adminId: string, input: IssueCertificateI
     }
   }
   if (!certificate) throw ApiError.internal("Could not generate a unique certificate number, try again");
+
+  await notifyUser(input.student, {
+    type: "CERTIFICATE_ISSUED",
+    title: "Certificate issued",
+    message: `Your certificate for ${certificate.courseName} is ready.`,
+    link: "/student/certificates",
+  });
+  await emailService.sendCertificateIssued(
+    student.email,
+    student.name,
+    certificate.courseName,
+    certificate.certificateNumber
+  );
 
   await recordAudit({
     userId: adminId,
