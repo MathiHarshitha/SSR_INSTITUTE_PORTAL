@@ -9,19 +9,26 @@ import { cn } from "cn";
 import { useAuthStore } from "@/store/auth-store";
 import { useUserStats } from "@/hooks/useUsers";
 import { UserStatusChart } from "@/components/admin/user-status-chart";
+import { StatCard, StatCardColor } from "@/components/shared/stat-card";
 
 export default function AdminDashboardPage() {
   const user = useAuthStore((s) => s.user);
   const { data: stats, isLoading, isError } = useUserStats();
 
-  const statCards = stats
-    ? [
-        { label: "Total Students", value: stats.students.total, icon: GraduationCap },
-        { label: "Pending Approvals", value: stats.students.pending + stats.trainers.pending, icon: UserCheck },
-        { label: "Total Trainers", value: stats.trainers.total, icon: Users },
-        { label: "Published Courses", value: stats.totalCourses, icon: BookOpen },
-      ]
-    : [];
+  const statCards: { label: string; value: string | number; icon: typeof Users; color: StatCardColor }[] =
+    stats
+      ? [
+          { label: "Total Students", value: stats.students.total, icon: GraduationCap, color: "primary" },
+          {
+            label: "Pending Approvals",
+            value: stats.students.pending + stats.trainers.pending,
+            icon: UserCheck,
+            color: "accent",
+          },
+          { label: "Total Trainers", value: stats.trainers.total, icon: Users, color: "secondary" },
+          { label: "Published Courses", value: stats.totalCourses, icon: BookOpen, color: "violet" },
+        ]
+      : [];
 
   return (
     <div className="space-y-6">
@@ -51,17 +58,7 @@ export default function AdminDashboardPage() {
                   </CardContent>
                 </Card>
               ))
-            : statCards.map(({ label, value, icon: Icon }) => (
-                <Card key={label}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-foreground">{value}</div>
-                  </CardContent>
-                </Card>
-              ))}
+            : statCards.map((card) => <StatCard key={card.label} {...card} />)}
         </div>
       )}
 
@@ -87,13 +84,17 @@ export default function AdminDashboardPage() {
       </Card>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Coming up next</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>Enrollment, fees &amp; placement analytics</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Charts and exportable reports across every module, computed live.
+            </p>
+          </div>
+          <Link href="/admin/reports" className={cn(buttonVariants({ variant: "outline", size: "sm" }))}>
+            View reports
+          </Link>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          Batch, fee, and placement analytics will appear here once those modules ship in later
-          phases — all backed by real aggregation queries, same as the numbers above.
-        </CardContent>
       </Card>
     </div>
   );

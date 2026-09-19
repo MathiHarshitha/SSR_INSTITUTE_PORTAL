@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { AuthUser } from "@/types/auth";
 import { useLogout } from "@/hooks/useAuth";
@@ -58,6 +58,7 @@ export function ProfileSheet({ user, open, onOpenChange }: ProfileSheetProps) {
           <SheetDescription className="sr-only">Your account details and logout</SheetDescription>
           <div className="flex flex-col items-center gap-3 pt-2 text-center">
             <Avatar className="h-16 w-16">
+              {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
               <AvatarFallback className="bg-primary text-lg font-semibold text-primary-foreground">
                 {initials(user.name)}
               </AvatarFallback>

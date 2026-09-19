@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useReportsOverview } from "@/hooks/useReports";
 import { downloadCsv } from "@/lib/csv";
+import { StatCard } from "@/components/shared/stat-card";
 import {
   ApplicationsByStatusChart,
   AttendanceByBatchChart,
@@ -22,28 +23,6 @@ import {
   EnrollmentsOverTimeChart,
   FeeCollectionChart,
 } from "@/components/admin/reports-charts";
-
-function StatTile({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>;
-}) {
-  return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold text-foreground">{value}</div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function ChartCard({
   title,
@@ -109,37 +88,48 @@ export default function AdminReportsPage() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatTile label="Active Students" value={String(data.summary.totalStudents)} icon={GraduationCap} />
-            <StatTile label="Active Trainers" value={String(data.summary.totalTrainers)} icon={Users} />
-            <StatTile
+            <StatCard
+              label="Active Students"
+              value={data.summary.totalStudents}
+              icon={GraduationCap}
+              color="primary"
+            />
+            <StatCard label="Active Trainers" value={data.summary.totalTrainers} icon={Users} color="secondary" />
+            <StatCard
               label="Revenue Collected"
               value={`₹${data.summary.revenueCollectedTotal.toLocaleString("en-IN")}`}
               icon={Wallet}
+              color="green"
             />
-            <StatTile
+            <StatCard
               label="Revenue Pending"
               value={`₹${data.summary.totalRevenuePending.toLocaleString("en-IN")}`}
               icon={IndianRupee}
+              color="critical"
             />
-            <StatTile
+            <StatCard
               label="Overall Attendance"
               value={`${data.summary.overallAttendance}%`}
               icon={CalendarCheck}
+              color="accent"
             />
-            <StatTile
+            <StatCard
               label="Certificates Issued"
-              value={String(data.summary.totalCertificatesIssued)}
+              value={data.summary.totalCertificatesIssued}
               icon={Award}
+              color="violet"
             />
-            <StatTile
+            <StatCard
               label="Job Applications"
-              value={String(data.summary.totalApplications)}
+              value={data.summary.totalApplications}
               icon={Briefcase}
+              color="secondary"
             />
-            <StatTile
+            <StatCard
               label="Placement Selection Rate"
               value={`${data.summary.placementSelectionRate}%`}
               icon={Briefcase}
+              color="primary"
             />
           </div>
 

@@ -3,10 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, Menu } from "lucide-react";
+import { Bell, GraduationCap, Menu } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   DropdownMenu,
@@ -18,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ProfileSheet } from "@/components/layout/profile-sheet";
+import { roleHomePath } from "@/hooks/useAuth";
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
@@ -92,29 +93,35 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
   const notifications = notificationsData?.notifications ?? [];
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-border bg-card px-4 sm:px-6">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur">
+      <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
         <Button
           variant="ghost"
           size="icon"
-          className="lg:hidden"
+          className="shrink-0 lg:hidden"
           onClick={onOpenMobileSidebar}
-          aria-label="Open sidebar"
+          aria-label="Open menu"
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <h1 className="text-base font-semibold text-foreground sm:text-lg">{title}</h1>
-      </div>
 
-      <div className="flex items-center gap-2 sm:gap-4">
+        <Link href={roleHomePath(user.role)} className="flex shrink-0 items-center gap-2 lg:hidden">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <GraduationCap className="h-5 w-5" />
+          </div>
+        </Link>
+
+        <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">{title}</h1>
+
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
         <DropdownMenu>
           <DropdownMenuTrigger
             className={buttonVariants({ variant: "ghost", size: "icon" }) + " relative"}
             aria-label="Notifications"
           >
-            <Bell className="h-5 w-5" />
+            <Bell className={cn("h-5 w-5", unreadCount > 0 && "text-primary")} />
             {unreadCount > 0 && (
-              <Badge className="absolute -right-1 -top-1 h-4 min-w-4 justify-center rounded-full bg-accent p-0 text-[10px] text-accent-foreground">
+              <Badge className="absolute -right-1 -top-1 h-4 min-w-4 animate-pulse justify-center rounded-full bg-accent p-0 text-[10px] text-accent-foreground">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </Badge>
             )}
@@ -159,12 +166,14 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
           className="flex items-center gap-2 rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="Open account panel"
         >
-          <Avatar className="h-9 w-9">
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
+          <Avatar className="h-9 w-9 ring-2 ring-secondary/40 ring-offset-2 ring-offset-background transition-all hover:ring-secondary/70">
+            {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
+            <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">
               {initials(user.name)}
             </AvatarFallback>
           </Avatar>
         </button>
+        </div>
       </div>
 
       <ProfileSheet user={user} open={profileOpen} onOpenChange={setProfileOpen} />

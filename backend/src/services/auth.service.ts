@@ -278,7 +278,9 @@ export async function updateOwnUser(userId: string, input: UpdateMeInput) {
   const user = await User.findById(userId);
   if (!user) throw ApiError.notFound("Account not found");
 
-  Object.assign(user, input);
+  const { avatarUrl, ...rest } = input;
+  Object.assign(user, rest);
+  if (avatarUrl !== undefined) user.avatarUrl = avatarUrl || undefined;
   await user.save();
 
   return getCurrentUser(userId);

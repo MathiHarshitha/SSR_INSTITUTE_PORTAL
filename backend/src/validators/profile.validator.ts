@@ -8,6 +8,7 @@ export const updateMeSchema = z.object({
     .trim()
     .regex(/^[0-9+\-\s()]{7,20}$/, "Invalid phone number")
     .optional(),
+  avatarUrl: z.string().trim().url("Must be a valid URL").optional().or(z.literal("")),
 });
 
 export const updateStudentProfileSchema = z.object({

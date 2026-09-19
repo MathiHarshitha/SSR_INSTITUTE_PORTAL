@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Pencil } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Camera, Loader2, Pencil } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +18,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useUpdateMe } from "@/hooks/useProfile";
+import { useUploadFile } from "@/hooks/useUpload";
 import { basicInfoSchema, BasicInfoFormValues } from "@/schemas/profile.schema";
 import { AuthUser } from "@/types/auth";
 
@@ -47,6 +48,18 @@ function statusBadgeClassName(status: AuthUser["status"]): string {
 export function BasicInfoCard({ user }: { user: AuthUser }) {
   const [isEditing, setIsEditing] = useState(false);
   const updateMutation = useUpdateMe();
+  const uploadMutation = useUploadFile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function handlePhotoSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    uploadMutation.mutate(
+      { file, folder: "avatars" },
+      { onSuccess: (result) => updateMutation.mutate({ avatarUrl: result.url }) }
+    );
+  }
 
   const form = useForm<BasicInfoFormValues>({
     resolver: zodResolver(basicInfoSchema),
@@ -75,11 +88,34 @@ export function BasicInfoCard({ user }: { user: AuthUser }) {
       </CardHeader>
       <CardContent>
         <div className="mb-4 flex items-center gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarFallback className="bg-primary text-lg font-semibold text-primary-foreground">
-              {initials(user.name)}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative shrink-0">
+            <Avatar className="h-16 w-16">
+              {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
+              <AvatarFallback className="bg-primary text-lg font-semibold text-primary-foreground">
+                {initials(user.name)}
+              </AvatarFallback>
+            </Avatar>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadMutation.isPending}
+              className="absolute -right-1 -bottom-1 flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-sm ring-2 ring-background transition-transform hover:scale-105"
+              aria-label="Change profile photo"
+            >
+              {uploadMutation.isPending ? (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              ) : (
+                <Camera className="h-3 w-3" />
+              )}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePhotoSelected}
+            />
+          </div>
           <div className="flex items-center gap-1.5">
             <Badge variant="outline">{user.role}</Badge>
             <Badge className={statusBadgeClassName(user.status)}>{user.status}</Badge>

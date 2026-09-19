@@ -56,89 +56,89 @@
 }
 
 :root {
-  /* SSR Institute brand palette (spec §46) */
-  --background: #f8fafc;
+  /* SSR Institute brand palette — cool gray-blue + ink/blue (spec §46, refreshed) */
+  --background: #eef2f7;
   --foreground: #0f172a;
   --card: #ffffff;
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  --primary: #0f766e;
+  --primary: #0f172a;
   --primary-foreground: #ffffff;
   --secondary: #2563eb;
   --secondary-foreground: #ffffff;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
-  --accent: #f97316;
+  --accent: #f59e0b;
   --accent-foreground: #ffffff;
   --destructive: #dc2626;
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #0f766e;
-  --chart-1: #0f766e;
-  --chart-2: #2563eb;
-  --chart-3: #f97316;
-  --chart-4: #7c3aed;
-  --chart-5: #059669;
+  --ring: #2563eb;
+  --chart-1: #2563eb;
+  --chart-2: #059669;
+  --chart-3: #d97706;
+  --chart-4: #e11d48;
+  --chart-5: #7c3aed;
   /* Chart series colors — validated for CVD-safe adjacent separation (dataviz skill) */
-  --series-student: #2a78d6;
-  --series-trainer: #eb6834;
+  --series-student: #2563eb;
+  --series-trainer: #d97706;
   /* Status colors — reserved for status chips (always paired with a text label), not chart series */
-  --status-good: #0ca30c;
-  --status-warning: #fab219;
-  --status-serious: #ec835a;
-  --status-critical: #d03b3b;
+  --status-good: #16a34a;
+  --status-warning: #d97706;
+  --status-serious: #f97316;
+  --status-critical: #dc2626;
   --status-neutral: #64748b;
-  --radius: 0.625rem;
-  --sidebar: #0f172a;
-  --sidebar-foreground: #e2e8f0;
-  --sidebar-primary: #0f766e;
+  --radius: 1.1rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0f172a;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e293b;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #1e293b;
-  --sidebar-ring: #0f766e;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #2563eb;
 }
 
 .dark {
   --background: #0b1220;
-  --foreground: #f1f5f9;
+  --foreground: #e2e8f0;
   --card: #111827;
-  --card-foreground: #f1f5f9;
+  --card-foreground: #e2e8f0;
   --popover: #111827;
-  --popover-foreground: #f1f5f9;
-  --primary: #14b8a6;
-  --primary-foreground: #062421;
+  --popover-foreground: #e2e8f0;
+  --primary: #f1f5f9;
+  --primary-foreground: #0f172a;
   --secondary: #3b82f6;
   --secondary-foreground: #ffffff;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
-  --accent: #fb923c;
+  --accent: #f59e0b;
   --accent-foreground: #1c0a00;
   --destructive: #f87171;
   --border: #1e293b;
   --input: #1e293b;
-  --ring: #14b8a6;
-  --chart-1: #14b8a6;
-  --chart-2: #3b82f6;
-  --chart-3: #fb923c;
-  --chart-4: #a78bfa;
-  --chart-5: #34d399;
-  --series-student: #3987e5;
-  --series-trainer: #d95926;
-  --status-good: #0ca30c;
-  --status-warning: #fab219;
-  --status-serious: #ec835a;
-  --status-critical: #d03b3b;
+  --ring: #3b82f6;
+  --chart-1: #3b82f6;
+  --chart-2: #059669;
+  --chart-3: #d97706;
+  --chart-4: #e11d48;
+  --chart-5: #7c3aed;
+  --series-student: #3b82f6;
+  --series-trainer: #d97706;
+  --status-good: #22c55e;
+  --status-warning: #d97706;
+  --status-serious: #fb923c;
+  --status-critical: #f87171;
   --status-neutral: #94a3b8;
-  --sidebar: #060b14;
+  --sidebar: #111827;
   --sidebar-foreground: #e2e8f0;
-  --sidebar-primary: #14b8a6;
-  --sidebar-primary-foreground: #062421;
-  --sidebar-accent: #111e2e;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #111e2e;
-  --sidebar-ring: #14b8a6;
+  --sidebar-primary: #f1f5f9;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #e2e8f0;
+  --sidebar-border: #1e293b;
+  --sidebar-ring: #3b82f6;
 }
 
 @layer base {

@@ -7,17 +7,33 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/store/auth-store";
 import { useStudentDashboard } from "@/hooks/useStudentDashboard";
+import { StatCard, StatCardColor } from "@/components/shared/stat-card";
 
 export default function StudentDashboardPage() {
   const user = useAuthStore((s) => s.user);
   const { data: stats, isLoading, isError } = useStudentDashboard();
 
-  const statCards = stats
+  const statCards: {
+    label: string;
+    value: string | number;
+    icon: typeof GraduationCap;
+    color: StatCardColor;
+  }[] = stats
     ? [
-        { label: "Course Progress", value: `${stats.courseProgress}%`, icon: GraduationCap },
-        { label: "Pending Tasks", value: stats.pendingTasksCount, icon: ClipboardList },
-        { label: "Attendance", value: `${stats.attendancePercentage}%`, icon: CalendarClock },
-        { label: "Fee Due", value: `₹${stats.feeDue.toLocaleString("en-IN")}`, icon: Wallet },
+        { label: "Course Progress", value: `${stats.courseProgress}%`, icon: GraduationCap, color: "primary" },
+        { label: "Pending Tasks", value: stats.pendingTasksCount, icon: ClipboardList, color: "accent" },
+        {
+          label: "Attendance",
+          value: `${stats.attendancePercentage}%`,
+          icon: CalendarClock,
+          color: "secondary",
+        },
+        {
+          label: "Fee Due",
+          value: `₹${stats.feeDue.toLocaleString("en-IN")}`,
+          icon: Wallet,
+          color: stats.feeDue > 0 ? "critical" : "green",
+        },
       ]
     : [];
 
@@ -47,17 +63,7 @@ export default function StudentDashboardPage() {
                   </CardContent>
                 </Card>
               ))
-            : statCards.map(({ label, value, icon: Icon }) => (
-                <Card key={label}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">{label}</CardTitle>
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold text-foreground">{value}</div>
-                  </CardContent>
-                </Card>
-              ))}
+            : statCards.map((card) => <StatCard key={card.label} {...card} />)}
         </div>
       )}
 

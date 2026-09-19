@@ -26,6 +26,7 @@ export interface TrainerProfileData {
 export interface UpdateMeInput {
   name?: string;
   phone?: string;
+  avatarUrl?: string;
 }
 
 export type UpdateStudentProfileInput = Partial<StudentProfileData>;
