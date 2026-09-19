@@ -17,6 +17,8 @@ import submissionRoutes from "./submission.routes";
 import mockInterviewRoutes from "./mockInterview.routes";
 import trainerDashboardRoutes from "./trainerDashboard.routes";
 import progressRoutes from "./progress.routes";
+import certificateRoutes from "./certificate.routes";
+import uploadRoutes from "./upload.routes";
 
 const router = Router();
 
@@ -38,5 +40,7 @@ router.use("/submissions", submissionRoutes);
 router.use("/interviews", mockInterviewRoutes);
 router.use("/dashboard", trainerDashboardRoutes);
 router.use("/progress", progressRoutes);
+router.use("/certificates", certificateRoutes);
+router.use("/uploads", uploadRoutes);
 
 export default router;

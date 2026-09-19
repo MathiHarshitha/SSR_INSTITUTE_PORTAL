@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import mongoose from "mongoose";
+import multer from "multer";
 import { ApiError } from "../utils/ApiError";
 import { sendError } from "../utils/apiResponse";
 import { env } from "../config/env";
@@ -44,6 +45,13 @@ export function errorHandler(
   } else if (isJwtError(err)) {
     statusCode = 401;
     message = "Invalid or expired authentication token";
+  } else if (err instanceof multer.MulterError) {
+    statusCode = 400;
+    message =
+      err.code === "LIMIT_FILE_SIZE" ? "File is too large (max 25MB)" : `Upload error: ${err.message}`;
+  } else if (err instanceof Error && err.message.startsWith("Unsupported file type")) {
+    statusCode = 400;
+    message = err.message;
   } else if (err instanceof Error) {
     message = env.isProduction ? message : err.message;
   }

@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { FileUploadField } from "@/components/shared/file-upload-field";
 import {
   Select,
   SelectContent,
@@ -63,6 +64,7 @@ export function MaterialFormDialog({
   const selectedBatchId = form.watch("batch");
   const selectedBatch = batches.find((b) => b._id === selectedBatchId);
   const { data: modules } = useModules(selectedBatch?.course._id ?? "");
+  const fileType = form.watch("fileType");
 
   useEffect(() => {
     if (!open) return;
@@ -195,9 +197,17 @@ export function MaterialFormDialog({
               name="fileUrl"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>File URL</FormLabel>
+                  <FormLabel>{fileType === "LINK" ? "Link URL" : "File"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="https://..." {...field} />
+                    {fileType === "LINK" ? (
+                      <Input placeholder="https://..." {...field} />
+                    ) : (
+                      <FileUploadField
+                        value={field.value}
+                        onChange={field.onChange}
+                        folder="materials"
+                      />
+                    )}
                   </FormControl>
                   <FormMessage />
                 </FormItem>

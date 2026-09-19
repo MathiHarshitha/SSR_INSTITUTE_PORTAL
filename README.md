@@ -27,7 +27,7 @@ thin; the frontend calls typed **service modules** built on a shared Axios clien
 Zustand, Recharts, Framer Motion, Lucide icons.
 
 **Backend:** Node.js, Express, TypeScript, Mongoose, MongoDB Atlas, JWT, bcryptjs, Zod, Helmet,
-CORS, express-rate-limit.
+CORS, express-rate-limit, Multer, Cloudinary.
 
 ## Authentication & RBAC architecture
 
@@ -76,6 +76,12 @@ Default seed credentials (change immediately outside of local development):
 - Admin: `admin@ssrinstitute.in`
 - Trainers/Students: `student1@ssrinstitute.in` … `student10@ssrinstitute.in`, etc.
 - Password for all seeded accounts: `Passw0rd!` (override with `SEED_PASSWORD` env var)
+
+File uploads (Materials, Task submissions) need a free [Cloudinary](https://cloudinary.com) account —
+set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` in `backend/.env`
+(from the Cloudinary dashboard's API keys page). Without them, `POST /uploads` fails with a clear
+"file storage is not configured" error instead of a silent failure — everything else in the app
+works fine without it.
 
 ### Frontend
 
@@ -201,6 +207,16 @@ on top of it.
 |--------|------|------|
 | GET    | `/`  | query: page, limit, action, entity |
 
+### Uploads (`/uploads`) — any authenticated user
+
+| Method | Path | Auth | Body |
+|--------|------|------|------|
+| POST   | `/`  | ADMIN, TRAINER, STUDENT | multipart/form-data: `file`, `folder?` — streams to Cloudinary (25MB cap, server-side MIME allowlist), returns `{ url, publicId, resourceType, format, bytes, originalName }` |
+
+The returned `url` is only ever meaningful once attached to a record the caller is already
+authorized to create (a material, a submission) — the upload endpoint itself doesn't know or care
+what the file is for.
+
 ### Materials (`/materials`) — ADMIN, TRAINER
 
 Trainers are scoped to their own batches automatically (`assertBatchAccess`); admins see everything.
@@ -297,6 +313,23 @@ to the student's own enrolled batches (never another student's):
 | GET    | `/applications/me`                        | – |
 | POST   | `/applications/:applicationId/withdraw`   | – (blocked once SELECTED/REJECTED/WITHDRAWN) |
 
+### Certificates (`/certificates`)
+
+| Method | Path                       | Auth    | Body |
+|--------|----------------------------|---------|------|
+| GET    | `/verify/:certificateNumber` | –     | – (public — name/course/batch/issue date/status only, no other student data) |
+| GET    | `/my`                      | STUDENT | – |
+| GET    | `/`                        | ADMIN   | query: page, limit, search, status, batch |
+| POST   | `/`                        | ADMIN   | student, batch (batch must be COMPLETED; student must be enrolled in it; rejects a duplicate active certificate for the same student+batch) |
+| GET    | `/:id`                     | ADMIN   | – |
+| PATCH  | `/:id/revoke`              | ADMIN   | reason? |
+
+Certificates are never hard-deleted or edited after issuance — `PATCH /:id/revoke` is the only state
+change, and a revoked certificate still resolves on the public verify page (status `REVOKED`) rather
+than 404ing, so a forged or expired claim reads as invalid instead of merely unknown. Student name,
+course name, and batch name are copied onto the certificate at issue time rather than populated live,
+so verification never depends on — or leaks — the live `User`/`Course`/`Batch` documents.
+
 ## Roadmap
 
 Built so far (Phase 1–2 of the spec's implementation order):
@@ -382,14 +415,41 @@ Built so far (Phase 6, complete):
 - [x] Fees (completing Phase 7 for students): read-only own fee status and payment history,
       reusing the same live-computed status logic admins see
 
+Built so far (Phase 9, complete):
+
+- [x] Certificate model + issuance: admin picks a COMPLETED batch and an enrolled student; server
+      generates a unique certificate number (`SSR-{year}-{random}`) and denormalizes student/course/
+      batch names onto the record at issue time
+- [x] Server-side eligibility checks: batch must be COMPLETED, student must actually be enrolled in
+      it, and issuing a second active certificate for the same student+batch is rejected (409) —
+      verified live end-to-end (issue → duplicate-reject → revoke → re-verify)
+- [x] Admin Certificates page: search/filter/paginate, issue via a batch→student picker (mirrors the
+      Fees "record payment" flow), revoke with an optional reason
+- [x] Student Certificates page: read-only list of the student's own certificates with a link to the
+      public verification page for each
+- [x] Public certificate verification (`/verify-certificate/[certificateId]`, no login required):
+      resolves a certificate number to name/course/batch/issue date/status; a revoked certificate
+      still resolves (status `REVOKED`) rather than 404ing, so it reads as invalid rather than unknown
+
+Built so far (file storage, complete):
+
+- [x] Real file uploads via Cloudinary: a single authenticated `POST /uploads` endpoint (multer,
+      in-memory, 25MB cap, server-side MIME allowlist) streams the file to Cloudinary and returns
+      its URL — no local disk storage, so it works the same in dev and in production
+- [x] Materials: uploading a DOCUMENT/VIDEO/IMAGE/OTHER file now goes through the upload endpoint;
+      the LINK type still takes a plain URL, since a link to external material isn't a file to store
+- [x] Task submissions: students can upload a file the same way, or still paste a link (GitHub repo,
+      etc.) — both land in the same `fileUrl` field, unchanged on the backend
+- [x] `FileUploadField` (frontend, shared) pairs a URL input with an upload button so both flows
+      above share one component instead of duplicating the upload wiring
+- [ ] Not yet wired to profile pictures, course thumbnails, or job-application resumes — those still
+      take a plain URL; the same endpoint/component can be reused there without further backend work
+
 Not built yet (later phases — see the full spec for detail):
 
-- [ ] Certificates (Phase 9) — generation and the public verification page are still stubs
 - [ ] Full Reports module (Phase 10) — deferred, see the Phase 3 note above
 - [ ] Notifications (in-app + email) — the email service abstraction exists but isn't wired to
       these new events (task published, submission evaluated, interview scheduled, etc.) yet
-- [ ] File storage abstraction (local dev → S3/Cloudinary-compatible in production) — materials
-      and task attachments currently take a plain URL
 - [ ] Automated tests (auth/authorization boundaries especially)
 
 ## Production checklist (partial — grows with each phase)
@@ -397,5 +457,6 @@ Not built yet (later phases — see the full spec for detail):
 - [ ] Replace the generated JWT secrets in `backend/.env` before deploying
 - [ ] Point `MONGODB_URI` at a real Atlas cluster
 - [ ] Configure a real SMTP/SES/SendGrid provider in `email.service.ts`
+- [ ] Set `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` in `backend/.env`
 - [ ] Set `CLIENT_URL` (backend) and `NEXT_PUBLIC_API_URL` (frontend) to their production origins
 - [ ] Serve the frontend over Vercel and the backend over Render/Railway/a VPS, each with HTTPS

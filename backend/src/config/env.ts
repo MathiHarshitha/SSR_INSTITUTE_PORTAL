@@ -34,4 +34,10 @@ export const env = {
     user: process.env.SMTP_USER ?? "",
     password: process.env.SMTP_PASSWORD ?? "",
   },
+
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME ?? "",
+    apiKey: process.env.CLOUDINARY_API_KEY ?? "",
+    apiSecret: process.env.CLOUDINARY_API_SECRET ?? "",
+  },
 } as const;

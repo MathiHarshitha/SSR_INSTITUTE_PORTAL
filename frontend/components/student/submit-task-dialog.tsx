@@ -10,9 +10,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { FileUploadField } from "@/components/shared/file-upload-field";
 import { useMySubmission, useSubmitTask } from "@/hooks/useTasks";
 import { StudentTask } from "@/types/task";
 
@@ -69,12 +69,12 @@ export function SubmitTaskDialog({ task, onOpenChange }: SubmitTaskDialogProps) 
         ) : (
           <div className="space-y-3">
             <div className="grid gap-2">
-              <Label htmlFor="submission-url">Submission link</Label>
-              <Input
-                id="submission-url"
-                placeholder="https://... (GitHub repo, file link, etc.)"
+              <Label htmlFor="submission-url">Submission link or file</Label>
+              <FileUploadField
                 value={fileUrl}
-                onChange={(e) => setOverrides((prev) => ({ ...prev, fileUrl: e.target.value }))}
+                onChange={(url) => setOverrides((prev) => ({ ...prev, fileUrl: url }))}
+                folder="submissions"
+                placeholder="https://... (GitHub repo, file link, etc.) or upload a file"
               />
             </div>
             <div className="grid gap-2">
