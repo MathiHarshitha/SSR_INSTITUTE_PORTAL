@@ -6,6 +6,8 @@ function timestamp(): string {
 }
 
 function write(level: string, message: string, meta?: LogMeta): void {
+  if (process.env.NODE_ENV === "test") return;
+
   const line = { timestamp: timestamp(), level, message, ...(meta ? { meta } : {}) };
   if (level === "error") {
     console.error(JSON.stringify(line));

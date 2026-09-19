@@ -27,7 +27,7 @@ thin; the frontend calls typed **service modules** built on a shared Axios clien
 Zustand, Recharts, Framer Motion, Lucide icons.
 
 **Backend:** Node.js, Express, TypeScript, Mongoose, MongoDB Atlas, JWT, bcryptjs, Zod, Helmet,
-CORS, express-rate-limit, Multer, Cloudinary.
+CORS, express-rate-limit, Multer, Cloudinary. **Testing:** Jest, Supertest, mongodb-memory-server.
 
 ## Authentication & RBAC architecture
 
@@ -82,6 +82,13 @@ set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` i
 (from the Cloudinary dashboard's API keys page). Without them, `POST /uploads` fails with a clear
 "file storage is not configured" error instead of a silent failure — everything else in the app
 works fine without it.
+
+Run the backend test suite (spins up its own throwaway in-memory MongoDB — never touches
+`MONGODB_URI` above, so it's safe to run anytime):
+
+```bash
+npm test
+```
 
 ### Frontend
 
@@ -330,6 +337,20 @@ than 404ing, so a forged or expired claim reads as invalid instead of merely unk
 course name, and batch name are copied onto the certificate at issue time rather than populated live,
 so verification never depends on — or leaks — the live `User`/`Course`/`Batch` documents.
 
+### Reports (`/reports`) — ADMIN only
+
+| Method | Path        | Body |
+|--------|-------------|------|
+| GET    | `/overview` | – (summary cards + 5 chart-ready datasets, one aggregation endpoint) |
+
+Returns `{ summary, enrollmentsByCourse, feeCollectionByBatch, attendanceByBatch,
+applicationsByStatus, enrollmentsOverTime }`. Every number is computed live via MongoDB
+aggregation (no cached/precomputed rollups) — fee collection reuses the same
+fee − discount − payments formula the Fees module uses, and attendance reuses the same
+present/late-out-of-total formula Attendance uses, so the report can never drift from what admins
+see on those pages. CSV export is client-side (the browser turns the already-fetched JSON into a
+download) — there is no separate export endpoint.
+
 ## Roadmap
 
 Built so far (Phase 1–2 of the spec's implementation order):
@@ -365,9 +386,9 @@ Built so far (Phase 3, in progress):
 - [x] Admin Audit Logs page: read-only feed of every admin action recorded above
 - [x] Modules/Lessons: curriculum management nested under each course, with drag-free up/down
       reordering for both modules and lessons within a module
-- [ ] Full Reports module — deferred: meaningful attendance/course-completion reports need the
-      Attendance and Task models from Phase 5/6, which don't exist yet. Building it now would
-      mean either fake data or an empty shell, so it's left for after those phases land.
+- [x] Full Reports module — built once Attendance/Task/Payment/Certificate/Placement data actually
+      existed to report on (see Phase 10 below); the "fake data or empty shell" problem this was
+      deferred to avoid no longer applies.
 
 Built so far (Phase 5, complete):
 
@@ -445,12 +466,47 @@ Built so far (file storage, complete):
 - [ ] Not yet wired to profile pictures, course thumbnails, or job-application resumes — those still
       take a plain URL; the same endpoint/component can be reused there without further backend work
 
+Built so far (automated tests, started):
+
+- [x] Backend test harness: Jest + Supertest + `mongodb-memory-server` (a real single-node replica
+      set, not a plain standalone — several services use mongoose transactions, which only run on a
+      replica set), fully isolated from the dev/prod database and from real SMTP — 20 tests, ~30s run
+- [x] Auth flow: register → OTP (wrong code rejected, correct code accepted) → login blocked before
+      verification/before admin approval → login succeeds once ACTIVE → wrong password rejected
+- [x] RBAC: no token / garbage token / wrong role all rejected on an admin-only route; a client-sent
+      `role` in the request body is never honored (`authorize` only ever reads the verified JWT)
+- [x] Live status revocation: a user blocked mid-session is rejected on their very next request even
+      though their access token hasn't expired — `authenticate` re-checks status from the DB every time
+- [x] `assertBatchAccess` (the boundary shared by materials/schedule/attendance/tasks/submissions):
+      a trainer can't reach another trainer's batch, an unenrolled student can't reach a batch, and
+      admins bypass both checks
+- [x] Certificates end-to-end: reject issuing for a non-`COMPLETED` batch, reject an unenrolled
+      student, issue → duplicate-active-certificate rejected (409) → public verify → revoke → verify
+      again shows `REVOKED`; a student only ever sees their own certificates via `/my`
+- [ ] Coverage is intentionally narrow so far — auth and authorization boundaries first, since those
+      are the highest-cost place to be wrong. Everything else (fees, placements, progress tracking,
+      the upload endpoint itself, etc.) still has no test coverage.
+
+Built so far (Phase 10, complete):
+
+- [x] One aggregation endpoint (`GET /reports/overview`) computing everything live via MongoDB
+      aggregation pipelines — enrollments by course, fee collected-vs-pending by batch, attendance %
+      by batch, job applications by status, and enrollments over the last 12 months, plus summary
+      cards (active students/trainers, revenue collected/pending, overall attendance, certificates
+      issued, placement selection rate)
+- [x] Admin Reports page: 5 Recharts charts (grouped/stacked bars, a horizontal bar list instead of
+      a 7-slice pie for applications-by-status, a line chart for the enrollment trend) plus a
+      per-chart "Export CSV" button — verified live against real Atlas data, including RBAC
+      (403 for non-admins, 401 unauthenticated)
+- [x] Chart colors reuse the app's existing validated `--series-student`/`--series-trainer` tokens
+      (already used by the admin dashboard's user-status chart) rather than the unused `--chart-1..5`
+      tokens already in `globals.css` — those failed the dataviz skill's colorblind-separation
+      validator when checked, so they were left alone rather than fixed as a drive-by
+
 Not built yet (later phases — see the full spec for detail):
 
-- [ ] Full Reports module (Phase 10) — deferred, see the Phase 3 note above
 - [ ] Notifications (in-app + email) — the email service abstraction exists but isn't wired to
       these new events (task published, submission evaluated, interview scheduled, etc.) yet
-- [ ] Automated tests (auth/authorization boundaries especially)
 
 ## Production checklist (partial — grows with each phase)
 

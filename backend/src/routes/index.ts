@@ -19,6 +19,7 @@ import trainerDashboardRoutes from "./trainerDashboard.routes";
 import progressRoutes from "./progress.routes";
 import certificateRoutes from "./certificate.routes";
 import uploadRoutes from "./upload.routes";
+import reportRoutes from "./report.routes";
 
 const router = Router();
 
@@ -42,5 +43,6 @@ router.use("/dashboard", trainerDashboardRoutes);
 router.use("/progress", progressRoutes);
 router.use("/certificates", certificateRoutes);
 router.use("/uploads", uploadRoutes);
+router.use("/reports", reportRoutes);
 
 export default router;
