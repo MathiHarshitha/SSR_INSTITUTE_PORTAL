@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   GraduationCap,
-  BookOpen,
   Briefcase,
   Award,
   Users,
@@ -10,14 +9,8 @@ import {
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CoursesSection } from "@/components/home/courses-section";
 import { cn } from "cn";
-
-const COURSES = [
-  { name: "MERN Full Stack", duration: "6 Months", category: "Full Stack" },
-  { name: "Frontend Development", duration: "3 Months", category: "Frontend" },
-  { name: "Python Full Stack", duration: "6 Months", category: "Full Stack" },
-  { name: "Digital Marketing", duration: "2 Months", category: "Marketing" },
-];
 
 const PROCESS_STEPS = [
   { title: "Learn", description: "Structured, module-based curriculum led by industry trainers." },
@@ -105,20 +98,7 @@ export default function LandingPage() {
         <section id="courses" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <h2 className="text-2xl font-semibold text-foreground">Our Courses</h2>
           <p className="mt-1 text-muted-foreground">Industry-relevant training programs.</p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {COURSES.map((course) => (
-              <Card key={course.name}>
-                <CardHeader>
-                  <BookOpen className="h-6 w-6 text-primary" />
-                  <CardTitle className="text-base">{course.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground">
-                  <p>{course.category}</p>
-                  <p>{course.duration}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <CoursesSection />
         </section>
 
         <section id="process" className="border-y border-border bg-muted/30">

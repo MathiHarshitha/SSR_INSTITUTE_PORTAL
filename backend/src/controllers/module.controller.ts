@@ -13,7 +13,7 @@ import {
 } from "../validators/module.validator";
 
 export const listModules = asyncHandler(async (req: Request, res: Response) => {
-  const modules = await moduleService.listModules(req.params.courseId as string);
+  const modules = await moduleService.listModules(req.user!, req.params.courseId as string);
   sendSuccess(res, 200, "Modules fetched", modules);
 });
 
@@ -47,7 +47,7 @@ export const reorderModules = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const listTopics = asyncHandler(async (req: Request, res: Response) => {
-  const topics = await moduleService.listTopics(req.params.moduleId as string);
+  const topics = await moduleService.listTopics(req.user!, req.params.moduleId as string);
   sendSuccess(res, 200, "Topics fetched", topics);
 });
 
@@ -81,7 +81,7 @@ export const reorderTopics = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const listLessons = asyncHandler(async (req: Request, res: Response) => {
-  const lessons = await moduleService.listLessons(req.params.topicId as string);
+  const lessons = await moduleService.listLessons(req.user!, req.params.topicId as string);
   sendSuccess(res, 200, "Lessons fetched", lessons);
 });
 

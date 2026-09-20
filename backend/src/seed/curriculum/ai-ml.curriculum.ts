@@ -4,7 +4,10 @@ const pythonForAiMl: CurriculumModuleDef = {
   name: "Python for AI/ML",
   description: "A working refresher on the exact slice of Python — core syntax, NumPy, and Pandas — that every AI/ML workflow leans on.",
   estimatedDuration: "1 week",
-  lessons: [
+  topics: [
+    {
+      name: "Core Python Refresher",
+      lessons: [
     {
       title: "Python Fundamentals Refresher: Functions & Control Flow",
       description: "Reviewing functions, loops, and conditionals through the lens of data-processing code.",
@@ -57,6 +60,29 @@ const pythonForAiMl: CurriculumModuleDef = {
           ],
           correctIndex: 0,
           explanation: "A `for` loop iterates, executing its body once per element in the sequence it's given.",
+        },
+        {
+          question: "What does the following code print?\n\ndef mystery(n):\n    total = 0\n    for i in range(n):\n        if i % 2 == 0:\n            total += i\n    return total\n\nprint(mystery(6))",
+          options: ["6", "15", "9", "0"],
+          correctIndex: 0,
+          explanation: "The loop iterates i = 0..5, adding only even values (0, 2, 4) to total, giving 0+2+4 = 6.",
+        },
+        {
+          question: "What is the danger of using a mutable object (like a list) as a function's default argument in Python, e.g. `def add_item(item, bucket=[]):`?",
+          options: [
+            "It causes a syntax error",
+            "The same default list is reused and mutated across calls, unexpectedly carrying state between them",
+            "Python automatically converts it to a tuple",
+            "It makes the function run slower every time",
+          ],
+          correctIndex: 1,
+          explanation: "Default argument values are evaluated once when the function is defined, not on each call, so a mutable default like a list persists and accumulates changes across separate calls unless explicitly reset.",
+        },
+        {
+          question: "In a data pipeline that must keep retrying a request until a valid response is received, which control-flow construct is most appropriate?",
+          options: ["A for loop over a fixed range", "A while loop with an exit condition", "An if/elif chain only", "A function with no loop at all"],
+          correctIndex: 1,
+          explanation: "A while loop is designed for cases where the number of iterations isn't known in advance and depends on a condition being met, such as receiving valid input or a successful response.",
         },
       ],
       rememberThis: "A function is a recipe card: write the steps once, hand it whatever ingredients you like, and reuse it forever.",
@@ -115,6 +141,34 @@ const pythonForAiMl: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Dictionary key lookups are O(1) on average, versus O(n) for scanning a list to find a match.",
         },
+        {
+          question: "What does the following code print?\n\nd = {'a': 1, 'b': 2}\nd['c'] = 3\nd['a'] += 10\nprint(sorted(d.items()))",
+          options: [
+            "[('a', 11), ('b', 2), ('c', 3)]",
+            "[('a', 1), ('b', 2), ('c', 3)]",
+            "[('a', 11), ('c', 3)]",
+            "An error, since dictionaries cannot be sorted",
+          ],
+          correctIndex: 0,
+          explanation: "`d['c'] = 3` adds a new key, `d['a'] += 10` updates 'a' to 11, and `sorted(d.items())` returns the (key, value) pairs ordered alphabetically by key.",
+        },
+        {
+          question: "Why can a tuple be used as a dictionary key while a list cannot?",
+          options: [
+            "Tuples are shorter than lists",
+            "Tuples are immutable and hashable, while lists are mutable and unhashable",
+            "Dictionaries only accept numeric keys",
+            "Lists can only hold one type of data",
+          ],
+          correctIndex: 1,
+          explanation: "Dictionary keys must be hashable, which requires the value to be immutable so its hash never changes; tuples qualify (if their contents are also immutable) but lists do not.",
+        },
+        {
+          question: "A function needs to return both a computed average and a count of values used, as a single lightweight, unchangeable pair. Which structure fits best?",
+          options: ["A mutable list", "A tuple", "A set", "A nested dictionary"],
+          correctIndex: 1,
+          explanation: "A tuple is the idiomatic choice for a small, fixed-size, immutable grouping of related values returned together, like (average, count).",
+        },
       ],
       rememberThis: "Lists keep order, dictionaries answer 'what goes with this key', tuples lock things in place, and sets refuse duplicates.",
       keyTakeaways: [
@@ -124,6 +178,11 @@ const pythonForAiMl: CurriculumModuleDef = {
         "Choosing the right structure makes data-prep code faster and clearer.",
       ],
     },
+      ],
+    },
+    {
+      name: "Numeric & Tabular Data Libraries",
+      lessons: [
     {
       title: "NumPy Refresher: Arrays and Vectorized Operations",
       description: "Working with NumPy arrays, the numeric foundation underneath almost every ML library.",
@@ -176,6 +235,34 @@ const pythonForAiMl: CurriculumModuleDef = {
           ],
           correctIndex: 2,
           explanation: "This is a vectorized broadcast operation: the scalar 0.9 is applied to every element of the array at once.",
+        },
+        {
+          question: "What does the following code print?\n\nimport numpy as np\na = np.array([1, 2, 3])\nb = np.array([10, 20, 30])\nprint(a + b * 2)",
+          options: ["[21 42 63]", "[11 22 33]", "[22 44 66]", "An error due to shape mismatch"],
+          correctIndex: 0,
+          explanation: "Operator precedence applies `* 2` to `b` first, giving [20, 40, 60], then element-wise addition with `a` gives [21, 42, 63].",
+        },
+        {
+          question: "What is broadcasting in NumPy?",
+          options: [
+            "Sending an array to multiple computers at once",
+            "A set of rules that let NumPy perform element-wise operations on arrays of different but compatible shapes",
+            "A way to convert arrays into strings",
+            "A method for deleting elements from an array",
+          ],
+          correctIndex: 1,
+          explanation: "Broadcasting automatically expands smaller arrays (like a scalar or a single row) to match the shape of a larger array during arithmetic, without actually copying data, as long as their shapes are compatible.",
+        },
+        {
+          question: "Why does a NumPy array typically hold values of a single fixed data type, unlike a Python list?",
+          options: [
+            "It's a limitation with no real benefit",
+            "Fixed-type, contiguous storage enables fast, vectorized, compiled operations across the whole array",
+            "NumPy arrays cannot store floating point numbers",
+            "Python lists cannot store numbers at all",
+          ],
+          correctIndex: 1,
+          explanation: "Storing one fixed type in contiguous memory is what allows NumPy's compiled routines to process the whole array efficiently, which is the core source of its speed advantage over Python lists.",
         },
       ],
       rememberThis: "NumPy trades one-at-a-time Python loops for whole-array math — that trade is the reason Python can do serious ML at all.",
@@ -239,6 +326,39 @@ const pythonForAiMl: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Understanding how much and which data is missing helps you choose a defensible strategy instead of silently losing information.",
         },
+        {
+          question: "What does the following code print (approximately)?\n\nimport pandas as pd\ndf = pd.DataFrame({'a': [1, 2, None, 4]})\ndf['a'] = df['a'].fillna(df['a'].mean())\nprint(df['a'].tolist())",
+          options: [
+            "[1.0, 2.0, 2.33, 4.0]",
+            "[1.0, 2.0, 0.0, 4.0]",
+            "[1.0, 2.0, None, 4.0]",
+            "An error, since fillna cannot use a computed value",
+          ],
+          correctIndex: 0,
+          explanation: "`.mean()` is computed over the non-null values (1, 2, 4), giving about 2.33, which then replaces the missing entry via `fillna`.",
+        },
+        {
+          question: "What is the key difference between `df.loc[]` and `df.iloc[]`?",
+          options: [
+            "There is no difference, they are interchangeable",
+            "`.loc` selects by label/index name, while `.iloc` selects by integer position",
+            "`.loc` only works on columns, `.iloc` only works on rows",
+            "`.iloc` is used exclusively for filtering with conditions",
+          ],
+          correctIndex: 1,
+          explanation: "`.loc` uses the DataFrame's labeled index/column names, while `.iloc` uses purely positional integer indices, similar to list indexing.",
+        },
+        {
+          question: "Why does pandas sometimes raise a `SettingWithCopyWarning` when assigning to a filtered subset like `df[df['x'] > 0]['y'] = 1`?",
+          options: [
+            "Because pandas cannot filter DataFrames",
+            "Because the filtered result may be a copy rather than a view, so the assignment might not actually modify the original DataFrame",
+            "Because 'y' is not a valid column name",
+            "Because comparisons like `> 0` are not allowed inside brackets",
+          ],
+          correctIndex: 1,
+          explanation: "Chained indexing can return a copy instead of a view, meaning the assignment may silently fail to update the original DataFrame; using `.loc[df['x'] > 0, 'y'] = 1` avoids the ambiguity.",
+        },
       ],
       rememberThis: "Pandas is where messy real-world data gets interrogated and cleaned up before a model ever sees it.",
       keyTakeaways: [
@@ -246,6 +366,8 @@ const pythonForAiMl: CurriculumModuleDef = {
         "`.info()`, `.describe()`, and `.isnull().sum()` are your first inspection steps.",
         "Boolean indexing filters rows based on column conditions.",
         "Handle missing data deliberately — don't drop rows blindly.",
+      ],
+    },
       ],
     },
   ],
@@ -309,6 +431,34 @@ const mathematicsForMl: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "The dot product multiplies corresponding elements and sums them into one scalar value.",
         },
+        {
+          question: "What does the following code print?\n\nimport numpy as np\na = np.array([1, 2, 3])\nb = np.array([4, 5, 6])\nprint(np.dot(a, b))",
+          options: ["32", "15", "21", "6"],
+          correctIndex: 0,
+          explanation: "The dot product is 1*4 + 2*5 + 3*6 = 4 + 10 + 18 = 32.",
+        },
+        {
+          question: "For matrix multiplication A @ B to be valid, what must be true about their shapes?",
+          options: [
+            "A and B must have the same number of rows",
+            "The number of columns in A must equal the number of rows in B",
+            "A and B must both be square matrices",
+            "There is no shape requirement",
+          ],
+          correctIndex: 1,
+          explanation: "Matrix multiplication is only defined when the inner dimensions match: an (m x n) matrix can multiply an (n x p) matrix, producing an (m x p) result.",
+        },
+        {
+          question: "Two word embeddings (vectors) have a high dot product relative to their magnitudes. What does this typically suggest?",
+          options: [
+            "The words are completely unrelated",
+            "The vectors point in similar directions, suggesting the words are semantically similar",
+            "One of the vectors must contain an error",
+            "The embeddings were computed incorrectly",
+          ],
+          correctIndex: 1,
+          explanation: "A high dot product (especially relative to vector lengths, as in cosine similarity) indicates the vectors point in similar directions in embedding space, which is commonly interpreted as semantic similarity.",
+        },
       ],
       rememberThis: "A dot product is a cashier's total: multiply each item by its price, and add it all into one number.",
       keyTakeaways: [
@@ -370,6 +520,34 @@ const mathematicsForMl: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "A probability score lets downstream systems (or humans) weigh how confident the model is, rather than treating every prediction as equally certain.",
+        },
+        {
+          question: "What does the following code print (approximately)?\n\nimport numpy as np\nscores = np.array([50, 60, 70, 80, 90])\nprint(scores.std())",
+          options: ["14.14", "20.0", "10.0", "200.0"],
+          correctIndex: 0,
+          explanation: "The mean is 70; squared deviations are 400, 100, 0, 100, 400, averaging to a variance of 200, and the standard deviation is the square root of 200, approximately 14.14.",
+        },
+        {
+          question: "Two delivery services both average 30 minutes per delivery, but Service A has a standard deviation of 2 minutes and Service B has a standard deviation of 25 minutes. What does this tell you?",
+          options: [
+            "The services are identical in reliability",
+            "Service A is far more consistent, while Service B's delivery times vary wildly around the same average",
+            "Service B is definitely faster overall",
+            "Standard deviation has no practical meaning here",
+          ],
+          correctIndex: 1,
+          explanation: "Identical means can hide very different levels of consistency; the standard deviation reveals that Service B's individual deliveries can be much faster or much slower than the shared 30-minute average.",
+        },
+        {
+          question: "A model outputs a 'confidence score' of 0.9 for a prediction, but the model was never calibrated. Why should this score not be trusted as a literal probability?",
+          options: [
+            "Uncalibrated model outputs can be systematically over- or under-confident, so 0.9 may not correspond to being right 90% of the time",
+            "Scores above 0.5 are always accurate",
+            "Neural networks cannot produce numbers between 0 and 1",
+            "Confidence scores are only produced by regression models",
+          ],
+          correctIndex: 0,
+          explanation: "Raw model outputs (e.g. from softmax) often don't match true empirical frequencies unless the model has been explicitly calibrated (e.g. via Platt scaling or temperature scaling), so a 0.9 score doesn't guarantee 90% real-world accuracy.",
         },
       ],
       rememberThis: "The mean tells you the center of the story; the standard deviation tells you how wild the story really is.",
@@ -433,6 +611,34 @@ const mathematicsForMl: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Too large a step size can cause weights to jump past the minimum repeatedly, sometimes making the loss worse rather than better.",
         },
+        {
+          question: "What does the following code print?\n\ndef f(x):\n    return x ** 2 + 3\n\ndef grad(f, x, h=1e-5):\n    return (f(x + h) - f(x - h)) / (2 * h)\n\nprint(round(grad(f, 3), 2))",
+          options: ["6.0", "9.0", "3.0", "12.0"],
+          correctIndex: 0,
+          explanation: "The analytic derivative of f(x) = x^2 + 3 is 2x, which equals 6 at x = 3; the numerical central-difference formula approximates this value closely.",
+        },
+        {
+          question: "A model's training loss decreases extremely slowly, barely moving after thousands of steps. What is a likely cause related to gradient descent?",
+          options: [
+            "The learning rate is too small, making each step too tiny to make meaningful progress",
+            "The gradient is always exactly zero for all models",
+            "The loss function has too many parentheses",
+            "Gradient descent never actually reduces loss",
+          ],
+          correctIndex: 0,
+          explanation: "A very small learning rate means each weight update is tiny, so the model creeps toward the minimum instead of making meaningful progress per step — training feels like it has stalled even though it hasn't diverged.",
+        },
+        {
+          question: "Why is the gradient of a loss function with respect to many weights represented as a vector rather than a single number?",
+          options: [
+            "Because each weight has its own partial derivative, indicating how the loss changes with respect to that specific weight, and all of them are needed to update every weight correctly",
+            "Because vectors are required by Python syntax",
+            "Because a single number cannot be printed",
+            "Because the loss function only has one weight in practice",
+          ],
+          correctIndex: 0,
+          explanation: "The gradient collects one partial derivative per parameter into a vector, since each weight can affect the loss differently — updating all weights correctly requires knowing each one's individual sensitivity.",
+        },
       ],
       rememberThis: "The gradient is your compass in the fog: it doesn't show the whole hillside, just which direction downhill is right now.",
       keyTakeaways: [
@@ -449,7 +655,10 @@ const machineLearning: CurriculumModuleDef = {
   name: "Machine Learning",
   description: "The classical algorithms that learn patterns from data — from predicting numbers to grouping unlabeled examples.",
   estimatedDuration: "3 weeks",
-  lessons: [
+  topics: [
+    {
+      name: "Supervised Learning Algorithms",
+      lessons: [
     {
       title: "Supervised Learning: Regression",
       description: "Predicting continuous numeric values from labeled examples, starting with linear regression.",
@@ -497,6 +706,34 @@ const machineLearning: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "MSE penalizes larger errors more heavily (because errors are squared) and gives an overall sense of prediction accuracy for numeric targets.",
+        },
+        {
+          question: "What does the following code most likely print?\n\nfrom sklearn.linear_model import LinearRegression\nimport numpy as np\n\nX = np.array([[1], [2], [3], [4]])\ny = np.array([3, 5, 7, 9])\n\nmodel = LinearRegression().fit(X, y)\nprint(model.predict([[5]]))",
+          options: ["[11.]", "[9.]", "[10.]", "[13.]"],
+          correctIndex: 0,
+          explanation: "The training data follows y = 2x + 1 exactly, so the fitted line extrapolates to 2(5) + 1 = 11 at x = 5.",
+        },
+        {
+          question: "A team adds many high-degree polynomial features to a linear regression model and finds training error drops to nearly zero, but test error gets much worse. What is happening?",
+          options: [
+            "The model is underfitting",
+            "The model is overfitting, memorizing noise in the training data instead of learning the true underlying pattern",
+            "The data must be corrupted",
+            "This means the model is perfectly generalizing",
+          ],
+          correctIndex: 1,
+          explanation: "Very flexible models (like high-degree polynomials) can fit training data almost perfectly, including its noise, which hurts performance on new, unseen data — the hallmark of overfitting.",
+        },
+        {
+          question: "What does R² (the coefficient of determination) tell you about a regression model?",
+          options: [
+            "The exact dollar error of each prediction",
+            "The proportion of variance in the target variable that the model's features explain",
+            "The number of features used in the model",
+            "Whether the model is a classifier or a regressor",
+          ],
+          correctIndex: 1,
+          explanation: "R² ranges (typically) from 0 to 1 and indicates how much of the variability in the target is captured by the model, with 1 meaning the model explains all the variance.",
         },
       ],
       rememberThis: "Regression is the real-estate agent's intuition, turned into a formula that can be tuned and reused on any new house.",
@@ -554,6 +791,34 @@ const machineLearning: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "If 95% of examples are one class, always predicting that class yields 95% accuracy while completely failing at the minority class.",
+        },
+        {
+          question: "What does the following code print (rounded to 2 decimals)?\n\nimport numpy as np\n\ndef sigmoid(z):\n    return 1 / (1 + np.exp(-z))\n\nz = np.array([-2, 0, 2])\nprint(np.round(sigmoid(z), 2))",
+          options: ["[0.12 0.5  0.88]", "[0.   0.5  1.  ]", "[-2.   0.   2.  ]", "[0.88 0.5  0.12]"],
+          correctIndex: 0,
+          explanation: "The sigmoid squashes values into (0, 1): sigmoid(-2) is about 0.12, sigmoid(0) is exactly 0.5, and sigmoid(2) is about 0.88.",
+        },
+        {
+          question: "A fraud-detection model currently uses the default 0.5 probability threshold. To catch more fraud even at the cost of more false alarms, what should be done to the threshold?",
+          options: [
+            "Raise the threshold above 0.5",
+            "Lower the threshold below 0.5, so more borderline cases get flagged as fraud",
+            "Thresholds cannot be changed once a model is trained",
+            "Switch to a regression model instead",
+          ],
+          correctIndex: 1,
+          explanation: "Lowering the classification threshold makes the model flag more cases as positive (fraud), increasing recall at the cost of precision — more true fraud is caught, but also more false positives.",
+        },
+        {
+          question: "Why does cross-entropy loss penalize a confidently wrong prediction (e.g. predicting 0.99 probability for the wrong class) much more heavily than a mildly wrong one?",
+          options: [
+            "Cross-entropy treats all wrong predictions identically",
+            "Cross-entropy grows sharply (toward infinity) as predicted probability for the true class approaches 0, strongly punishing overconfident mistakes",
+            "It only evaluates the predicted class, not the probability",
+            "Cross-entropy is only used for regression tasks",
+          ],
+          correctIndex: 1,
+          explanation: "Cross-entropy loss involves the negative log of the predicted probability assigned to the true class, which grows very large as that probability approaches zero, harshly penalizing confident errors.",
         },
       ],
       rememberThis: "A classifier is a mail sorter: not measuring a number, just deciding which bin each new example belongs in.",
@@ -617,6 +882,39 @@ const machineLearning: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "A shallow decision tree's logic can be read directly as a flowchart of questions, making it one of the most interpretable ML models.",
         },
+        {
+          question: "What is the likely problem with this code?\n\nfrom sklearn.tree import DecisionTreeClassifier\n\ntree = DecisionTreeClassifier(max_depth=None, random_state=0)\ntree.fit(X_train, y_train)\nprint(tree.score(X_train, y_train))\nprint(tree.score(X_test, y_test))",
+          options: [
+            "The code will not run due to a syntax error",
+            "With max_depth=None, the tree can grow until it memorizes the training data, likely showing near-perfect training score but a much lower test score (overfitting)",
+            "DecisionTreeClassifier cannot be scored with .score()",
+            "The random_state parameter causes the model to always fail",
+          ],
+          correctIndex: 1,
+          explanation: "Leaving max_depth unrestricted lets the tree keep splitting until leaves are pure, which usually means it overfits the training data — high training accuracy paired with a noticeably lower test accuracy is the classic symptom.",
+        },
+        {
+          question: "What does a decision tree use to decide which feature and threshold to split on at each node?",
+          options: [
+            "A random coin flip",
+            "The split that most reduces impurity (e.g. Gini impurity or entropy) among the resulting groups",
+            "Alphabetical order of feature names",
+            "The feature with the largest raw numeric values",
+          ],
+          correctIndex: 1,
+          explanation: "At each node, a decision tree evaluates candidate splits and picks the one that produces the purest possible child groups, measured by metrics like Gini impurity or entropy.",
+        },
+        {
+          question: "A random forest reports high 'feature importance' for a particular feature. What does this most directly indicate?",
+          options: [
+            "That feature was manually chosen by the developer as most important",
+            "That feature was frequently and effectively used across the forest's trees to reduce impurity when splitting",
+            "That feature has the largest raw values in the dataset",
+            "That feature is definitely the causal driver of the outcome",
+          ],
+          correctIndex: 1,
+          explanation: "Feature importance in tree-based models is typically derived from how much a feature contributes to reducing impurity across all splits and trees — it reflects predictive usefulness within the model, not proven causation.",
+        },
       ],
       rememberThis: "One doctor's checklist can be wrong; a hundred independent doctors voting rarely are — that's a tree versus a forest.",
       keyTakeaways: [
@@ -678,6 +976,39 @@ const machineLearning: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Kernels let SVMs find non-linear boundaries in the original space by effectively operating in a transformed, higher-dimensional space.",
+        },
+        {
+          question: "What is the likely issue with the following code?\n\nfrom sklearn.svm import SVC\n\nmodel = SVC(kernel='rbf')\nmodel.fit(X_train, y_train)  # X_train has 'income' (0-200000) and 'age' (0-100), unscaled\nprint(model.score(X_test, y_test))",
+          options: [
+            "SVC cannot use the 'rbf' kernel",
+            "The unscaled 'income' feature, with a much larger range, will dominate the RBF kernel's distance calculations, drowning out 'age'",
+            "The model will fail to fit and raise an error",
+            ".score() cannot be used with SVC",
+          ],
+          correctIndex: 1,
+          explanation: "The RBF kernel is distance-based, just like KNN, so features on very different numeric scales should be standardized first — otherwise the larger-range feature dominates the decision boundary regardless of its true importance.",
+        },
+        {
+          question: "What happens as the regularization parameter C in an SVM is increased significantly?",
+          options: [
+            "The margin tends to narrow, as the model penalizes misclassifications more heavily and prioritizes fitting the training data closely",
+            "The margin always widens indefinitely",
+            "C has no effect on the SVM's decision boundary",
+            "The model automatically switches to a linear kernel",
+          ],
+          correctIndex: 0,
+          explanation: "A large C makes the SVM tolerate fewer margin violations, tightening the boundary around the training points (risking overfitting), while a small C allows a wider margin with more tolerance for misclassified points (risking underfitting).",
+        },
+        {
+          question: "Why do SVMs use a 'soft margin' with some tolerance for misclassification, instead of always requiring a perfectly separating boundary?",
+          options: [
+            "Because perfect boundaries are illegal in scikit-learn",
+            "Because real-world data is often not perfectly separable, and a rigid boundary would overfit to noise or outliers",
+            "Because soft margins make training slower on purpose",
+            "Because a soft margin removes the need for support vectors",
+          ],
+          correctIndex: 1,
+          explanation: "Real data typically has overlapping or noisy points; allowing a controlled number of margin violations (soft margin) yields a more robust, generalizable boundary than forcing perfect separation.",
         },
       ],
       rememberThis: "SVM doesn't just build a road between neighborhoods — it builds the widest one it possibly can.",
@@ -741,6 +1072,39 @@ const machineLearning: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Unscaled features with large ranges dominate the distance metric, effectively ignoring other, differently-scaled features.",
         },
+        {
+          question: "What will `model.score(X_train, y_train)` almost always output for the following code?\n\nfrom sklearn.neighbors import KNeighborsClassifier\n\nmodel = KNeighborsClassifier(n_neighbors=1)\nmodel.fit(X_train, y_train)\nprint(model.score(X_train, y_train))",
+          options: [
+            "1.0, because with k=1 each training point's nearest neighbor is itself, so it always predicts its own label correctly",
+            "0.0, because KNN cannot be evaluated on its own training data",
+            "A random value between 0 and 1",
+            "It will raise an error",
+          ],
+          correctIndex: 0,
+          explanation: "With k=1, evaluating on the training set is misleading: every point's single nearest neighbor is itself (distance zero), so training accuracy is essentially always 1.0 regardless of how well the model generalizes.",
+        },
+        {
+          question: "A KNN model with k=1 performs very well on training data but poorly on new test data. What does this suggest, and how might you fix it?",
+          options: [
+            "The model is underfitting; decrease k further",
+            "The model is overfitting to noise with such a small k; try increasing k to smooth predictions",
+            "KNN cannot overfit by design",
+            "The issue must be unrelated to the choice of k",
+          ],
+          correctIndex: 1,
+          explanation: "A very small k makes predictions highly sensitive to individual (possibly noisy) neighbors, causing overfitting; increasing k averages over more neighbors, which typically improves generalization up to a point.",
+        },
+        {
+          question: "Why is KNN often described as having a costly prediction phase compared to models like logistic regression?",
+          options: [
+            "KNN has no prediction phase at all",
+            "Because KNN must compute distances to (potentially) every training point at prediction time, since there's no upfront model fitting to a compact set of parameters",
+            "KNN prediction is always instantaneous regardless of dataset size",
+            "Logistic regression also computes distances to every training point",
+          ],
+          correctIndex: 1,
+          explanation: "As a 'lazy learner', KNN defers all the work to prediction time, needing to compare a new point against training examples, which scales with dataset size, unlike models that learn a fixed, compact set of parameters during training.",
+        },
       ],
       rememberThis: "KNN doesn't learn a rule — it just asks its nearest neighbors what they think, and goes with the majority.",
       keyTakeaways: [
@@ -750,6 +1114,11 @@ const machineLearning: CurriculumModuleDef = {
         "Feature scaling is essential since KNN relies on distance.",
       ],
     },
+      ],
+    },
+    {
+      name: "Unsupervised Learning & Model Development",
+      lessons: [
     {
       title: "Unsupervised Learning & Clustering",
       description: "Finding hidden structure in data that has no labels at all, using K-Means clustering.",
@@ -802,6 +1171,39 @@ const machineLearning: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Centroids are recalculated each iteration as the average of the points currently assigned to that cluster.",
+        },
+        {
+          question: "What will the following code most likely print?\n\nfrom sklearn.cluster import KMeans\nimport numpy as np\n\nX = np.array([[1, 1], [1.5, 2], [10, 10], [10.5, 9.5]])\nkmeans = KMeans(n_clusters=2, random_state=0, n_init=10).fit(X)\nprint(kmeans.labels_[0] == kmeans.labels_[1])",
+          options: [
+            "True, because the first two points are close together and will likely be grouped in the same cluster",
+            "False, because K-Means always alternates cluster labels",
+            "An error, since KMeans requires at least 3 clusters",
+            "True, because all four points always end up in the same cluster",
+          ],
+          correctIndex: 0,
+          explanation: "The first two points ([1,1] and [1.5,2]) are far closer to each other than to the last two, so K-Means should naturally place them in the same cluster, making their labels equal.",
+        },
+        {
+          question: "What is the purpose of the 'elbow method' when choosing the number of clusters (k) for K-Means?",
+          options: [
+            "It guarantees the mathematically perfect value of k",
+            "It plots within-cluster variance against different values of k, looking for a bend where adding more clusters stops helping much",
+            "It measures how fast the algorithm runs",
+            "It replaces the need to choose k entirely",
+          ],
+          correctIndex: 1,
+          explanation: "The elbow method is a heuristic: as k increases, within-cluster variance keeps shrinking, but the rate of improvement typically slows sharply at a natural number of clusters, visible as a bend ('elbow') in the plot.",
+        },
+        {
+          question: "K-Means is applied to data containing two long, curved, non-spherical clusters (like two interleaving crescents). What limitation of K-Means does this scenario expose?",
+          options: [
+            "K-Means has no limitations and will always find the correct clusters",
+            "K-Means assumes roughly spherical, similarly-sized clusters, so it struggles with elongated or interleaving shapes",
+            "K-Means only works on 1-dimensional data",
+            "K-Means requires labeled data to function",
+          ],
+          correctIndex: 1,
+          explanation: "Because K-Means assigns points based on distance to centroids, it implicitly assumes convex, roughly spherical clusters, and performs poorly on data with non-convex or interleaving cluster shapes — density-based methods like DBSCAN handle those better.",
         },
       ],
       rememberThis: "Clustering sorts a box of unlabeled buttons into piles that make sense — nobody handed you the categories, the data suggested them.",
@@ -865,6 +1267,39 @@ const machineLearning: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Arbitrary numeric codes for unordered categories can mislead models that assume numeric relationships (like distance or ordering) between values.",
         },
+        {
+          question: "What does the following code print?\n\nimport pandas as pd\n\ndf = pd.DataFrame({'category': ['A', 'B', 'A', 'C']})\nencoded = pd.get_dummies(df, columns=['category'])\nprint(list(encoded.columns))",
+          options: [
+            "['category_A', 'category_B', 'category_C']",
+            "['category']",
+            "['A', 'B', 'C']",
+            "['category_1', 'category_2', 'category_3']",
+          ],
+          correctIndex: 0,
+          explanation: "`pd.get_dummies` replaces the original 'category' column with one binary column per unique value, named as '<original_column>_<value>'.",
+        },
+        {
+          question: "A model predicting 'time to complete a task' might benefit from an engineered feature combining 'experience_years' and 'task_difficulty' multiplicatively. Why might this interaction term help?",
+          options: [
+            "Interaction terms never help linear models",
+            "The effect of difficulty on time may depend on experience level, a relationship a simple sum of the two features can't capture on its own",
+            "Multiplying features always doubles model accuracy",
+            "It removes the need for the original features",
+          ],
+          correctIndex: 1,
+          explanation: "Some relationships are genuinely multiplicative or conditional (e.g. difficulty matters much less for experienced workers) — an interaction feature exposes that combined effect directly to models that can't otherwise learn it from the raw features alone.",
+        },
+        {
+          question: "A team engineers a feature 'average_purchase_amount_this_month' using data from the entire month, including days after the prediction point, to predict whether a customer will churn by month's end. What is the problem?",
+          options: [
+            "There is no problem, more data always helps",
+            "This is data leakage: the feature uses information from the future relative to the prediction time, inflating apparent performance unrealistically",
+            "The feature name is too long",
+            "Averages can never be used as features",
+          ],
+          correctIndex: 1,
+          explanation: "Using information that wouldn't actually be available at prediction time (like future purchases) leaks the answer into the features, producing misleadingly great offline metrics that collapse once the model is deployed on truly unseen, real-time data.",
+        },
       ],
       rememberThis: "Feature engineering is turning raw ingredients into batter — same information, but shaped so the model can actually use it.",
       keyTakeaways: [
@@ -927,6 +1362,34 @@ const machineLearning: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "In spam filtering, users are often more harmed by losing a real email (false positive) than by an occasional spam email slipping through, so precision is prioritized.",
         },
+        {
+          question: "What does the following code print?\n\nfrom sklearn.metrics import precision_score, recall_score\n\ny_true = [1, 0, 1, 1, 0, 1]\ny_pred = [1, 0, 0, 1, 0, 0]\nprint(precision_score(y_true, y_pred), recall_score(y_true, y_pred))",
+          options: ["1.0 0.5", "0.5 1.0", "1.0 1.0", "0.5 0.5"],
+          correctIndex: 0,
+          explanation: "There are 2 true positives, 0 false positives, and 2 false negatives. Precision = TP/(TP+FP) = 2/2 = 1.0, and recall = TP/(TP+FN) = 2/4 = 0.5.",
+        },
+        {
+          question: "In what scenario is the F1-score especially useful compared to reporting precision and recall separately?",
+          options: [
+            "When you want a single number that balances both false positives and false negatives roughly equally",
+            "When the dataset has no positive examples at all",
+            "When you only care about training speed",
+            "F1-score is never more useful than reporting them separately",
+          ],
+          correctIndex: 0,
+          explanation: "F1 is the harmonic mean of precision and recall, giving one summary number that penalizes models which do very well on one but very poorly on the other — useful when both types of error matter.",
+        },
+        {
+          question: "Why is RMSE (Root Mean Squared Error) more sensitive to large outlier errors than MAE (Mean Absolute Error)?",
+          options: [
+            "RMSE and MAE are mathematically identical",
+            "RMSE squares each error before averaging, so large errors contribute disproportionately more than small ones",
+            "MAE is only used for classification, not regression",
+            "RMSE ignores outliers by design",
+          ],
+          correctIndex: 1,
+          explanation: "Squaring errors before averaging (as in RMSE/MSE) amplifies the impact of large deviations far more than small ones, while MAE treats every unit of error equally regardless of magnitude.",
+        },
       ],
       rememberThis: "A model judged only on accuracy is a forecaster judged only on how often they correctly said 'no hurricane' — technically impressive, practically useless.",
       keyTakeaways: [
@@ -934,6 +1397,8 @@ const machineLearning: CurriculumModuleDef = {
         "Precision measures correctness of positive predictions; recall measures coverage of real positives.",
         "F1-score balances precision and recall into one number.",
         "Choose metrics based on which errors are actually costly for the problem.",
+      ],
+    },
       ],
     },
   ],

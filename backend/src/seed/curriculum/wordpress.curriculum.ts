@@ -4,7 +4,10 @@ const wordpressFundamentals: CurriculumModuleDef = {
   name: "WordPress Fundamentals",
   description: "What WordPress actually is, how the web hosting it works, and getting a real install running.",
   estimatedDuration: "1 week",
-  lessons: [
+  topics: [
+    {
+      name: "WordPress Overview",
+      lessons: [
     {
       title: "What is WordPress?",
       description: "The software behind a huge share of the websites you visit every day.",
@@ -45,6 +48,39 @@ const wordpressFundamentals: CurriculumModuleDef = {
           options: ["In plain text files only", "In a MySQL/MariaDB database", "In the browser's memory", "In the theme's CSS file"],
           correctIndex: 1,
           explanation: "WordPress stores structured content in a database, and PHP code retrieves and displays it through templates.",
+        },
+        {
+          question: "A small business owner asks why they should use WordPress instead of hiring a developer to hand-code a five-page site. What's the strongest reason?",
+          options: [
+            "Hand-coded sites are always slower",
+            "WordPress lets them update content themselves later without needing a developer for every change",
+            "WordPress sites never need hosting",
+            "Hand-coded sites can't use a domain name",
+          ],
+          correctIndex: 1,
+          explanation: "The core value proposition of a CMS like WordPress is ongoing independence — the owner can edit text, swap images, and add posts themselves long after launch, without paying a developer for routine content changes.",
+        },
+        {
+          question: "Which of these is an accurate description of the relationship between WordPress core, themes, and content?",
+          options: [
+            "Themes store the content; WordPress core only handles login",
+            "WordPress core and the active theme define structure and design, while content lives independently in the database",
+            "Content is stored inside the theme's files",
+            "WordPress core changes every time a new post is published",
+          ],
+          correctIndex: 1,
+          explanation: "Content (posts, pages) is stored in the database independently of the theme, which is why you can switch themes without losing your content.",
+        },
+        {
+          question: "A client says 'I don't want to touch any code, I just want to log in and write articles.' Which WordPress trait makes this possible?",
+          options: [
+            "WordPress requires FTP access for every edit",
+            "The visual dashboard lets users create and publish content without editing HTML/PHP directly",
+            "WordPress has no database",
+            "WordPress only works for developers",
+          ],
+          correctIndex: 1,
+          explanation: "The dashboard's visual editor is exactly the layer that lets non-technical users manage content without touching the underlying code.",
         },
       ],
       rememberThis: "WordPress is the printing press that stays put while the articles change every week.",
@@ -91,6 +127,39 @@ const wordpressFundamentals: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "WordPress.com is a hosted service run by Automattic; you don't manage the underlying server.",
         },
+        {
+          question: "A freelancer is hired to build a custom booking system with a plugin that doesn't exist yet, requiring custom PHP code. Which option should they choose?",
+          options: [
+            "WordPress.com free plan",
+            "WordPress.com Personal plan",
+            "Self-hosted WordPress.org",
+            "Either, they're functionally identical",
+          ],
+          correctIndex: 2,
+          explanation: "Only self-hosted WordPress.org allows uploading arbitrary custom plugins and code; WordPress.com's lower tiers block this entirely.",
+        },
+        {
+          question: "A hobby blogger with no technical background wants zero server maintenance and doesn't need custom plugins. Which is the more practical choice?",
+          options: [
+            "WordPress.org with a VPS they manage themselves",
+            "WordPress.com's hosted plans",
+            "Building a site from scratch in raw HTML",
+            "There is no suitable WordPress option for them",
+          ],
+          correctIndex: 1,
+          explanation: "WordPress.com removes all server management responsibility, which fits a non-technical hobbyist with modest needs far better than self-managing hosting.",
+        },
+        {
+          question: "Why can both WordPress.com and WordPress.org be called 'WordPress' even though they behave so differently?",
+          options: [
+            "They are unrelated products that share a name by coincidence",
+            "WordPress.com runs the same underlying WordPress core software, just on Automattic's managed infrastructure with restrictions",
+            "WordPress.org is a rebranded version of WordPress.com",
+            "Only WordPress.org is real WordPress software",
+          ],
+          correctIndex: 1,
+          explanation: "Both are built on the same open-source WordPress codebase; the difference is who hosts it and how much of it you're allowed to modify.",
+        },
       ],
       rememberThis: "WordPress.org is the house you own; WordPress.com is the apartment you rent from someone else's rules.",
       keyTakeaways: [
@@ -100,6 +169,11 @@ const wordpressFundamentals: CurriculumModuleDef = {
         "The two share the same underlying WordPress software but differ in who controls the server.",
       ],
     },
+      ],
+    },
+    {
+      name: "Setting Up the Infrastructure",
+      lessons: [
     {
       title: "Domain Names & Hosting Basics",
       description: "The two things every website needs before it can exist online.",
@@ -145,6 +219,39 @@ const wordpressFundamentals: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "You need to update the domain's DNS settings so it resolves to your hosting provider's servers.",
+        },
+        {
+          question: "A client already owns 'mybakery.com' from a previous employee but has no hosting yet. What's the correct next step to launch a WordPress site there?",
+          options: [
+            "Buy the domain again from a different registrar",
+            "Sign up for a hosting plan and point the existing domain's DNS/nameservers to it",
+            "WordPress can run without any hosting",
+            "Delete the domain and start fresh",
+          ],
+          correctIndex: 1,
+          explanation: "The existing domain can be reused — it just needs to be pointed, via DNS, at wherever the new hosting account lives.",
+        },
+        {
+          question: "Why can't WordPress simply run 'in the domain' without a separate hosting plan?",
+          options: [
+            "A domain name is only an address/label; it has no server or storage to run software on",
+            "WordPress requires two domains at once",
+            "Domains include free hosting by default",
+            "Hosting is only needed for images, not for WordPress itself",
+          ],
+          correctIndex: 0,
+          explanation: "A domain is just a human-readable pointer; the actual files, database, and PHP execution environment WordPress needs live on a hosting server.",
+        },
+        {
+          question: "A business wants to move their WordPress site to a new, faster hosting provider but keep the same web address. What has to happen?",
+          options: [
+            "They must buy a brand-new domain name",
+            "The site files/database are migrated to new hosting and the domain's DNS is repointed to it",
+            "Nothing — hosting providers share sites automatically",
+            "WordPress must be reinstalled from scratch with no way to keep the URL",
+          ],
+          correctIndex: 1,
+          explanation: "Migrating hosts means moving the WordPress files and database to the new server and then updating DNS so the same domain resolves to the new location.",
         },
       ],
       rememberThis: "The domain is the sign out front; hosting is the building the shop actually operates in.",
@@ -208,6 +315,39 @@ const wordpressFundamentals: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "SSL/TLS certificates enable HTTPS, encrypting data in transit so it can't be easily intercepted or read.",
         },
+        {
+          question: "A client just updated their domain's nameservers to point to a new host, but the site still shows the old host's content an hour later. What's the most likely explanation?",
+          options: [
+            "The domain was registered incorrectly",
+            "DNS propagation hasn't completed yet due to caching (TTL)",
+            "WordPress is broken",
+            "SSL certificates take a week to activate",
+          ],
+          correctIndex: 1,
+          explanation: "DNS changes propagate gradually as cached records expire around the world; seeing old content briefly after a change is expected, not a sign of a broken setup.",
+        },
+        {
+          question: "A site owner sees a 'Not Secure' warning in the browser address bar for their WordPress site. What is most likely missing?",
+          options: [
+            "A properly installed SSL/TLS certificate enabling HTTPS",
+            "A valid DNS A record",
+            "A WordPress theme",
+            "A category structure",
+          ],
+          correctIndex: 0,
+          explanation: "The 'Not Secure' warning specifically indicates the connection isn't encrypted, meaning no valid SSL/TLS certificate is active for HTTPS.",
+        },
+        {
+          question: "Before launching a site on new hosting, a developer wants to confirm DNS changes have taken effect. What's a practical way to check?",
+          options: [
+            "Reinstall WordPress",
+            "Run nslookup or dig against the domain to see which IP address it currently resolves to",
+            "Clear the WordPress cache plugin",
+            "Change the site's permalink structure",
+          ],
+          correctIndex: 1,
+          explanation: "nslookup/dig query DNS directly and show the IP a domain currently resolves to, confirming whether propagation to the new host has completed.",
+        },
       ],
       rememberThis: "DNS is your contacts app for the internet; SSL is the sealed envelope that keeps what you send private.",
       keyTakeaways: [
@@ -260,6 +400,39 @@ const wordpressFundamentals: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "wp-config.php holds the database name, user, password, host, and other core configuration constants WordPress needs on every request.",
         },
+        {
+          question: "A new WordPress install shows 'Error establishing a database connection.' What's the most likely cause?",
+          options: [
+            "The active theme is outdated",
+            "Incorrect database credentials in wp-config.php",
+            "No plugins are installed yet",
+            "The permalink structure hasn't been set",
+          ],
+          correctIndex: 1,
+          explanation: "This specific error almost always means the DB_NAME, DB_USER, DB_PASSWORD, or DB_HOST values in wp-config.php don't match a working database, so WordPress can't connect.",
+        },
+        {
+          question: "A developer wants to test theme changes before touching a live client site. What's the best approach?",
+          options: [
+            "Edit the live site directly and hope nothing breaks",
+            "Install WordPress locally (e.g. with Local) to test changes safely first",
+            "Delete the live site and start over",
+            "Skip testing since WordPress never breaks",
+          ],
+          correctIndex: 1,
+          explanation: "Local development environments let you experiment freely without any risk to a live, client-facing site.",
+        },
+        {
+          question: "A client's host offers a one-click WordPress installer. What does this tool actually automate?",
+          options: [
+            "Writing all future blog content",
+            "Creating the database, uploading WordPress files, and running the setup wizard automatically",
+            "Choosing a domain name",
+            "Designing the site's logo",
+          ],
+          correctIndex: 1,
+          explanation: "One-click installers handle the technical setup steps — database creation, file upload, and initial configuration — that would otherwise be done manually.",
+        },
       ],
       rememberThis: "No working database, no working WordPress — everything else is built on top of that one connection.",
       keyTakeaways: [
@@ -269,6 +442,8 @@ const wordpressFundamentals: CurriculumModuleDef = {
         "Local development tools like Local or XAMPP let you install WordPress without live hosting.",
       ],
     },
+      ],
+    },
   ],
 };
 
@@ -276,7 +451,10 @@ const wordpressAdministration: CurriculumModuleDef = {
   name: "WordPress Administration",
   description: "Running the day-to-day dashboard: content, media, users, and site-wide settings.",
   estimatedDuration: "1 week",
-  lessons: [
+  topics: [
+    {
+      name: "Content Structure",
+      lessons: [
     {
       title: "The WordPress Dashboard",
       description: "The control room every WordPress site is managed from.",
@@ -317,6 +495,34 @@ const wordpressAdministration: CurriculumModuleDef = {
           options: ["Their browser type", "Their assigned user role and capabilities", "The current theme", "The time of day"],
           correctIndex: 1,
           explanation: "WordPress checks a user's role/capabilities before displaying certain admin screens, so an Editor and an Administrator see different menu options.",
+        },
+        {
+          question: "A new client asks where they should go to add a new blog article. Which Dashboard menu item is correct?",
+          options: ["Appearance", "Posts", "Plugins", "Tools"],
+          correctIndex: 1,
+          explanation: "Blog articles are managed under the Posts menu, where new entries are created, edited, and published.",
+        },
+        {
+          question: "A junior team member logs into wp-admin and doesn't see the Plugins menu at all. What's the most likely reason?",
+          options: [
+            "Plugins have been uninstalled from WordPress entirely",
+            "Their user role doesn't have the capability to manage plugins",
+            "The Dashboard is broken",
+            "The site has no theme active",
+          ],
+          correctIndex: 1,
+          explanation: "Dashboard menu items are shown or hidden based on the logged-in user's role/capabilities — non-admin roles typically can't see or access the Plugins screen.",
+        },
+        {
+          question: "Before making an unfamiliar change in Settings on a live client site, what's the safest practice?",
+          options: [
+            "Just try it and see what happens",
+            "Test it on a staging or local copy first, or confirm what the setting does beforehand",
+            "Always contact WordPress.org support first",
+            "Disable the internet connection first",
+          ],
+          correctIndex: 1,
+          explanation: "Some settings (like permalinks or site URL) can break live functionality; testing changes safely elsewhere first avoids costly live-site mistakes.",
         },
       ],
       rememberThis: "Learn the cockpit before you fly — most WordPress work starts from the Dashboard sidebar.",
@@ -369,6 +575,34 @@ const wordpressAdministration: CurriculumModuleDef = {
           options: ["post_title", "post_type", "post_date", "post_author"],
           correctIndex: 1,
           explanation: "Both are stored in wp_posts, and the post_type column ('post' or 'page') is what differentiates them.",
+        },
+        {
+          question: "A restaurant wants a page announcing 'This Weekend's Live Music Lineup' that should naturally get archived once the event passes. Should this be a Post or a Page?",
+          options: [
+            "A Page, so it stays permanently visible",
+            "A Post, since it's time-based and should move into the chronological archive over time",
+            "Neither, it needs a custom plugin",
+            "A Category",
+          ],
+          correctIndex: 1,
+          explanation: "Time-sensitive, one-off announcements are exactly what Posts are designed for — they naturally age out of the main feed as new content is published.",
+        },
+        {
+          question: "A client complains their 'About Us' content sometimes disappears from view as they publish more blog updates. What's the likely misconfiguration?",
+          options: [
+            "The About Us content was created as a Post instead of a Page",
+            "The site has too many plugins",
+            "The domain's DNS is misconfigured",
+            "The Media Library is full",
+          ],
+          correctIndex: 0,
+          explanation: "Posts get pushed down the chronological feed as new posts are added; static content like About Us should be a Page so it stays permanently and predictably accessible.",
+        },
+        {
+          question: "Which feature is available to Pages but not to Posts by default?",
+          options: ["Categories", "Tags", "Parent/child hierarchy", "RSS feed inclusion"],
+          correctIndex: 2,
+          explanation: "Pages support a hierarchical parent/child structure (e.g. a 'Services' page with sub-pages), which Posts don't use by default.",
         },
       ],
       rememberThis: "Posts are diary entries that pile up over time; Pages are the labeled binder dividers that stay put.",
@@ -427,6 +661,39 @@ const wordpressAdministration: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Overlapping, inconsistent tags dilute their usefulness for both navigation and SEO instead of creating clear, browsable groupings.",
         },
+        {
+          question: "A news site wants readers to browse all articles about 'Politics' in one place, while also being able to find every article mentioning a specific senator across sections. Which combination fits best?",
+          options: [
+            "Use only categories for both needs",
+            "Use a 'Politics' category for the section, and a tag for the senator's name to cross-reference across sections",
+            "Use only tags for both needs",
+            "Create a separate Page for each senator",
+          ],
+          correctIndex: 1,
+          explanation: "Categories organize broad sections while tags cut across them to connect related specific topics — exactly this kind of cross-referencing use case.",
+        },
+        {
+          question: "A blogger wants a 'Recipes' section with subgroups like 'Recipes > Vegan' and 'Recipes > Desserts.' Which taxonomy feature enables this?",
+          options: [
+            "Tags, because they are flexible",
+            "Categories, because they support hierarchical parent/child relationships",
+            "The Media Library",
+            "User roles",
+          ],
+          correctIndex: 1,
+          explanation: "Only categories support hierarchy in WordPress by default, allowing parent categories with child subcategories.",
+        },
+        {
+          question: "Where does WordPress store the relationship linking a specific post to its assigned categories and tags?",
+          options: [
+            "Inside the theme's CSS file",
+            "In the wp_term_relationships table, linking terms to posts",
+            "In wp-config.php",
+            "In the Media Library",
+          ],
+          correctIndex: 1,
+          explanation: "WordPress's taxonomy system uses wp_terms, wp_term_taxonomy, and wp_term_relationships tables to connect categories/tags to individual posts.",
+        },
       ],
       rememberThis: "Categories are the library's sections; tags are the librarian's sticky notes inside the books.",
       keyTakeaways: [
@@ -436,6 +703,11 @@ const wordpressAdministration: CurriculumModuleDef = {
         "Keep tag usage consistent to avoid fragmenting content into near-duplicates.",
       ],
     },
+      ],
+    },
+    {
+      name: "Media, Users & Settings",
+      lessons: [
     {
       title: "The Media Library",
       description: "Where every image, video, and file uploaded to a WordPress site lives.",
@@ -488,6 +760,34 @@ const wordpressAdministration: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Alt text describes an image for screen readers and search engines, aiding both accessibility and SEO — it has no effect on whether the image displays.",
+        },
+        {
+          question: "A client's page loads very slowly, and inspection shows several 8MB camera photos embedded directly. What should be done?",
+          options: [
+            "Nothing, image size doesn't affect load speed",
+            "Compress and resize the images before/during upload using a tool or plugin",
+            "Delete the Media Library entirely",
+            "Convert the images into Pages",
+          ],
+          correctIndex: 1,
+          explanation: "Oversized, uncompressed images are a leading cause of slow page loads; compressing and resizing them is the standard fix.",
+        },
+        {
+          question: "A photographer uploads the same header image once and wants to use it on five different blog posts. What's the correct approach?",
+          options: [
+            "Upload the same file five separate times, once per post",
+            "Upload it once to the Media Library and reuse that same attachment across all five posts",
+            "Save it directly in the theme's folder instead",
+            "Email the file to each post individually",
+          ],
+          correctIndex: 1,
+          explanation: "The Media Library is designed for exactly this — upload once, reuse the same stored file and its resized versions across any number of posts or pages.",
+        },
+        {
+          question: "A site fails an accessibility audit for missing image descriptions. Which Media Library field addresses this directly?",
+          options: ["File name", "Alt text", "Upload date", "File size"],
+          correctIndex: 1,
+          explanation: "Alt text is read aloud by screen readers to describe an image to visually impaired visitors, directly addressing this kind of accessibility gap.",
         },
       ],
       rememberThis: "The Media Library is the shared filing cabinet — file it once, reuse it everywhere.",
@@ -546,6 +846,29 @@ const wordpressAdministration: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "It checks the logged-in user's granted capabilities, which is the recommended way to gate functionality by permission rather than by role name alone.",
         },
+        {
+          question: "An agency is setting up a client's account on a site they built. The client should be able to manage all content but not touch plugins or site settings. Which role fits best?",
+          options: ["Administrator", "Editor", "Contributor", "Subscriber"],
+          correctIndex: 1,
+          explanation: "Editor grants full control over posts and pages (including others') without exposing plugin management or site-wide settings, matching this exact need.",
+        },
+        {
+          question: "A guest writer should be able to draft an article but must have an editor review and publish it before it goes live. Which role enforces that workflow?",
+          options: ["Administrator", "Author", "Contributor", "Subscriber"],
+          correctIndex: 2,
+          explanation: "Contributors can write and submit posts but cannot publish them directly, requiring someone with higher privileges to review and publish.",
+        },
+        {
+          question: "Why is giving every team member the Administrator role considered a bad practice, even if it avoids permission errors?",
+          options: [
+            "Administrator accounts cost extra money",
+            "It multiplies the damage a mistake, stolen password, or malicious plugin could cause",
+            "WordPress only allows one Administrator per site",
+            "It slows down the website automatically",
+          ],
+          correctIndex: 1,
+          explanation: "The principle of least privilege limits blast radius — fewer Administrator accounts means fewer ways a mistake or compromise can affect the whole site.",
+        },
       ],
       rememberThis: "Give every user the keycard that opens exactly the doors they need — nothing more.",
       keyTakeaways: [
@@ -603,6 +926,34 @@ const wordpressAdministration: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Changing URL structure without setting up 301 redirects breaks every old link pointing to the previous URLs, hurting both users and SEO.",
         },
+        {
+          question: "A business site's homepage is currently showing a chronological blog feed, but the owner wants a fixed welcome page instead. Which setting fixes this?",
+          options: [
+            "Settings > Permalinks",
+            "Settings > Reading, setting a static Page as the homepage",
+            "Settings > Discussion",
+            "Settings > Writing",
+          ],
+          correctIndex: 1,
+          explanation: "Settings > Reading controls whether the homepage displays the latest posts or a chosen static Page, which is exactly what this scenario needs.",
+        },
+        {
+          question: "A site is getting flooded with spam comments on old posts. Which settings screen is most relevant to address this?",
+          options: ["Settings > General", "Settings > Discussion", "Settings > Permalinks", "Settings > Reading"],
+          correctIndex: 1,
+          explanation: "Settings > Discussion controls comment behavior, including moderation rules, closing comments on old posts, and spam-related options.",
+        },
+        {
+          question: "A developer needs to display the site's configured title dynamically inside a theme file rather than typing it by hand. What should they use?",
+          options: [
+            "Hardcode the title as plain text in the template",
+            "get_bloginfo( 'name' ) to pull the value from Settings > General",
+            "A category archive query",
+            "current_user_can()",
+          ],
+          correctIndex: 1,
+          explanation: "get_bloginfo('name') retrieves the site title configured in Settings > General, keeping the value dynamic and consistent if it's ever changed.",
+        },
       ],
       rememberThis: "Core Settings is the master breaker panel — one flip there changes the whole building, not just one room.",
       keyTakeaways: [
@@ -610,6 +961,8 @@ const wordpressAdministration: CurriculumModuleDef = {
         "Permalinks determine the URL structure for all content.",
         "Reading settings decide whether the homepage is a blog feed or a static Page.",
         "Changing permalinks on a live site requires 301 redirects to avoid breaking links and SEO.",
+      ],
+    },
       ],
     },
   ],

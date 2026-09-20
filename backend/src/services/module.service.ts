@@ -26,8 +26,9 @@ async function assertCourseExists(courseId: string): Promise<void> {
   if (!course) throw ApiError.notFound("Course not found");
 }
 
-export async function listModules(courseId: string) {
+export async function listModules(requester: Requester, courseId: string) {
   await assertCourseExists(courseId);
+  await assertCourseContentAccess(courseId, requester);
   const modules = await Module.find({ course: courseId }).sort({ order: 1 }).lean();
 
   const lessonCounts = await Lesson.aggregate<{ _id: unknown; count: number }>([
@@ -104,8 +105,9 @@ async function assertModuleExists(moduleId: string) {
   return module;
 }
 
-export async function listTopics(moduleId: string) {
-  await assertModuleExists(moduleId);
+export async function listTopics(requester: Requester, moduleId: string) {
+  const module = await assertModuleExists(moduleId);
+  await assertCourseContentAccess(String(module.course), requester);
   const topics = await Topic.find({ module: moduleId }).sort({ order: 1 }).lean();
 
   const lessonCounts = await Lesson.aggregate<{ _id: unknown; count: number }>([
@@ -182,8 +184,9 @@ async function assertTopicExists(topicId: string) {
   return topic;
 }
 
-export async function listLessons(topicId: string) {
-  await assertTopicExists(topicId);
+export async function listLessons(requester: Requester, topicId: string) {
+  const topic = await assertTopicExists(topicId);
+  await assertCourseContentAccess(String(topic.course), requester);
   return Lesson.find({ topic: topicId }).sort({ order: 1 }).lean();
 }
 

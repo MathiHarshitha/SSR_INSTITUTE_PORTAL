@@ -10,7 +10,10 @@ export const curriculum: CurriculumCourseDef = {
       name: "Python Foundations for Data Science",
       description: "The core Python skills every data scientist relies on before touching a single dataset.",
       estimatedDuration: "1 week",
-      lessons: [
+      topics: [
+        {
+          name: "Core Python Syntax",
+          lessons: [
         {
           title: "Variables and Data Types",
           description: "How Python stores and labels the pieces of information you work with.",
@@ -69,6 +72,24 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 2,
               explanation:
                 "Python won't silently mix a string and an integer with '+'; it raises a TypeError because it doesn't know if you mean concatenation or addition.",
+            },
+            {
+              question: "What does type(True) return in Python?",
+              options: ["<class 'bool'>", "<class 'int'>", "<class 'str'>", "<class 'NoneType'>"],
+              correctIndex: 0,
+              explanation: "True and False are booleans, so type() reports <class 'bool'>.",
+            },
+            {
+              question: "What does the following code print?\nprice = \"10\"\nquantity = 3\nprint(price * quantity)",
+              options: ["30", "\"101010\"", "It raises a TypeError", "\"30\""],
+              correctIndex: 1,
+              explanation: "Multiplying a string by an integer repeats the string that many times in Python, giving \"101010\" — not numeric multiplication, since price is still a string.",
+            },
+            {
+              question: "Which function correctly converts the string \"42\" into an integer in Python?",
+              options: ["str(\"42\")", "int(\"42\")", "float(\"42\")", "bool(\"42\")"],
+              correctIndex: 1,
+              explanation: "int() parses a numeric string and returns it as an integer type.",
             },
           ],
           rememberThis: "A variable is just a labeled box — the type tells Python what kind of thing is inside.",
@@ -151,6 +172,24 @@ export const curriculum: CurriculumCourseDef = {
               explanation:
                 "Functions centralize logic in one place — fix a bug once instead of hunting down every copy-pasted version.",
             },
+            {
+              question:
+                "What does the following code print?\nstudents = [{\"name\": \"Ravi\", \"score\": 70}, {\"name\": \"Sara\", \"score\": 95}]\n\ndef top_score(students):\n    best = 0\n    for s in students:\n        if s[\"score\"] > best:\n            best = s[\"score\"]\n    return best\n\nprint(top_score(students))",
+              options: ["70", "95", "0", "KeyError"],
+              correctIndex: 1,
+              explanation: "The loop tracks the highest score seen so far; 95 is larger than 70, so best ends at 95, which the function returns.",
+            },
+            {
+              question: "What does a function's `return` statement do?",
+              options: [
+                "Prints the value to the console",
+                "Sends a value back to the code that called the function, and ends the function's execution",
+                "Deletes the function",
+                "Runs the function again in a loop",
+              ],
+              correctIndex: 1,
+              explanation: "return hands a value back to the caller and immediately exits the function — it does not print anything by itself.",
+            },
           ],
           rememberThis: "Lists remember order, dictionaries remember names — pick the structure that matches how you'll look things up.",
           keyTakeaways: [
@@ -160,6 +199,11 @@ export const curriculum: CurriculumCourseDef = {
             "A list of dictionaries is the natural shape for tabular-ish raw data.",
           ],
         },
+          ],
+        },
+        {
+          name: "Structuring Python Code",
+          lessons: [
         {
           title: "Basic OOP Concepts",
           description: "Classes and objects — how Python lets you bundle data and behavior together.",
@@ -217,6 +261,36 @@ export const curriculum: CurriculumCourseDef = {
               options: ["The Student class itself", "The specific object s1", "Nothing, it's ignored", "The gpa value only"],
               correctIndex: 1,
               explanation: "self always refers to the particular instance the method was called on — here, s1.",
+            },
+            {
+              question:
+                "What does the following code print?\nclass Dog:\n    def __init__(self, name):\n        self.name = name\n    def bark(self):\n        return f\"{self.name} says woof\"\n\nd = Dog(\"Rex\")\nprint(d.bark())",
+              options: ["Rex says woof", "d says woof", "Dog says woof", "AttributeError"],
+              correctIndex: 0,
+              explanation: "self.name is set to \"Rex\" when d is created, so bark() builds the string using that instance's own name attribute.",
+            },
+            {
+              question: "What is the relationship between a class and an object?",
+              options: [
+                "They are identical terms for the same thing",
+                "A class is a specific instance of an object",
+                "A class is a blueprint; an object is a specific instance built from that blueprint",
+                "Objects can exist without ever being defined by a class",
+              ],
+              correctIndex: 2,
+              explanation: "The class defines the structure and behavior; each object is one concrete instance created from it.",
+            },
+            {
+              question:
+                "What is wrong with this code?\nclass Cat:\n    def meow():\n        return \"meow\"\n\nc = Cat()\nc.meow()",
+              options: [
+                "It works fine and returns \"meow\"",
+                "meow() is missing the self parameter, so calling c.meow() raises a TypeError",
+                "Cat needs an __init__ method before any method can be called",
+                "c.meow() should be written as Cat.meow() instead",
+              ],
+              correctIndex: 1,
+              explanation: "Calling c.meow() automatically passes c as the first argument, but meow() was defined to accept zero parameters, causing a TypeError about too many arguments.",
             },
           ],
           rememberThis: "A class is the blueprint; an object is the actual thing built from it.",
@@ -285,6 +359,34 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 0,
               explanation: "Importing a specific name directly lets you call it without the module prefix.",
             },
+            {
+              question: "What does the following code print?\nfrom math import sqrt as sq\nprint(sq(25))",
+              options: ["5", "5.0", "25", "ImportError"],
+              correctIndex: 1,
+              explanation: "sq is an alias for math.sqrt, which returns a float, so sq(25) prints 5.0.",
+            },
+            {
+              question: "What is the purpose of writing 'import numpy as np'?",
+              options: [
+                "It permanently renames the numpy library on disk",
+                "It creates a shorthand alias 'np' to refer to the numpy module within this script",
+                "It only imports numpy's array function, nothing else",
+                "It is required syntax with no shorter alternative",
+              ],
+              correctIndex: 1,
+              explanation: "'as np' is just a local alias for this script, letting you write np.something instead of numpy.something.",
+            },
+            {
+              question: "What happens if you call pd.DataFrame(...) without first running 'import pandas as pd'?",
+              options: [
+                "Python automatically imports pandas for you",
+                "A NameError is raised because 'pd' is not defined",
+                "It works but runs more slowly",
+                "It raises a SyntaxError",
+              ],
+              correctIndex: 1,
+              explanation: "Python has no idea what 'pd' refers to until it's imported — using it beforehand raises a NameError.",
+            },
           ],
           rememberThis: "Don't reinvent the toolbox — import it.",
           keyTakeaways: [
@@ -292,6 +394,8 @@ export const curriculum: CurriculumCourseDef = {
             "import module_name accesses things as module_name.thing.",
             "from module_name import thing skips the prefix.",
             "pd for pandas and np for numpy are near-universal conventions.",
+          ],
+        },
           ],
         },
       ],
@@ -304,7 +408,10 @@ export const curriculum: CurriculumCourseDef = {
       name: "Mathematics & Statistics for Data Science",
       description: "The statistical toolkit behind every chart, test, and model you'll build later.",
       estimatedDuration: "1.5 weeks",
-      lessons: [
+      topics: [
+        {
+          name: "Descriptive Statistics",
+          lessons: [
         {
           title: "Math Refresher for Data Science",
           description: "The handful of math concepts (exponents, logs, summation) that show up everywhere in DS.",
@@ -357,6 +464,34 @@ export const curriculum: CurriculumCourseDef = {
               options: ["Multiplication of all terms", "Summation of all terms", "The square root", "The average directly"],
               correctIndex: 1,
               explanation: "Σ is summation notation — shorthand for 'add all these values together'.",
+            },
+            {
+              question: "What does the following code print?\nvalues = [3, 5, 2]\nprint(sum(v ** 2 for v in values))",
+              options: ["10", "38", "100", "19"],
+              correctIndex: 1,
+              explanation: "Each value is squared first (9, 25, 4) and then summed: 9 + 25 + 4 = 38.",
+            },
+            {
+              question: "What does log_b(x) conceptually answer?",
+              options: [
+                "How many times x divides evenly into b",
+                "What power b must be raised to, to get x",
+                "The product of b and x",
+                "The average of b and x",
+              ],
+              correctIndex: 1,
+              explanation: "A logarithm is the inverse of exponentiation: log_b(x) asks 'b raised to what power equals x?'",
+            },
+            {
+              question: "Why might you apply a log transform to a skewed column like income before modeling?",
+              options: [
+                "To make all the values negative",
+                "To reduce the impact of extreme skew and compress very large values closer together",
+                "To convert the column into text",
+                "Log transforms are purely cosmetic and don't affect the data",
+              ],
+              correctIndex: 1,
+              explanation: "Log transforms compress large values proportionally more than small ones, making heavily skewed data more manageable for many statistical methods.",
             },
           ],
           rememberThis: "Σ is just a fancy 'add it all up' symbol — nothing to fear.",
@@ -419,6 +554,30 @@ export const curriculum: CurriculumCourseDef = {
               options: ["60", "70", "80", "100"],
               correctIndex: 1,
               explanation: "70 appears twice, more than any other value, making it the mode.",
+            },
+            {
+              question: "For the dataset [5, 7, 7, 9, 100], what is the median?",
+              options: ["7", "9", "25.6", "100"],
+              correctIndex: 0,
+              explanation: "Sorted, the values are 5, 7, 7, 9, 100 — the middle (3rd) value is 7.",
+            },
+            {
+              question:
+                "For [5, 7, 7, 9, 100], the mean is 25.6 while the median is 7. What does this large gap suggest?",
+              options: [
+                "There must be a data entry error, since mean and median should always match",
+                "The dataset is skewed by an outlier (100), making the mean unrepresentative of most values",
+                "The mode is calculated incorrectly",
+                "This is normal and tells you nothing about the data",
+              ],
+              correctIndex: 1,
+              explanation: "A big gap between mean and median is a classic sign that one or more extreme values are pulling the mean away from where most of the data actually sits.",
+            },
+            {
+              question: "What does the following code print?\nimport pandas as pd\ns = pd.Series([3, 3, 3, 8])\nprint(s.mode()[0])",
+              options: ["3", "8", "4.25", "3.5"],
+              correctIndex: 0,
+              explanation: "3 appears three times, more often than any other value, so it is the mode.",
             },
           ],
           rememberThis: "The mean is easily bullied by outliers; the median doesn't care who showed up.",
@@ -487,6 +646,35 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "Low standard deviation indicates values sit close to the mean, with little spread.",
             },
+            {
+              question: "Sample variance divides the sum of squared deviations by n-1 instead of n. Why?",
+              options: [
+                "To make the number bigger for no real reason",
+                "To correct for bias when estimating a population's variance from a sample",
+                "n-1 is only used when the dataset has an even number of values",
+                "It's a legacy convention with no statistical purpose",
+              ],
+              correctIndex: 1,
+              explanation: "Dividing by n-1 (Bessel's correction) compensates for the fact that a sample's own mean tends to slightly underestimate spread compared to the true population mean.",
+            },
+            {
+              question: "What does the following code print?\nimport pandas as pd\ns = pd.Series([2, 2, 2, 2])\nprint(s.std())",
+              options: ["0.0", "2.0", "NaN", "1.0"],
+              correctIndex: 0,
+              explanation: "All values are identical, so there is no spread at all — standard deviation is 0.0.",
+            },
+            {
+              question:
+                "Two classes both average 75 on a test. Class A has a standard deviation of 2; Class B has a standard deviation of 18. Which statement is most accurate?",
+              options: [
+                "Class A's scores are far more tightly clustered around 75 than Class B's",
+                "Class B's scores are more consistent than Class A's",
+                "Both classes performed identically in every respect",
+                "Standard deviation says nothing about consistency",
+              ],
+              correctIndex: 0,
+              explanation: "A much lower standard deviation means Class A's individual scores sit much closer to the shared average of 75.",
+            },
           ],
           rememberThis: "The mean tells you where the center is; standard deviation tells you how much to trust it.",
           keyTakeaways: [
@@ -496,6 +684,11 @@ export const curriculum: CurriculumCourseDef = {
             "Spread is essential context for interpreting any 'average'.",
           ],
         },
+          ],
+        },
+        {
+          name: "Probability & Distributions",
+          lessons: [
         {
           title: "Probability Basics",
           description: "The foundation for reasoning about uncertainty and chance in data.",
@@ -548,6 +741,30 @@ export const curriculum: CurriculumCourseDef = {
               options: ["P(A) + P(B)", "P(A) - P(B)", "P(A) × P(B)", "P(A) / P(B)"],
               correctIndex: 2,
               explanation: "For independent events, the probability of both happening is the product of their individual probabilities.",
+            },
+            {
+              question: "A fair coin is flipped 3 times. What is the probability of getting heads all three times?",
+              options: ["0.5", "0.125", "0.333", "0.25"],
+              correctIndex: 1,
+              explanation: "Each flip is independent with probability 0.5, so P(HHH) = 0.5 × 0.5 × 0.5 = 0.125.",
+            },
+            {
+              question:
+                "What does the following code print?\nimport random\noutcomes = [random.choice([\"H\", \"T\"]) for _ in range(5)]\nprint(len(outcomes))",
+              options: ["3", "5", "10", "It varies each run"],
+              correctIndex: 1,
+              explanation: "The list comprehension always builds exactly 5 elements regardless of which random outcomes are chosen, so len(outcomes) is always 5.",
+            },
+            {
+              question: "What is the 'gambler's fallacy'?",
+              options: [
+                "Believing rare events can never happen",
+                "Believing that past independent outcomes influence future independent outcomes",
+                "A correct rule for calculating probability",
+                "The idea that all probabilities must sum to 1",
+              ],
+              correctIndex: 1,
+              explanation: "The gambler's fallacy is the mistaken belief that independent events 'remember' past results and adjust future probabilities accordingly.",
             },
           ],
           rememberThis: "Probability describes long-run frequency, not a guarantee about any single outcome.",
@@ -616,6 +833,31 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "A normal distribution's shape and position are entirely determined by its mean and standard deviation.",
             },
+            {
+              question:
+                "A dataset is normally distributed with mean 100 and standard deviation 15. Approximately what range contains 95% of the data?",
+              options: ["85 to 115", "70 to 130", "55 to 145", "100 to 115"],
+              correctIndex: 1,
+              explanation: "95% falls within 2 standard deviations of the mean: 100 ± (2 × 15) = 70 to 130.",
+            },
+            {
+              question:
+                "What does the following code print?\nimport numpy as np\ndata = np.random.normal(loc=0, scale=1, size=5)\nprint(len(data))",
+              options: ["1", "0", "5", "It depends on the random seed"],
+              correctIndex: 2,
+              explanation: "size=5 always generates exactly 5 values regardless of their randomly sampled contents, so len(data) is always 5.",
+            },
+            {
+              question: "Which of the following is an example of a distribution that is typically NOT close to normal (bell-shaped)?",
+              options: [
+                "Adult human heights",
+                "Measurement errors from a precise instrument",
+                "Household income across a population, which is often heavily right-skewed",
+                "IQ scores",
+              ],
+              correctIndex: 2,
+              explanation: "Income distributions typically have a long right tail from a small number of very high earners, unlike a symmetric bell curve.",
+            },
           ],
           rememberThis: "Not everything is a bell curve — always plot before you assume.",
           keyTakeaways: [
@@ -625,6 +867,11 @@ export const curriculum: CurriculumCourseDef = {
             "Always visualize data before assuming it's normally distributed.",
           ],
         },
+          ],
+        },
+        {
+          name: "Relationships in Data",
+          lessons: [
         {
           title: "Correlation",
           description: "Measuring whether two variables move together, and how strongly.",
@@ -687,6 +934,30 @@ export const curriculum: CurriculumCourseDef = {
               ],
               correctIndex: 1,
               explanation: "Correlation only shows an association pattern — a third factor could be causing both variables to move.",
+            },
+            {
+              question: "Given x = [1, 2, 3, 4] and y = [4, 3, 2, 1], what is the correlation coefficient approximately?",
+              options: ["1.0", "0.0", "-1.0", "0.5"],
+              correctIndex: 2,
+              explanation: "As x increases perfectly linearly, y decreases perfectly linearly, giving a perfect negative correlation of -1.0.",
+            },
+            {
+              question:
+                "What does the following code print?\nimport pandas as pd\ndf = pd.DataFrame({\"a\": [1, 2, 3], \"b\": [10, 10, 10]})\nprint(df[\"a\"].corr(df[\"b\"]))",
+              options: ["1.0", "0.0", "NaN", "-1.0"],
+              correctIndex: 2,
+              explanation: "Column 'b' has zero variance (all values identical), so the correlation coefficient is mathematically undefined and pandas returns NaN.",
+            },
+            {
+              question: "What does a correlation coefficient near 0 tell you?",
+              options: [
+                "The two variables are identical",
+                "There is little to no LINEAR relationship, though a non-linear relationship could still exist",
+                "One variable definitely causes the other",
+                "The data must contain errors",
+              ],
+              correctIndex: 1,
+              explanation: "Pearson correlation only detects linear association — a strong curved or cyclical relationship can still exist with a correlation near 0.",
             },
           ],
           rememberThis: "Correlation says two things move together — it never says why.",
@@ -760,6 +1031,30 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "Least squares finds the line that minimizes total squared prediction error across all points.",
             },
+            {
+              question:
+                "What does the following code print (rounded)?\nimport numpy as np\nsize = np.array([1000, 2000, 3000])\nprice = np.array([100, 200, 300])\nm, b = np.polyfit(size, price, 1)\nprint(round(m, 2), round(b, 2))",
+              options: ["0.1 0.0", "1.0 0.0", "0.1 100.0", "10.0 0.0"],
+              correctIndex: 0,
+              explanation: "price is exactly 0.1 × size with no offset, so np.polyfit finds slope m=0.1 and intercept b=0.0.",
+            },
+            {
+              question: "Using y = 2x + 5, what is the predicted y when x = 10?",
+              options: ["15", "20", "25", "10"],
+              correctIndex: 2,
+              explanation: "y = 2(10) + 5 = 20 + 5 = 25.",
+            },
+            {
+              question: "Why is it risky to use a regression line to predict far outside the range of the training data?",
+              options: [
+                "It's not risky — lines are valid everywhere",
+                "The underlying relationship may not hold at that extreme, since it was never actually observed there",
+                "Regression models physically cannot output values outside the training range",
+                "Extrapolation makes the model compute faster",
+              ],
+              correctIndex: 1,
+              explanation: "A relationship fit on a limited data range is only verified to hold within that range — assuming it continues unchanged far beyond it is a common and risky mistake.",
+            },
           ],
           rememberThis: "Regression turns 'these two things move together' into 'here's my best guess for a new one.'",
           keyTakeaways: [
@@ -767,6 +1062,8 @@ export const curriculum: CurriculumCourseDef = {
             "y = mx + b is the simplest form: slope and intercept.",
             "Least squares finds the line minimizing squared prediction errors.",
             "Predictions are most reliable within the range of the training data.",
+          ],
+        },
           ],
         },
       ],
@@ -779,7 +1076,10 @@ export const curriculum: CurriculumCourseDef = {
       name: "Data Handling with NumPy & Pandas",
       description: "The essential Python libraries for storing, cleaning, and reshaping real-world data.",
       estimatedDuration: "2 weeks",
-      lessons: [
+      topics: [
+        {
+          name: "NumPy & Pandas Basics",
+          lessons: [
         {
           title: "NumPy Arrays and Vectorized Operations",
           description: "Fast, memory-efficient arrays that power almost every numeric computation in Python.",
@@ -843,6 +1143,36 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "This is boolean indexing — it filters the array to only elements satisfying the condition.",
             },
+            {
+              question:
+                "What does the following code print?\nimport numpy as np\na = np.array([1, 2, 3, 4])\nb = a[a % 2 == 0]\nprint(b)",
+              options: ["[1 3]", "[2 4]", "[1 2 3 4]", "It raises an error"],
+              correctIndex: 1,
+              explanation: "a % 2 == 0 creates a boolean mask that is True for even numbers, so indexing with it keeps only 2 and 4.",
+            },
+            {
+              question:
+                "What is wrong with this code?\nimport numpy as np\na = np.array([1, 2, 3])\nb = np.array([1, 2])\nprint(a + b)",
+              options: [
+                "It prints [2, 4, 3]",
+                "It raises a ValueError because the shapes (3,) and (2,) are not broadcast-compatible",
+                "It prints [1, 2, 3, 1, 2]",
+                "NumPy automatically pads b with a zero to match a's length",
+              ],
+              correctIndex: 1,
+              explanation: "Broadcasting requires compatible shapes; arrays of length 3 and 2 can't be aligned element-wise, so NumPy raises a ValueError.",
+            },
+            {
+              question: "What does 'broadcasting' allow NumPy to do?",
+              options: [
+                "Send array data over a network connection",
+                "Perform operations between arrays of different but compatible shapes without writing explicit loops",
+                "Convert NumPy arrays into plain Python lists",
+                "Broadcasting is not an actual NumPy feature",
+              ],
+              correctIndex: 1,
+              explanation: "Broadcasting lets NumPy apply an operation between arrays of different shapes (like an array and a single scalar) by implicitly expanding the smaller one, without writing loops.",
+            },
           ],
           rememberThis: "If you're writing a for-loop over a NumPy array, you're probably doing it the slow way.",
           keyTakeaways: [
@@ -905,6 +1235,41 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 2,
               explanation: "A single column pulled from a DataFrame is returned as a pandas Series, the 1D structure.",
             },
+            {
+              question:
+                "What does the following code print?\nimport pandas as pd\ndf = pd.DataFrame({\"x\": [1, 2, 3]})\nprint(type(df[[\"x\"]]))",
+              options: [
+                "<class 'pandas.core.series.Series'>",
+                "<class 'pandas.core.frame.DataFrame'>",
+                "<class 'list'>",
+                "<class 'dict'>",
+              ],
+              correctIndex: 1,
+              explanation: "Using double brackets df[[\"x\"]] selects a list of columns, which always returns a DataFrame — even with just one column — unlike single-bracket df[\"x\"], which returns a Series.",
+            },
+            {
+              question:
+                "What is wrong with this code if the goal is to see only rows where age is over 22?\nimport pandas as pd\ndf = pd.DataFrame({\"age\": [20, 25, 30]})\nprint(df[\"age\"] > 22)",
+              options: [
+                "Nothing — this filters the DataFrame to the matching rows",
+                "It only prints a boolean Series of True/False, not the actual filtered rows — you need df[df[\"age\"] > 22]",
+                "DataFrame comparisons are invalid syntax in pandas",
+                "It raises a TypeError",
+              ],
+              correctIndex: 1,
+              explanation: "df[\"age\"] > 22 alone just produces True/False labels per row; you must wrap it in df[...] to actually filter the DataFrame down to matching rows.",
+            },
+            {
+              question: "Which statement correctly describes the relationship between a Series and a DataFrame?",
+              options: [
+                "A DataFrame is a single column; a Series is a full table",
+                "A Series is one labeled column of data; a DataFrame is a table made of one or more Series sharing an index",
+                "They are exactly the same structure with different names",
+                "A Series can only hold numbers, while a DataFrame can hold text",
+              ],
+              correctIndex: 1,
+              explanation: "A Series is the 1D building block; a DataFrame combines multiple Series (columns) that share a common row index into a 2D table.",
+            },
           ],
           rememberThis: "A DataFrame is Excel for people who'd rather write one line of code than click a thousand cells.",
           keyTakeaways: [
@@ -914,6 +1279,11 @@ export const curriculum: CurriculumCourseDef = {
             "DataFrames avoid slow manual loops using vectorized operations.",
           ],
         },
+          ],
+        },
+        {
+          name: "Data Cleaning & Aggregation",
+          lessons: [
         {
           title: "Handling Missing Data and Duplicates",
           description: "Cleaning up the gaps and repeats that real-world data always has.",
@@ -971,6 +1341,35 @@ export const curriculum: CurriculumCourseDef = {
               options: ["df.dropna()", "df.fillna()", "df.drop_duplicates()", "df.isna()"],
               correctIndex: 2,
               explanation: "drop_duplicates() identifies and removes rows that are exact repeats.",
+            },
+            {
+              question:
+                "What does the following code print?\nimport pandas as pd\nimport numpy as np\ndf = pd.DataFrame({\"score\": [10, np.nan, 30]})\nprint(df[\"score\"].fillna(0).sum())",
+              options: ["40.0", "NaN", "30.0", "It raises an error"],
+              correctIndex: 0,
+              explanation: "fillna(0) replaces the missing value with 0, so the sum becomes 10 + 0 + 30 = 40.0.",
+            },
+            {
+              question: "A column is 60% missing values. What is generally the safer first step?",
+              options: [
+                "Immediately drop every row with any missing value in that column",
+                "Investigate why the data is missing and consider imputation or dropping the column, since dropping rows would lose most of the dataset",
+                "Always fill missing values with 0 regardless of context",
+                "Ignore it, since missing values don't affect analysis",
+              ],
+              correctIndex: 1,
+              explanation: "With 60% missing, dropping rows would destroy most of the dataset — understanding the missingness pattern first leads to a smarter fix.",
+            },
+            {
+              question: "What does df.duplicated().sum() return?",
+              options: [
+                "The total number of rows in the DataFrame",
+                "The count of rows flagged as duplicates",
+                "The sum of all numeric column values",
+                "The number of missing values",
+              ],
+              correctIndex: 1,
+              explanation: "duplicated() returns a boolean Series flagging repeated rows, and .sum() counts how many True values (duplicates) there are.",
             },
           ],
           rememberThis: "Before you analyze data, check what's missing and what's repeated — both lie about the truth.",
@@ -1044,6 +1443,36 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "groupby() sets up the grouping; you still need to chain a column and aggregation function to compute anything.",
             },
+            {
+              question:
+                "What does the following code print?\nimport pandas as pd\ndf = pd.DataFrame({\n    \"team\": [\"A\", \"A\", \"B\"],\n    \"points\": [10, 20, 5]\n})\nprint(df.groupby(\"team\")[\"points\"].mean())",
+              options: [
+                "team A: 30.0, team B: 5.0",
+                "team A: 15.0, team B: 5.0",
+                "team A: 10.0, team B: 5.0",
+                "A single overall mean with no grouping",
+              ],
+              correctIndex: 1,
+              explanation: "Team A's points (10, 20) average to 15.0; team B has only one value, 5, so its mean is 5.0.",
+            },
+            {
+              question:
+                "What is wrong with this code?\nresult = df.groupby(\"region\")\nprint(result)",
+              options: [
+                "Nothing — it prints a neatly formatted summary table",
+                "It prints something like a GroupBy object reference, not useful data, since no aggregation was applied",
+                "groupby requires a numeric column as its argument",
+                "It raises a SyntaxError",
+              ],
+              correctIndex: 1,
+              explanation: "groupby() alone returns a lazy GroupBy object; you must chain a column selection and an aggregation (like .sum() or .mean()) to get an actual result.",
+            },
+            {
+              question: "Which of these is the SQL equivalent of pandas' groupby()?",
+              options: ["WHERE", "ORDER BY", "GROUP BY", "JOIN"],
+              correctIndex: 2,
+              explanation: "SQL's GROUP BY clause splits rows into groups for aggregation, mirroring what pandas' groupby() does.",
+            },
           ],
           rememberThis: "groupby answers 'compared to what?' — it's how raw rows become a business insight.",
           keyTakeaways: [
@@ -1116,6 +1545,36 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "pivot_table reorganizes data, often turning unique column values into new columns, summarized by an aggregation function.",
             },
+            {
+              question:
+                "What does the following code print?\nimport pandas as pd\na = pd.DataFrame({\"id\": [1, 2], \"name\": [\"X\", \"Y\"]})\nb = pd.DataFrame({\"id\": [2, 3], \"val\": [100, 200]})\nmerged = pd.merge(a, b, on=\"id\", how=\"inner\")\nprint(len(merged))",
+              options: ["0", "1", "2", "3"],
+              correctIndex: 1,
+              explanation: "Only id=2 exists in both DataFrames, so an inner join keeps exactly 1 matching row.",
+            },
+            {
+              question: "What does pd.melt() do, relative to pivot_table()?",
+              options: [
+                "It performs the exact same operation as pivot_table()",
+                "It reverses a pivot, turning wide-format columns back into long-format rows",
+                "It merges two DataFrames together",
+                "It removes missing values from a DataFrame",
+              ],
+              correctIndex: 1,
+              explanation: "melt() unpivots a wide table, converting columns into row values — the opposite transformation of pivot_table().",
+            },
+            {
+              question:
+                "You merge a customers table with an orders table using how='outer'. What can appear in the result that would NOT appear with how='inner'?",
+              options: [
+                "Rows for customers with no orders and orders with no matching customer, with NaNs filled in for the missing side",
+                "Automatically renamed duplicate columns",
+                "Nothing — outer and inner produce identical results",
+                "An error, since outer joins aren't supported in pandas",
+              ],
+              correctIndex: 0,
+              explanation: "An outer join keeps all rows from both tables, filling in NaN wherever there's no match on the other side — unmatched rows that an inner join would drop.",
+            },
           ],
           rememberThis: "Merging brings tables together; reshaping changes how the same data is laid out.",
           keyTakeaways: [
@@ -1123,6 +1582,8 @@ export const curriculum: CurriculumCourseDef = {
             "how='left'/'right'/'inner'/'outer' controls which unmatched rows survive.",
             "pivot_table() reshapes long data into a wide summary format.",
             "pd.melt() reverses a pivot, turning wide columns back into long rows.",
+          ],
+        },
           ],
         },
       ],
@@ -1199,6 +1660,41 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "It shows that relying only on summary numbers (mean, variance, correlation) can hide dramatically different underlying patterns that a chart reveals instantly.",
             },
+            {
+              question:
+                "What does the following code produce?\nimport matplotlib.pyplot as plt\nplt.plot([1, 2, 3], [10, 20, 15])\nplt.title(\"Trend\")\nplt.show()",
+              options: [
+                "A bar chart comparing three categories",
+                "A line chart connecting the points (1,10), (2,20), and (3,15) in order",
+                "A scatter plot with no connecting line",
+                "An error, because plt.plot needs a DataFrame",
+              ],
+              correctIndex: 1,
+              explanation: "plt.plot() draws a connected line through the given x/y coordinate pairs in the order provided.",
+            },
+            {
+              question:
+                "A bar chart shows heights of 50 and 52, but the y-axis starts at 48, making the bars look dramatically different in height. What is the issue?",
+              options: [
+                "There is no issue — this is standard, honest practice",
+                "Truncating the y-axis exaggerates a small real difference (about 4%) into a visually large one",
+                "The chart should have been a pie chart instead",
+                "The underlying data itself must be wrong",
+              ],
+              correctIndex: 1,
+              explanation: "Starting a bar chart's y-axis above zero distorts the visual proportion between bars, misleading viewers about the true size of the difference.",
+            },
+            {
+              question: "What is the main lesson of Anscombe's Quartet for a data scientist?",
+              options: [
+                "Always use pie charts for clarity",
+                "Summary statistics alone can hide very different underlying data patterns — visualize before concluding",
+                "Correlation always implies causation",
+                "Bar charts are superior to line charts in every situation",
+              ],
+              correctIndex: 1,
+              explanation: "Anscombe's four datasets share identical summary statistics but look completely different when plotted, showing why visualization matters before drawing conclusions.",
+            },
           ],
           rememberThis: "A chart's job is to show the truth fast — not to look impressive.",
           keyTakeaways: [
@@ -1266,6 +1762,41 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "subplots(1, 2) creates a grid with 1 row and 2 columns of chart axes within one figure.",
             },
+            {
+              question:
+                "What layout does the following code create?\nimport matplotlib.pyplot as plt\nfig, axes = plt.subplots(2, 1)\naxes[0].plot([1, 2, 3])\naxes[1].bar([\"a\", \"b\"], [5, 10])\nplt.show()",
+              options: [
+                "Two charts side by side in one row",
+                "Two charts stacked vertically in one column",
+                "A single combined chart with both a line and bars",
+                "Four separate charts in a grid",
+              ],
+              correctIndex: 1,
+              explanation: "subplots(2, 1) means 2 rows and 1 column, stacking the line chart above the bar chart vertically.",
+            },
+            {
+              question:
+                "What is wrong with this code?\nimport matplotlib.pyplot as plt\nplt.bar([\"A\", \"B\", \"C\"], [10, 20])",
+              options: [
+                "Nothing — it plots fine with one bar missing",
+                "The x and y lists have different lengths (3 vs 2), which raises a ValueError",
+                "plt.bar doesn't accept string labels for categories",
+                "matplotlib automatically pads the shorter list with a zero",
+              ],
+              correctIndex: 1,
+              explanation: "plt.bar() requires the category list and value list to be the same length; a mismatch raises a ValueError.",
+            },
+            {
+              question: "What is the purpose of plt.tight_layout()?",
+              options: [
+                "It deletes any unused subplot axes",
+                "It automatically adjusts spacing so titles, labels, and subplots don't overlap",
+                "It saves the current figure to disk",
+                "It changes the chart's color scheme",
+              ],
+              correctIndex: 1,
+              explanation: "tight_layout() automatically tweaks subplot spacing to prevent labels and titles from overlapping or being cut off.",
+            },
           ],
           rememberThis: "Matplotlib gives you the paintbrush and full control — seaborn gives you a pre-mixed palette.",
           keyTakeaways: [
@@ -1327,6 +1858,35 @@ export const curriculum: CurriculumCourseDef = {
               options: ["sns.heatmap()", "sns.boxplot()", "sns.lineplot()", "sns.countplot()"],
               correctIndex: 1,
               explanation: "Boxplots are specifically designed to show and compare distributions (median, spread, outliers) across categories.",
+            },
+            {
+              question:
+                "What does the following code visualize?\nimport seaborn as sns\nimport pandas as pd\ndf = pd.DataFrame({\"grp\": [\"A\", \"A\", \"B\", \"B\"], \"val\": [1, 2, 10, 12]})\nsns.boxplot(data=df, x=\"grp\", y=\"val\")",
+              options: [
+                "A single histogram of all 'val' values combined",
+                "Separate boxplots comparing the distribution of 'val' for group A versus group B",
+                "A scatter plot of grp against val",
+                "A correlation heatmap of the DataFrame",
+              ],
+              correctIndex: 1,
+              explanation: "Passing x='grp' and y='val' to boxplot() draws one box per unique group value, comparing their 'val' distributions side by side.",
+            },
+            {
+              question: "Which seaborn function is best suited for visualizing a correlation matrix?",
+              options: ["sns.lineplot()", "sns.heatmap()", "sns.countplot()", "sns.boxplot()"],
+              correctIndex: 1,
+              explanation: "sns.heatmap() is designed to display matrix-shaped data like a correlation matrix, using color intensity to show magnitude.",
+            },
+            {
+              question: "What advantage does the 'hue' parameter give in seaborn plots?",
+              options: [
+                "It changes the file format the plot is saved as",
+                "It automatically color-codes points or bars by a categorical column",
+                "It removes outliers from the plotted data",
+                "It sorts the data alphabetically before plotting",
+              ],
+              correctIndex: 1,
+              explanation: "'hue' maps a categorical column to distinct colors, letting you compare an extra dimension without building separate charts.",
             },
           ],
           rememberThis: "Seaborn speaks 'DataFrame and column names' fluently, so you barely have to think about chart plumbing.",
@@ -1395,6 +1955,31 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "As slice count grows, differences in angle/area become harder to judge accurately, unlike sorted bar lengths.",
             },
+            {
+              question:
+                "You want to compare the exam score distribution (spread and outliers) across 4 classes. Which chart type fits best?",
+              options: ["Pie chart", "Boxplot", "A single line chart", "A single number, like the overall mean"],
+              correctIndex: 1,
+              explanation: "Boxplots are purpose-built to compare the spread, median, and outliers of a numeric variable across multiple categories.",
+            },
+            {
+              question:
+                "You want to show the relationship between advertising spend and sales revenue across 50 campaigns. Which chart type is most appropriate?",
+              options: ["Pie chart", "Scatter plot", "Bar chart of totals only", "Histogram of spend alone"],
+              correctIndex: 1,
+              explanation: "Scatter plots directly show how two numeric variables relate to each other, point by point.",
+            },
+            {
+              question: "Why are histograms used for a single numeric variable rather than a bar chart of raw values?",
+              options: [
+                "They are functionally identical to bar charts",
+                "Histograms bin continuous values into ranges to reveal the overall distribution shape",
+                "Histograms only work with categorical data",
+                "Bar charts cannot display numeric data at all",
+              ],
+              correctIndex: 1,
+              explanation: "Histograms group continuous numeric values into bins and count frequency per bin, revealing the shape of the distribution — something a bar chart of raw individual values can't show clearly.",
+            },
           ],
           rememberThis: "Pick the chart for the question, not the chart that looks the fanciest.",
           keyTakeaways: [
@@ -1415,7 +2000,10 @@ export const curriculum: CurriculumCourseDef = {
       name: "SQL for Data Science",
       description: "Querying relational databases directly — the other half of every data scientist's toolkit.",
       estimatedDuration: "1 week",
-      lessons: [
+      topics: [
+        {
+          name: "Basic Queries",
+          lessons: [
         {
           title: "SQL Fundamentals: SELECT and WHERE",
           description: "Retrieving and filtering rows from a database table.",
@@ -1478,6 +2066,36 @@ export const curriculum: CurriculumCourseDef = {
               ],
               correctIndex: 2,
               explanation: "The asterisk (*) is a wildcard meaning 'all columns', and with no WHERE clause, all rows are returned too.",
+            },
+            {
+              question:
+                "Which employees does this query return?\nSELECT name FROM employees WHERE department = 'Sales' OR salary > 80000;",
+              options: [
+                "Only employees who are in Sales AND make over 80000",
+                "Employees who are in Sales, OR who make over 80000 (or both)",
+                "Employees in every department except Sales",
+                "It returns a syntax error",
+              ],
+              correctIndex: 1,
+              explanation: "OR only requires one of the two conditions to be true, so it returns Sales employees, high earners, and anyone matching both.",
+            },
+            {
+              question:
+                "What is wrong with this query?\nSELECT name FROM students WHERE age >= 18 AND < 65;",
+              options: [
+                "Nothing — it's valid SQL",
+                "The second condition is missing a column name — it should read 'AND age < 65'",
+                "WHERE cannot be combined with AND",
+                "SELECT requires a FROM clause to appear after WHERE",
+              ],
+              correctIndex: 1,
+              explanation: "Each condition joined by AND/OR needs its own complete comparison; '< 65' alone with no column reference is invalid SQL syntax.",
+            },
+            {
+              question: "Which SQL operator would you use to match text patterns, like names starting with 'A'?",
+              options: ["=", "LIKE", "BETWEEN", "IN"],
+              correctIndex: 1,
+              explanation: "LIKE supports wildcard pattern matching (e.g., 'A%') for text columns, unlike the exact-match '=' operator.",
             },
           ],
           rememberThis: "SELECT decides what you see; WHERE decides which rows earn a seat.",
@@ -1551,6 +2169,36 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "Aggregate functions after GROUP BY are computed separately for each group defined by the grouped column.",
             },
+            {
+              question:
+                "What does this query return?\nSELECT department, COUNT(*) AS emp_count\nFROM employees\nGROUP BY department\nHAVING COUNT(*) > 5;",
+              options: [
+                "Every department with its employee count, unfiltered",
+                "Only departments having more than 5 employees, along with their employee count",
+                "All individual employees in departments with more than 5 people",
+                "A syntax error, since HAVING can't reference COUNT",
+              ],
+              correctIndex: 1,
+              explanation: "Rows are grouped and counted per department first, then HAVING filters out any group whose count is 5 or fewer.",
+            },
+            {
+              question:
+                "What is wrong with this query?\nSELECT department, salary FROM employees GROUP BY department;",
+              options: [
+                "Nothing — this is valid in every database",
+                "'salary' is neither aggregated nor included in GROUP BY, which most databases will reject",
+                "GROUP BY always requires an ORDER BY clause",
+                "It automatically computes the average salary per department",
+              ],
+              correctIndex: 1,
+              explanation: "Every non-aggregated column in SELECT must appear in GROUP BY — SQL doesn't know which single 'salary' value to display for a department with multiple employees.",
+            },
+            {
+              question: "Which aggregate function would you use to count the number of orders per customer?",
+              options: ["AVG()", "COUNT()", "MIN()", "GROUP()"],
+              correctIndex: 1,
+              explanation: "COUNT() tallies the number of rows in each group, which is exactly what's needed to count orders per customer.",
+            },
           ],
           rememberThis: "WHERE picks the rows; HAVING picks the groups.",
           keyTakeaways: [
@@ -1560,6 +2208,11 @@ export const curriculum: CurriculumCourseDef = {
             "HAVING filters groups after aggregation; WHERE filters rows before it.",
           ],
         },
+          ],
+        },
+        {
+          name: "Advanced Queries",
+          lessons: [
         {
           title: "JOINs: Combining Multiple Tables",
           description: "Retrieving related data spread across two or more tables in one query.",
@@ -1617,6 +2270,36 @@ export const curriculum: CurriculumCourseDef = {
               options: ["Zero", "An empty string", "NULL", "The query fails with an error"],
               correctIndex: 2,
               explanation: "LEFT JOIN keeps the customer row and fills unmatched right-table columns with NULL rather than dropping the row.",
+            },
+            {
+              question:
+                "What will a customer with zero orders show for order_count in this query's result?\nSELECT c.name, COUNT(o.order_id) AS order_count\nFROM customers c\nLEFT JOIN orders o ON c.customer_id = o.customer_id\nGROUP BY c.name;",
+              options: ["NULL", "0", "The row is excluded entirely", "It raises an error"],
+              correctIndex: 1,
+              explanation: "LEFT JOIN keeps the customer row with NULL order_id; COUNT() skips NULLs when counting, so it correctly reports 0 orders instead of NULL.",
+            },
+            {
+              question:
+                "A developer wants ALL products, including ones never ordered, but writes:\nSELECT p.name, o.quantity FROM products p INNER JOIN orders o ON p.product_id = o.product_id;\nWhat is wrong with this?",
+              options: [
+                "Nothing — INNER JOIN already includes unordered products",
+                "INNER JOIN excludes products with no matching order row — a LEFT JOIN is needed instead",
+                "The ON clause syntax is invalid",
+                "products and orders cannot be joined on product_id",
+              ],
+              correctIndex: 1,
+              explanation: "INNER JOIN only returns rows with a match in both tables, silently dropping any product that has never been ordered.",
+            },
+            {
+              question: "What does a FULL OUTER JOIN return?",
+              options: [
+                "Only matching rows from both tables",
+                "All rows from the left table only",
+                "All rows from both tables, matched where possible, with NULLs filled in for non-matches",
+                "It's not a valid SQL join type",
+              ],
+              correctIndex: 2,
+              explanation: "FULL OUTER JOIN combines the behavior of LEFT and RIGHT JOIN, keeping every row from both tables and filling in NULL where there's no match.",
             },
           ],
           rememberThis: "INNER JOIN keeps only the overlap; LEFT JOIN keeps everything on the left and fills in blanks.",
@@ -1690,6 +2373,41 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "A NULL in the subquery's result set breaks NOT IN's logic in standard SQL, silently returning no matches — NOT EXISTS avoids this pitfall.",
             },
+            {
+              question:
+                "What does this query return?\nSELECT name FROM employees\nWHERE salary = (SELECT MAX(salary) FROM employees);",
+              options: [
+                "Every employee's name",
+                "The name(s) of the employee(s) with the highest salary in the table",
+                "The average salary across all employees",
+                "A syntax error, since subqueries can't use MAX",
+              ],
+              correctIndex: 1,
+              explanation: "The inner subquery computes the single highest salary, and the outer query returns whichever employee(s) match that exact value.",
+            },
+            {
+              question: "Where can a subquery legally appear in a SQL statement?",
+              options: [
+                "Only in the WHERE clause",
+                "Only in the SELECT clause",
+                "In the WHERE, FROM, or SELECT clause",
+                "Subqueries are not valid SQL",
+              ],
+              correctIndex: 2,
+              explanation: "Subqueries are flexible — they can filter rows in WHERE, act as a derived table in FROM, or compute a single value in SELECT.",
+            },
+            {
+              question:
+                "You want to find customers who have never placed an order, using a subquery on the orders table. Which approach avoids the classic NULL pitfall?",
+              options: [
+                "NOT IN (SELECT customer_id FROM orders)",
+                "NOT EXISTS (SELECT 1 FROM orders WHERE orders.customer_id = customers.customer_id)",
+                "IN (SELECT customer_id FROM orders)",
+                "= (SELECT customer_id FROM orders)",
+              ],
+              correctIndex: 1,
+              explanation: "NOT EXISTS checks row existence directly and is unaffected by NULLs in the subquery, unlike NOT IN, which can silently return zero rows if the subquery contains any NULL.",
+            },
           ],
           rememberThis: "A subquery answers a smaller question first, so the outer query can use that answer.",
           keyTakeaways: [
@@ -1697,6 +2415,8 @@ export const curriculum: CurriculumCourseDef = {
             "They can appear in WHERE, FROM, or SELECT clauses.",
             "Common use: comparing rows against an aggregate like AVG() or MAX().",
             "Watch out for NULLs breaking NOT IN — prefer NOT EXISTS when unsure.",
+          ],
+        },
           ],
         },
       ],
@@ -1709,7 +2429,10 @@ export const curriculum: CurriculumCourseDef = {
       name: "Machine Learning Foundations",
       description: "From statistical intuition to your first trained, evaluated predictive models.",
       estimatedDuration: "2.5 weeks",
-      lessons: [
+      topics: [
+        {
+          name: "Core ML Algorithms",
+          lessons: [
         {
           title: "Supervised vs Unsupervised Learning",
           description: "The two fundamental categories of machine learning problems.",
@@ -1767,6 +2490,41 @@ export const curriculum: CurriculumCourseDef = {
               options: ["Supervised classification", "Supervised regression", "Unsupervised learning", "None of these are ML"],
               correctIndex: 2,
               explanation: "Without predefined correct groupings to learn from, this is an unsupervised clustering problem.",
+            },
+            {
+              question:
+                "Is the following code performing supervised or unsupervised learning, and how can you tell?\nfrom sklearn.cluster import KMeans\nmodel = KMeans(n_clusters=2)\nmodel.fit(X)",
+              options: [
+                "Supervised, because fit() is always a supervised operation",
+                "Unsupervised, because fit() is called with only X and no label array y",
+                "Supervised, because KMeans predicts discrete categories",
+                "It's impossible to tell without seeing the values in X",
+              ],
+              correctIndex: 1,
+              explanation: "model.fit(X) with no accompanying y means there are no known correct labels — a hallmark of unsupervised learning.",
+            },
+            {
+              question:
+                "You want to predict whether a tumor is malignant or benign using historical labeled scans. Is this supervised or unsupervised, and why?",
+              options: [
+                "Unsupervised, because tumor outcomes are unpredictable",
+                "Supervised, because each training example already has a known correct label (malignant or benign)",
+                "Neither — this isn't a machine learning problem at all",
+                "Supervised only if K-Means is used",
+              ],
+              correctIndex: 1,
+              explanation: "Since historical scans come with known correct diagnoses, the model can learn from (features, label) pairs — the definition of supervised learning.",
+            },
+            {
+              question: "Which of these is a classic unsupervised learning task?",
+              options: [
+                "Predicting credit default from historical loan outcomes",
+                "Classifying emails as spam or not spam",
+                "Clustering customers into segments with no predefined groups",
+                "Predicting house prices from size and location",
+              ],
+              correctIndex: 2,
+              explanation: "Clustering with no ground-truth groups to learn from is unsupervised; the other three all rely on known labels.",
             },
           ],
           rememberThis: "If you have an answer key, it's supervised; if you're hunting for patterns with no answer key, it's unsupervised.",
@@ -1840,6 +2598,42 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 2,
               explanation: "predict() applies the already-learned relationship to new feature data to estimate the target value.",
             },
+            {
+              question:
+                "What does model.coef_ contain after this code runs?\nfrom sklearn.linear_model import LinearRegression\nmodel = LinearRegression()\nmodel.fit(X_train, y_train)\nprint(model.coef_)",
+              options: [
+                "The predicted values for X_train",
+                "The learned weight (coefficient) for each input feature",
+                "The R² score of the model",
+                "A copy of the original training data",
+              ],
+              correctIndex: 1,
+              explanation: "coef_ stores the learned weight assigned to each feature after training, showing how much each one influences the prediction.",
+            },
+            {
+              question:
+                "What is wrong with this workflow?\nmodel = LinearRegression()\nmodel.fit(X, y)\nscore = model.score(X, y)\nprint('Model accuracy:', score)",
+              options: [
+                "Nothing — this is the correct way to evaluate a model",
+                "The model is evaluated on the same data it was trained on, so the score doesn't reflect real-world performance",
+                "LinearRegression doesn't have a .score() method",
+                "fit() and score() cannot both be called on the same model object",
+              ],
+              correctIndex: 1,
+              explanation: "Scoring on the training data can make a model look artificially good — a true performance estimate requires held-out data the model never saw during fit().",
+            },
+            {
+              question:
+                "In price = 150*size + 5000*bedrooms - 800*age + base_price, what does the coefficient -800 for 'age' suggest?",
+              options: [
+                "Age has no effect on price at all",
+                "Each additional year of age is associated with an $800 decrease in predicted price, holding other features constant",
+                "The model is broken because it contains a negative coefficient",
+                "Older houses always sell for more than newer ones",
+              ],
+              correctIndex: 1,
+              explanation: "A negative coefficient means that, all else being equal, an increase in that feature is associated with a decrease in the predicted target.",
+            },
           ],
           rememberThis: "fit() teaches the model the pattern; predict() asks it to apply that pattern to something new.",
           keyTakeaways: [
@@ -1911,6 +2705,41 @@ export const curriculum: CurriculumCourseDef = {
               ],
               correctIndex: 1,
               explanation: "predict_proba() exposes the confidence/probability behind the prediction, while predict() only gives the final chosen class.",
+            },
+            {
+              question:
+                "What is this code doing manually?\nprobs = model.predict_proba(X_test)[:, 1]\npredictions = (probs > 0.5).astype(int)",
+              options: [
+                "Training two separate models",
+                "Applying the same 0.5 threshold to probabilities that model.predict() would apply automatically",
+                "Computing the model's accuracy score",
+                "Something invalid, since predict_proba() returns text, not numbers",
+              ],
+              correctIndex: 1,
+              explanation: "This reproduces model.predict()'s default behavior by hand: taking the positive-class probability and thresholding it at 0.5.",
+            },
+            {
+              question: "If you lower the classification threshold from 0.5 to 0.3, what generally happens?",
+              options: [
+                "The model classifies more cases as positive, likely increasing recall but decreasing precision",
+                "Nothing changes — thresholds don't affect predictions",
+                "The model automatically retrains from scratch",
+                "Precision always increases as a result",
+              ],
+              correctIndex: 0,
+              explanation: "A lower threshold makes it easier to be classified positive, catching more true positives (higher recall) but also more false positives (lower precision).",
+            },
+            {
+              question:
+                "What mathematical function does logistic regression use to convert a linear combination of inputs into a probability between 0 and 1?",
+              options: [
+                "The square root function",
+                "The sigmoid (logistic) function",
+                "The identity function",
+                "The exponential decay function",
+              ],
+              correctIndex: 1,
+              explanation: "The sigmoid function squashes any real-valued input into the range (0, 1), turning a linear score into a valid probability.",
             },
           ],
           rememberThis: "Logistic regression is named 'regression' but it's really a probability-driven classifier.",
@@ -1984,6 +2813,41 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "After assigning points to the nearest centroid, K-Means recalculates each centroid as the average position of its assigned points.",
             },
+            {
+              question:
+                "What values could 'labels' contain after this code runs?\nfrom sklearn.cluster import KMeans\nkmeans = KMeans(n_clusters=2, random_state=0, n_init=10)\nlabels = kmeans.fit_predict(X)\nprint(set(labels))",
+              options: [
+                "Only the values {0, 1}, since n_clusters=2",
+                "Any integer between 0 and 100",
+                "The original feature values from X",
+                "String cluster names like 'cluster_1'",
+              ],
+              correctIndex: 0,
+              explanation: "KMeans assigns each point one of K integer cluster labels starting at 0, so with n_clusters=2 the only possible labels are 0 and 1.",
+            },
+            {
+              question:
+                "What is wrong with this reasoning? \"I ran K-Means with K=3 and got 3 clusters, so K=3 must be the objectively correct number of groups for this data.\"",
+              options: [
+                "This reasoning is correct — K-Means always finds the true number of groups",
+                "K-Means will always produce exactly K clusters regardless of whether that K actually fits the data's natural structure — K should be validated, e.g. with the elbow method",
+                "K-Means cannot actually run with K=3",
+                "There is no way to check whether a chosen K is appropriate",
+              ],
+              correctIndex: 1,
+              explanation: "K-Means forces the data into exactly K groups no matter what — it doesn't tell you whether that K is a good fit, which is why techniques like the elbow method exist.",
+            },
+            {
+              question: "What is the 'elbow method' used for in K-Means?",
+              options: [
+                "Choosing which features to feed into the model",
+                "Helping choose a reasonable value of K by plotting within-cluster variance against different K values",
+                "Initializing the starting centroids",
+                "Measuring accuracy against known true labels",
+              ],
+              correctIndex: 1,
+              explanation: "The elbow method looks for the point where adding more clusters stops meaningfully reducing within-cluster variance, suggesting a good K.",
+            },
           ],
           rememberThis: "K-Means keeps nudging cluster centers toward their neighbors until everyone settles into a natural group.",
           keyTakeaways: [
@@ -1993,6 +2857,11 @@ export const curriculum: CurriculumCourseDef = {
             "It's widely used for customer segmentation and pattern discovery.",
           ],
         },
+          ],
+        },
+        {
+          name: "Model Development & Evaluation",
+          lessons: [
         {
           title: "Feature Engineering",
           description: "Crafting better inputs to help your model learn more effectively.",
@@ -2055,6 +2924,41 @@ export const curriculum: CurriculumCourseDef = {
               ],
               correctIndex: 1,
               explanation: "Combining existing raw features into a new, more directly informative feature is a classic feature engineering technique.",
+            },
+            {
+              question:
+                "What does the following code print?\nimport pandas as pd\ndf = pd.DataFrame({\"color\": [\"red\", \"blue\", \"red\"]})\nencoded = pd.get_dummies(df, columns=[\"color\"])\nprint(encoded.columns.tolist())",
+              options: [
+                "['color']",
+                "['color_blue', 'color_red']",
+                "['red', 'blue']",
+                "['color_red_blue']",
+              ],
+              correctIndex: 1,
+              explanation: "get_dummies() replaces the 'color' column with one binary column per unique category, alphabetically ordered as color_blue and color_red.",
+            },
+            {
+              question:
+                "You have a 'timestamp' column for user logins. Which engineered feature would most likely help a model predict weekday vs. weekend behavior?",
+              options: [
+                "A raw, unchanged copy of the timestamp column",
+                "An 'is_weekend' boolean flag derived from the timestamp's day of week",
+                "Deleting the timestamp column entirely",
+                "Converting the timestamp into a random number",
+              ],
+              correctIndex: 1,
+              explanation: "Deriving a direct, meaningful signal like is_weekend gives the model exactly the information it needs, rather than forcing it to infer weekday patterns from a raw timestamp.",
+            },
+            {
+              question: "Why is scaling/normalizing numeric features sometimes an important feature engineering step?",
+              options: [
+                "It's never necessary for any algorithm",
+                "Some algorithms are sensitive to feature scale, so features with very different ranges (e.g., age vs. income) can distort results if left unscaled",
+                "It converts categorical features into numbers",
+                "It automatically removes missing values",
+              ],
+              correctIndex: 1,
+              explanation: "Distance- and gradient-based algorithms can be dominated by features with larger numeric ranges unless all features are scaled to a comparable range.",
             },
           ],
           rememberThis: "Often the biggest performance boost comes from better features, not a fancier model.",
@@ -2127,6 +3031,36 @@ export const curriculum: CurriculumCourseDef = {
               ],
               correctIndex: 1,
               explanation: "Cross-validation rotates which portion of data is held out across K repetitions, reducing the risk that one lucky/unlucky split skews your performance estimate.",
+            },
+            {
+              question:
+                "What does the following code print (approximately)?\nfrom sklearn.model_selection import train_test_split\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=1)\nprint(len(X_test) / len(X))",
+              options: ["0.75", "0.25", "1.0", "It varies randomly each run"],
+              correctIndex: 1,
+              explanation: "test_size=0.25 reserves roughly 25% of the data for the test set, so the ratio of test-set size to total size is about 0.25.",
+            },
+            {
+              question:
+                "What is wrong with this workflow?\nmodel.fit(X_train, y_train)\nfor i in range(20):\n    tweak_hyperparameters()\n    score = model.score(X_test, y_test)\n    # keep tweaking based on this test score",
+              options: [
+                "Nothing — iterating based on the test score is standard practice",
+                "Repeatedly tuning based on the test set leaks information from it, making the final reported score overly optimistic",
+                "model.score() can only be called once per model",
+                "Hyperparameter tuning should never touch any held-out data at all",
+              ],
+              correctIndex: 1,
+              explanation: "Using the test set repeatedly to guide decisions means it's no longer truly 'unseen' — a separate validation set or cross-validation should drive tuning instead.",
+            },
+            {
+              question: "What does random_state do in train_test_split?",
+              options: [
+                "It controls how much data is used for training versus testing",
+                "It makes the random split reproducible by fixing the random number generator's seed",
+                "It randomly changes the model's accuracy on purpose",
+                "It is required only for classification problems, not regression",
+              ],
+              correctIndex: 1,
+              explanation: "Setting random_state ensures the same rows land in train/test every time the code runs, making results reproducible.",
             },
           ],
           rememberThis: "Never grade a model on the exam it already saw the answers to.",
@@ -2211,6 +3145,20 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "It catches every real spam email (perfect recall) but also wrongly flags every legitimate email, tanking precision.",
             },
+            {
+              question:
+                "A model made 100 predictions: 40 true positives, 10 false positives, 5 false negatives, and 45 true negatives. What is the precision?",
+              options: ["0.8", "0.4", "0.89", "0.5"],
+              correctIndex: 0,
+              explanation: "Precision = TP / (TP + FP) = 40 / (40 + 10) = 40/50 = 0.8.",
+            },
+            {
+              question:
+                "What does the following code print?\nfrom sklearn.metrics import recall_score\ny_true = [1, 1, 1, 0]\ny_pred = [1, 0, 1, 0]\nprint(recall_score(y_true, y_pred))",
+              options: ["1.0", "0.667", "0.5", "0.75"],
+              correctIndex: 1,
+              explanation: "Of the 3 actual positives, 2 were correctly predicted (indices 0 and 2) and 1 was missed (index 1), giving recall = 2/3 ≈ 0.667.",
+            },
           ],
           rememberThis: "Accuracy tells you how often you're right overall; precision and recall tell you WHERE you're wrong.",
           keyTakeaways: [
@@ -2218,6 +3166,8 @@ export const curriculum: CurriculumCourseDef = {
             "Precision measures trustworthiness of positive predictions.",
             "Recall measures how many actual positives were caught.",
             "There's usually a tradeoff between precision and recall.",
+          ],
+        },
           ],
         },
       ],
@@ -2294,6 +3244,36 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 2,
               explanation: "Deployment happens much later, after modeling — EDA is entirely about understanding the raw data first.",
             },
+            {
+              question:
+                "What does the following code calculate?\nimport pandas as pd\ndf = pd.read_csv(\"data.csv\")\nprint(df.shape)\nprint(df.isna().sum().sum())",
+              options: [
+                "The number of columns in the DataFrame",
+                "The total count of missing values across the entire DataFrame",
+                "The sum of all numeric values in the DataFrame",
+                "The number of duplicate rows",
+              ],
+              correctIndex: 1,
+              explanation: "isna().sum() counts missing values per column, and chaining another .sum() adds those column totals into one grand total for the whole DataFrame.",
+            },
+            {
+              question:
+                "During EDA, you find a numeric column with a max value of 999999 while the rest of the values are under 100. What should you do?",
+              options: [
+                "Ignore it — extreme values never matter",
+                "Investigate it as a possible outlier or data entry/sentinel error before modeling",
+                "Immediately delete the entire column without investigation",
+                "Automatically assume it's correct and proceed to modeling",
+              ],
+              correctIndex: 1,
+              explanation: "A value wildly out of range compared to the rest of the column is a classic sign of a data quality issue (like a placeholder for missing data) that should be investigated, not blindly trusted or discarded.",
+            },
+            {
+              question: "Which pandas method gives you column data types and non-null counts in a single call?",
+              options: ["df.describe()", "df.info()", "df.corr()", "df.head()"],
+              correctIndex: 1,
+              explanation: "df.info() summarizes each column's dtype and how many non-null values it contains, which is exactly what's needed early in EDA.",
+            },
           ],
           rememberThis: "You can't trust a model built on data you never actually looked at.",
           keyTakeaways: [
@@ -2365,6 +3345,31 @@ export const curriculum: CurriculumCourseDef = {
               ],
               correctIndex: 1,
               explanation: "MAE averages the absolute difference between predicted and actual values, giving an intuitive error size in the same units as the target.",
+            },
+            {
+              question:
+                "What does the following code print (rounded)?\nfrom sklearn.metrics import r2_score\ny_test = [100, 200, 300]\npreds = [110, 190, 305]\nprint(round(r2_score(y_test, preds), 2))",
+              options: ["0.99", "0.5", "-0.5", "0.0"],
+              correctIndex: 0,
+              explanation: "The predictions are very close to the actual values relative to their spread around the mean, so R² comes out near 0.99 — close to a perfect fit.",
+            },
+            {
+              question:
+                "What is wrong with this workflow?\ndf = pd.get_dummies(df, columns=[\"location\"])\nX_train, X_test, y_train, y_test = train_test_split(X, y, ...)\nmodel.fit(X_train, y_train)\n\n# later, at prediction time on brand new raw data:\nnew_data = pd.read_csv(\"new_houses.csv\")\nmodel.predict(new_data)",
+              options: [
+                "Nothing is wrong with this approach",
+                "new_data must go through the identical encoding/preprocessing steps used on the training data before predicting, or the columns won't match",
+                "model.predict() automatically encodes any new raw data for you",
+                "model.predict() cannot accept a newly loaded DataFrame",
+              ],
+              correctIndex: 1,
+              explanation: "If new_data isn't one-hot encoded the same way training data was, its columns won't line up with what the model was trained on, causing errors or nonsense predictions.",
+            },
+            {
+              question: "Between MAE and R², which one is expressed in the same units as the target variable?",
+              options: ["R²", "MAE", "Both are unitless", "Neither"],
+              correctIndex: 1,
+              explanation: "MAE reports an average error in the target's original units (e.g., dollars), while R² is a unitless proportion between 0 and 1 (or negative).",
             },
           ],
           rememberThis: "A real project isn't one skill — it's cleaning, encoding, training, and evaluating, all working together.",
@@ -2438,6 +3443,41 @@ export const curriculum: CurriculumCourseDef = {
               correctIndex: 1,
               explanation: "Knowing the class balance up front tells you whether accuracy alone will be a reliable metric or whether precision/recall need more attention.",
             },
+            {
+              question:
+                "Given stratify=y, what should the class proportions in y_train look like compared to the full y?\nX_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y, random_state=0)\nprint(y_train.value_counts(normalize=True))",
+              options: [
+                "Roughly the same proportions as the full dataset",
+                "Exactly 50/50 regardless of the original balance",
+                "Completely random, unrelated to the original distribution",
+                "All one single class only",
+              ],
+              correctIndex: 0,
+              explanation: "stratify=y preserves the original class distribution in both the train and test splits, so y_train's proportions should closely mirror the full dataset's.",
+            },
+            {
+              question:
+                "What is wrong with this evaluation approach for an imbalanced churn dataset (95% no-churn, 5% churn)?\nmodel.fit(X_train, y_train)\nprint('Accuracy:', model.score(X_test, y_test))\n# conclude the model is great because accuracy is 95%",
+              options: [
+                "Nothing is wrong — 95% accuracy is always excellent",
+                "A model could just be predicting 'no churn' for everyone and still hit ~95% accuracy — precision/recall on the churn class must be checked too",
+                "model.score() doesn't work for classification models",
+                "The test set must be too small to be valid",
+              ],
+              correctIndex: 1,
+              explanation: "On heavily imbalanced data, accuracy alone can be trivially high while the model completely fails to identify the minority (churn) class — precision and recall reveal this.",
+            },
+            {
+              question: "Why swap LinearRegression for LogisticRegression when the target is categorical (e.g., churn yes/no)?",
+              options: [
+                "LogisticRegression is always more accurate in every scenario",
+                "LinearRegression is designed to predict continuous numbers, not class probabilities or labels",
+                "There's no real difference between the two algorithms",
+                "LogisticRegression trains faster in every case",
+              ],
+              correctIndex: 1,
+              explanation: "LinearRegression outputs unbounded continuous values, which don't naturally represent a probability or class — LogisticRegression is built specifically for categorical targets.",
+            },
           ],
           rememberThis: "Classification projects live and die by class balance — check it before you trust any metric.",
           keyTakeaways: [
@@ -2509,6 +3549,42 @@ export const curriculum: CurriculumCourseDef = {
               ],
               correctIndex: 1,
               explanation: "Translating results into concrete, actionable language is what makes an analysis usable by people who aren't reading code or statistics.",
+            },
+            {
+              question:
+                "Your capstone target variable is a continuous price. Which type of model and evaluation metrics should you choose?",
+              options: [
+                "A classification model with accuracy and recall",
+                "A regression model with metrics like MAE and R²",
+                "K-Means clustering evaluated with a silhouette score",
+                "No model is needed for continuous targets",
+              ],
+              correctIndex: 1,
+              explanation: "A continuous numeric target calls for a regression model, evaluated with regression-appropriate metrics like MAE and R² rather than classification metrics.",
+            },
+            {
+              question:
+                "What is required for this line of code to work correctly?\ndf[\"day_of_week\"] = df[\"order_date\"].dt.dayofweek",
+              options: [
+                "order_date must already be a proper datetime type, not a plain string",
+                "df must have no missing values anywhere",
+                "dt.dayofweek only works on integer columns",
+                "This line always fails regardless of the column's type",
+              ],
+              correctIndex: 0,
+              explanation: "The .dt accessor only works on datetime-typed columns — a raw string column must first be converted with pd.to_datetime().",
+            },
+            {
+              question:
+                "Why does a capstone project typically end with a model.coef_ inspection or similar interpretation step, rather than stopping at the evaluation metric?",
+              options: [
+                "It's purely optional decoration with no real value",
+                "Interpreting which features drove predictions turns a number like R²=0.72 into an actionable business insight",
+                "coef_ is required to compute R² in the first place",
+                "It replaces the need for evaluation metrics entirely",
+              ],
+              correctIndex: 1,
+              explanation: "A raw metric tells you how well the model fits, but interpreting feature influence explains WHY, which is what turns an analysis into something stakeholders can act on.",
             },
           ],
           rememberThis: "A model nobody can act on is just an interesting number — the capstone is about turning analysis into a decision.",

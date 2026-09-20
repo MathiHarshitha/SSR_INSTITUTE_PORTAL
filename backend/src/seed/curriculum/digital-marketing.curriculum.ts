@@ -4,7 +4,10 @@ const marketingFundamentals: CurriculumModuleDef = {
   name: "Marketing Fundamentals",
   description: "The core concepts every marketer needs before touching a single channel — what digital marketing actually is, who you're marketing to, and how strangers become customers.",
   estimatedDuration: "1 week",
-  lessons: [
+  topics: [
+    {
+      name: "Marketing Concepts & Customer Understanding",
+      lessons: [
     {
       title: "What is Digital Marketing?",
       description: "An overview of digital marketing and the major channels that make it up.",
@@ -50,6 +53,39 @@ const marketingFundamentals: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Since most buying journeys start with an online search or scroll, businesses that aren't visible digitally miss the majority of potential customers.",
+        },
+        {
+          question: "A café owner wants to reach people who are already nearby and hungry right now, without waiting months to build an audience. Which approach fits best?",
+          options: [
+            "A months-long blog content strategy",
+            "Paid search/local ads targeting 'near me' style queries",
+            "A national TV commercial",
+            "A printed flyer campaign only",
+          ],
+          correctIndex: 1,
+          explanation: "Paid, location-targeted digital ads can generate visibility with people actively searching nearby almost immediately, unlike slower organic strategies.",
+        },
+        {
+          question: "A business owner says, 'I already have a website, so I've done digital marketing.' What's the best response, based on what digital marketing actually covers?",
+          options: [
+            "Correct — a website is all that's needed",
+            "A website is just one piece; SEO, content, social, paid ads, and email are separate disciplines that also need attention",
+            "Websites belong to traditional marketing, not digital",
+            "Digital marketing requires no website at all",
+          ],
+          correctIndex: 1,
+          explanation: "A website is only one channel among many; real digital marketing usually combines several channels working together.",
+        },
+        {
+          question: "A bakery has strong foot traffic but wants to reach people who've never heard of it. Which channel mix best fits pure awareness-building for a local audience?",
+          options: [
+            "Email marketing to existing customers only",
+            "Social media posts and local search visibility",
+            "Enterprise B2B outreach on LinkedIn",
+            "A print-only advertising budget",
+          ],
+          correctIndex: 1,
+          explanation: "Awareness-stage tactics need broad reach among people who don't yet know the business, which social media and local search visibility provide far better than tools built for retaining existing customers.",
         },
       ],
       rememberThis: "Digital marketing isn't one skill — it's a toolbox, and the job is picking the right tool for the customer in front of you.",
@@ -105,6 +141,34 @@ const marketingFundamentals: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "A touchpoint is any interaction — an ad, a search result, a review, a chat — that a person has with a brand at any journey stage.",
+        },
+        {
+          question: "A shopper searches a brand's name, reads three reviews, and compares it to a competitor before buying two days later. Which journey stage is this shopper in?",
+          options: ["Awareness", "Consideration", "Decision only, skipping earlier stages", "None — reviews aren't part of the journey"],
+          correctIndex: 1,
+          explanation: "Researching and comparing options against alternatives is the defining behavior of the consideration stage.",
+        },
+        {
+          question: "A brand runs the exact same 'Buy Now — 20% Off' ad to both first-time visitors and people who already abandoned a cart. What's the likely problem?",
+          options: [
+            "There is no problem — the same message always works for everyone",
+            "It ignores that first-time visitors are earlier in the journey and haven't built enough trust for a hard sell yet",
+            "Discount offers should never be used at any stage",
+            "Cart abandoners should be shown awareness-stage content instead",
+          ],
+          correctIndex: 1,
+          explanation: "Matching message to stage matters — a hard sell fits someone who already showed strong intent (cart abandonment) far better than a total stranger.",
+        },
+        {
+          question: "A journey map shows lots of people entering at awareness but very few reaching decision. What should a marketer investigate first?",
+          options: [
+            "Nothing — this drop-off pattern is normal and needs no attention",
+            "Where in the middle stages people are losing interest or trust, and what content or offer might be missing there",
+            "Only the very first ad that generated awareness",
+            "Whether the business should stop marketing altogether",
+          ],
+          correctIndex: 1,
+          explanation: "A journey map's value is spotting exactly where prospects drop off, so effort can focus on fixing that specific stage rather than the whole funnel blindly.",
         },
       ],
       rememberThis: "You don't propose marriage on the first date — match your message to the stage of the relationship.",
@@ -168,6 +232,39 @@ const marketingFundamentals: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Specific, targeted copy written for a defined persona resonates far better than generic messaging aimed at 'everyone'.",
         },
+        {
+          question: "A team writes a persona based entirely on what the founder assumes customers want, with no interviews or data. What's the biggest risk?",
+          options: [
+            "There is no risk — founder intuition is always accurate",
+            "The persona could be confidently wrong, steering campaigns toward a customer who doesn't actually exist",
+            "Personas built without data always overperform ones built with it",
+            "It saves time, so the risk is negligible",
+          ],
+          correctIndex: 1,
+          explanation: "An assumption-based persona can feel authoritative while being entirely inaccurate, misdirecting messaging, channel choice, and even product decisions.",
+        },
+        {
+          question: "'Startup Priya' has the objection 'Will my non-technical team actually use this?' What should an ad targeting her prioritize addressing?",
+          options: [
+            "The company's founding history",
+            "Ease of use and how non-technical teams adopt the tool quickly",
+            "Enterprise-level security certifications only",
+            "A comparison of every competitor's pricing tiers",
+          ],
+          correctIndex: 1,
+          explanation: "Copy should directly address a persona's stated objection — here, ease of adoption for a non-technical team — rather than unrelated selling points.",
+        },
+        {
+          question: "A company sells to two very different customer types: solo freelancers and 500-person enterprises. What's the best persona approach?",
+          options: [
+            "Write one broad persona covering both equally",
+            "Build separate personas for each distinct segment, since their goals and objections likely differ significantly",
+            "Skip personas entirely since there are two audiences",
+            "Only build a persona for whichever segment is larger",
+          ],
+          correctIndex: 1,
+          explanation: "Distinct customer segments usually have different goals, pain points, and buying processes, so separate personas keep messaging relevant to each.",
+        },
       ],
       rememberThis: "Write to one person, not to everyone — specificity is what makes marketing feel personal.",
       keyTakeaways: [
@@ -177,6 +274,11 @@ const marketingFundamentals: CurriculumModuleDef = {
         "Always base personas on real data, not guesswork.",
       ],
     },
+      ],
+    },
+    {
+      name: "Funnels & Content Strategy",
+      lessons: [
     {
       title: "Marketing Funnels: Awareness, Consideration, Decision",
       description: "Understanding the classic funnel model and why fewer people move forward at each stage.",
@@ -229,6 +331,34 @@ const marketingFundamentals: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Stage-by-stage tracking reveals where the biggest leak in the funnel is, so effort can be focused on fixing that specific stage.",
+        },
+        {
+          question: "A campaign gets 20,000 impressions, 400 site visits, and 4 purchases. What is the consideration-to-decision conversion rate?",
+          options: ["2%", "1%", "20%", "0.02%"],
+          correctIndex: 1,
+          explanation: "4 purchases divided by 400 visits = 1%. This isolates the decision-stage conversion rate rather than the overall funnel rate.",
+        },
+        {
+          question: "A funnel shows a healthy awareness-to-consideration rate but a very weak consideration-to-decision rate. Where should the team focus first?",
+          options: [
+            "Increasing top-of-funnel ad spend further",
+            "The decision stage — likely issues with the offer, pricing, or checkout experience",
+            "Nothing, since overall traffic is already strong",
+            "Only the awareness stage's creative",
+          ],
+          correctIndex: 1,
+          explanation: "Since the leak is specifically between consideration and decision, the fix belongs there (offer, trust signals, checkout friction), not at the top of the funnel.",
+        },
+        {
+          question: "Why would doubling top-of-funnel ad spend NOT necessarily double final purchases?",
+          options: [
+            "Purchases always scale perfectly with ad spend",
+            "Each stage has its own conversion rate, so more people entering the top doesn't fix a leak further down the funnel",
+            "Ad spend has no relationship to funnel performance",
+            "Funnels only apply to email marketing",
+          ],
+          correctIndex: 1,
+          explanation: "If a bottleneck exists mid-funnel (e.g. a weak landing page), pouring more people into the top just produces more people stuck at the same broken stage.",
         },
       ],
       rememberThis: "A funnel is always narrower at the bottom — your job is to widen the top and patch the leaks in the middle.",
@@ -285,6 +415,39 @@ const marketingFundamentals: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Knowing whether a piece is meant to build awareness, aid consideration, or drive a decision makes its purpose clear and its results measurable.",
         },
+        {
+          question: "A team has published 40 blog posts in a year but can't say which ones brought in leads or sales. What does this most likely indicate?",
+          options: [
+            "The content strategy is working perfectly",
+            "Content was likely created without a defined goal or way to measure success per piece",
+            "40 posts is too few to matter",
+            "Blog content can never be measured",
+          ],
+          correctIndex: 1,
+          explanation: "Content without a defined goal and success metric attached is very hard to evaluate, even if a large volume was produced.",
+        },
+        {
+          question: "A fitness brand wants one new content idea for each funnel stage this week. Which pairing best fits 'consideration'?",
+          options: [
+            "A broad 'What is strength training?' explainer video",
+            "A client transformation story with specific before/after results",
+            "A limited-time signup discount code",
+            "A meme with no brand message",
+          ],
+          correctIndex: 1,
+          explanation: "Consideration-stage content typically helps someone evaluate the brand against alternatives — a transformation story with concrete results does exactly that.",
+        },
+        {
+          question: "Why is a consistent publishing cadence part of a good content strategy, not just a scheduling detail?",
+          options: [
+            "It has no real effect on audience behavior",
+            "It builds audience trust and habit over time, similar to a show airing on a predictable schedule",
+            "It only matters for paid content, not organic",
+            "Cadence is only relevant for email marketing",
+          ],
+          correctIndex: 1,
+          explanation: "A predictable rhythm helps an audience form a habit of returning for content, similar to why regularly scheduled shows retain viewers.",
+        },
       ],
       rememberThis: "Content without strategy is a menu-less kitchen — you might cook something good, but you can't repeat it on purpose.",
       keyTakeaways: [
@@ -294,6 +457,8 @@ const marketingFundamentals: CurriculumModuleDef = {
         "Define how success will be measured before publishing.",
       ],
     },
+      ],
+    },
   ],
 };
 
@@ -301,7 +466,10 @@ const seo: CurriculumModuleDef = {
   name: "Search Engine Optimization (SEO)",
   description: "How search engines actually work, and the on-page, technical, and off-page techniques used to rank higher and earn free, ongoing traffic.",
   estimatedDuration: "2 weeks",
-  lessons: [
+  topics: [
+    {
+      name: "SEO Foundations",
+      lessons: [
     {
       title: "How Search Engines Work",
       description: "Crawling, indexing, and ranking — the three-step process behind every Google search result.",
@@ -354,6 +522,39 @@ const seo: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "'site:domain.com' lists indexed pages from that domain, a quick way to confirm indexing status.",
+        },
+        {
+          question: "A site has 200 published pages, but 'site:domain.com' only shows 40 results. What should be investigated first?",
+          options: [
+            "The content quality of the 40 indexed pages",
+            "Why the other 160 pages haven't been crawled or indexed yet",
+            "The site's social media engagement",
+            "The company's ad budget",
+          ],
+          correctIndex: 1,
+          explanation: "A large gap between total pages and indexed pages usually points to a crawling or indexing problem that needs fixing before ranking can even be considered.",
+        },
+        {
+          question: "A brand-new blog post was published yesterday and isn't ranking for its target keyword yet. What is the most likely explanation, based on the crawl-index-rank process?",
+          options: [
+            "The content must be low quality",
+            "The page likely hasn't been crawled and indexed yet, so ranking can't happen until that completes",
+            "Google intentionally delays all new content by exactly one year",
+            "New content never ranks regardless of quality",
+          ],
+          correctIndex: 1,
+          explanation: "Ranking only happens after crawling and indexing complete, which can take anywhere from hours to weeks for a new page.",
+        },
+        {
+          question: "A page returns a server error every time Googlebot tries to visit it. What is the direct consequence?",
+          options: [
+            "It will still rank normally",
+            "It likely won't be crawled successfully, and so can't be indexed or ranked",
+            "It will automatically rank first for being unique",
+            "Server errors only affect paid ads, not organic search",
+          ],
+          correctIndex: 1,
+          explanation: "If a crawler can't successfully access a page, it can't be indexed, and an unindexed page cannot appear in rankings.",
         },
       ],
       rememberThis: "A page that isn't crawled and indexed doesn't exist to Google — no amount of great content changes that.",
@@ -417,6 +618,39 @@ const seo: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Ranking for broad, competitive keywords usually requires significant domain authority that new sites haven't built yet, making long-tail keywords a more realistic starting point.",
         },
+        {
+          question: "A new website targets 'shoes' (very high volume, very high difficulty) as its first keyword. Six months later it still isn't ranking. What's the most likely lesson here?",
+          options: [
+            "The content must have been poorly written",
+            "A brand-new site rarely has enough authority to compete for such a broad, high-competition head keyword",
+            "'Shoes' is too specific a keyword to ever rank for",
+            "Six months is far too short a time for any SEO to work at all",
+          ],
+          correctIndex: 1,
+          explanation: "Broad head keywords are dominated by established, high-authority competitors; new sites typically need to build authority through long-tail keywords first.",
+        },
+        {
+          question: "Two keywords are being compared: 'running shoes' (100,000 monthly searches, very high difficulty) and 'best running shoes for flat feet' (800 monthly searches, low difficulty). Which is the better starting target for a brand-new blog?",
+          options: [
+            "'running shoes', because higher volume always wins",
+            "'best running shoes for flat feet', since it's realistically rankable and highly specific to a real need",
+            "Neither should be targeted",
+            "Both should be ignored in favor of the brand name only",
+          ],
+          correctIndex: 1,
+          explanation: "A new site can realistically rank for the lower-competition long-tail term, and its specificity often means higher-intent, more likely-to-convert visitors.",
+        },
+        {
+          question: "What does a high search volume paired with high keyword difficulty typically signal about a keyword?",
+          options: [
+            "It's an easy quick win for any website",
+            "It's a competitive, in-demand term dominated by established, high-authority sites",
+            "It has no commercial value",
+            "It should never be targeted by anyone, ever",
+          ],
+          correctIndex: 1,
+          explanation: "High volume attracts many competitors, and high difficulty reflects how hard established sites make it to outrank them for that term.",
+        },
       ],
       rememberThis: "Don't guess what people search — go listen at the door where they're already asking.",
       keyTakeaways: [
@@ -469,6 +703,39 @@ const seo: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Search engines rank pages that satisfy the dominant intent behind a query — mismatched content underperforms even if well-written.",
         },
+        {
+          question: "The top 10 results for 'best project management software' are all comparison/listicle articles, but a company publishes a single-product sales page targeting that keyword. What's likely to happen?",
+          options: [
+            "It will outrank the listicles because it's more direct",
+            "It will likely underperform, since it doesn't match the commercial investigation intent Google already favors for that query",
+            "Intent doesn't affect this keyword at all",
+            "The sales page will rank #1 automatically due to being product-focused",
+          ],
+          correctIndex: 1,
+          explanation: "Checking what's already ranking reveals the dominant intent; a page mismatched to that intent (a sales page for a comparison-intent query) tends to underperform.",
+        },
+        {
+          question: "A searcher types 'Nike login'. What type of intent is this, and what should rank for it?",
+          options: [
+            "Informational intent; an educational blog post",
+            "Navigational intent; the specific Nike account login page",
+            "Commercial investigation; a comparison of shoe brands",
+            "Transactional intent; a general checkout page",
+          ],
+          correctIndex: 1,
+          explanation: "Searches naming a specific brand/destination (like 'Nike login') are navigational — the searcher wants one specific page, not general information or comparisons.",
+        },
+        {
+          question: "A blog post targeting 'what is content marketing' (informational intent) ends with an aggressive 'Buy Now' pop-up before any content loads. What's the issue?",
+          options: [
+            "There is no issue — hard offers work for every intent type",
+            "It mismatches informational intent with a transactional-style interruption, likely hurting engagement and rankings",
+            "Pop-ups always improve SEO regardless of context",
+            "Only e-commerce sites need to consider intent",
+          ],
+          correctIndex: 1,
+          explanation: "Someone with informational intent wants to learn, not buy immediately; an aggressive sales interruption mismatches their goal and often increases bounce rate.",
+        },
       ],
       rememberThis: "Don't just match the keyword — match the reason someone typed it.",
       keyTakeaways: [
@@ -478,6 +745,11 @@ const seo: CurriculumModuleDef = {
         "Mismatched content type hurts rankings even with perfect keyword usage.",
       ],
     },
+      ],
+    },
+    {
+      name: "On-Page & Technical SEO",
+      lessons: [
     {
       title: "On-Page SEO: Titles, Meta Descriptions & Headings",
       description: "Optimizing the elements directly on a page that search engines and searchers both read first.",
@@ -531,6 +803,39 @@ const seo: CurriculumModuleDef = {
           options: ["As many as possible for SEO", "Exactly one, describing the page's main topic", "Zero — H1 is deprecated", "One per paragraph"],
           correctIndex: 1,
           explanation: "A single H1 clearly signals the page's primary topic; multiple H1s can confuse both readers and search engines about the page's focus.",
+        },
+        {
+          question: "Looking at the sample title tag in this lesson — '<title>Affordable Web Design for Small Businesses | BrightSite Co.</title>' — why does it work well as an SEO title?",
+          options: [
+            "It only contains the brand name",
+            "It leads with the keyword-relevant benefit before the brand name, and stays within a safe character length",
+            "It's written entirely in uppercase for emphasis",
+            "It includes no readable words, only symbols",
+          ],
+          correctIndex: 1,
+          explanation: "Leading with the target keyword/benefit rather than the brand name helps both relevance and click-through, and keeping it concise avoids truncation in search results.",
+        },
+        {
+          question: "A page has three separate <h1> tags: one for the logo area, one for the main headline, and one for a sidebar widget. What's the likely SEO impact?",
+          options: [
+            "No impact — multiple H1s always help rankings",
+            "It can dilute the page's topical clarity for both readers and search engines, since there's no single clear main heading",
+            "It guarantees a featured snippet",
+            "It automatically improves accessibility",
+          ],
+          correctIndex: 1,
+          explanation: "Using exactly one H1 per page keeps the primary topic unambiguous; scattering multiple H1s blurs which heading represents the page's actual main subject.",
+        },
+        {
+          question: "A page's meta description is missing entirely. What is Google most likely to do in search results?",
+          options: [
+            "Refuse to index the page at all",
+            "Auto-generate a snippet from the page content, which may be less compelling than a hand-written description",
+            "Always rank the page in position 1 as a penalty-free pass",
+            "Display a blank, empty search result",
+          ],
+          correctIndex: 1,
+          explanation: "Without a meta description, Google typically pulls a snippet automatically from the page, which is often less persuasive than an intentionally written one.",
         },
       ],
       rememberThis: "Your title tag is the movie poster — if it doesn't sell the story in one glance, nobody buys a ticket.",
@@ -600,6 +905,39 @@ const seo: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "'Disallow: /' under a wildcard user-agent blocks crawlers from the entire site, which can fully deindex it if left in place accidentally.",
         },
+        {
+          question: "Looking at the sample robots.txt in this lesson (Disallow: /admin/, Disallow: /cart/, Allow: /), what does it actually permit crawlers to do?",
+          options: [
+            "Crawl nothing on the site at all",
+            "Crawl the entire site except the /admin/ and /cart/ sections",
+            "Crawl only the /admin/ and /cart/ sections",
+            "Crawl only the sitemap file",
+          ],
+          correctIndex: 1,
+          explanation: "The 'Allow: /' combined with specific Disallow rules for private sections means everything else remains crawlable — only /admin/ and /cart/ are blocked.",
+        },
+        {
+          question: "A site's homepage takes 9 seconds to load on mobile, per Core Web Vitals data. What is the most likely consequence, based on this lesson?",
+          options: [
+            "No consequence — page speed doesn't affect mobile users",
+            "Poor page experience can hurt rankings and cause visitors to leave before content even loads",
+            "Google will automatically speed up the site for free",
+            "It only affects desktop rankings, not mobile",
+          ],
+          correctIndex: 1,
+          explanation: "Since Google uses mobile-first indexing and factors in page experience, slow mobile load times can both suppress rankings and lose visitors before they engage.",
+        },
+        {
+          question: "After a site migration, traffic drops sharply. What should be checked first, based on the common mistake highlighted in this lesson?",
+          options: [
+            "The company's social media follower count",
+            "Whether robots.txt was accidentally left blocking the entire live site",
+            "The color scheme of the new design",
+            "The number of employees at the company",
+          ],
+          correctIndex: 1,
+          explanation: "A leftover 'Disallow: /' from a staging environment is one of the most common and costly technical SEO mistakes after a migration, and should be checked immediately.",
+        },
       ],
       rememberThis: "Technical SEO is the plumbing — nobody compliments it when it works, but everything floods when it doesn't.",
       keyTakeaways: [
@@ -609,6 +947,11 @@ const seo: CurriculumModuleDef = {
         "Always re-check robots.txt after a site migration or redesign.",
       ],
     },
+      ],
+    },
+    {
+      name: "Off-Page SEO & Link Building",
+      lessons: [
     {
       title: "Off-Page SEO & Backlinks",
       description: "How other websites linking to yours acts as a vote of trust in Google's eyes.",
@@ -661,6 +1004,39 @@ const seo: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Google's algorithms and manual reviews can detect and penalize unnatural link patterns from link farms or paid schemes.",
+        },
+        {
+          question: "A site has 5 backlinks from well-known, topically relevant industry publications, and a competitor has 500 backlinks from random unrelated link-farm sites. Who is likely better positioned for rankings?",
+          options: [
+            "The competitor, since 500 always beats 5",
+            "The site with 5 quality, relevant backlinks, since quality and relevance outweigh raw quantity",
+            "Neither — backlinks have no impact on rankings",
+            "It's impossible to say without knowing page speed",
+          ],
+          correctIndex: 1,
+          explanation: "A handful of high-authority, relevant backlinks typically carries far more ranking value than hundreds of low-quality, unrelated ones.",
+        },
+        {
+          question: "A nutrition blog is deciding between guest-posting on a well-known health publication versus paying for 200 backlinks from an unrelated link farm. What's the better move, per this lesson?",
+          options: [
+            "The link farm option, since it's faster and cheaper",
+            "The guest post, since it's an ethical way to earn a relevant, high-value backlink without penalty risk",
+            "Both are equally risky and should be avoided entirely",
+            "Neither approach affects SEO in any way",
+          ],
+          correctIndex: 1,
+          explanation: "Guest posting on a relevant, reputable site is a genuine, ethical link-building tactic, while bulk-buying links from a farm risks a Google penalty.",
+        },
+        {
+          question: "What is the biggest practical risk of a manipulative backlink scheme, even if it appears to work briefly?",
+          options: [
+            "There is no risk, only upside",
+            "Google can detect the unnatural pattern and apply a penalty that drops rankings, undoing any short-term gain",
+            "It will only affect image search results",
+            "It guarantees a permanent #1 ranking",
+          ],
+          correctIndex: 1,
+          explanation: "Manipulative link schemes can be detected algorithmically or manually, and the resulting penalty often causes a much larger, longer-lasting ranking loss than the temporary gain.",
         },
       ],
       rememberThis: "A backlink is a public vouch — ten respected voices vouching for you beats a hundred strangers you paid to say nice things.",
@@ -724,6 +1100,39 @@ const seo: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Descriptive anchor text gives context about the destination page's topic, aiding both usability and search engines' understanding of page relationships.",
         },
+        {
+          question: "A brand-new cornerstone guide is published but no other page on the site links to it. Six weeks later it still has almost no traffic. What's the most likely cause?",
+          options: [
+            "The content topic must be unpopular",
+            "The page is likely orphaned, with no internal links helping users or crawlers discover it",
+            "New pages always take a year minimum to get traffic",
+            "Orphaned pages rank better than linked ones",
+          ],
+          correctIndex: 1,
+          explanation: "A page with no internal links pointing to it is harder for both visitors and search engines to discover, regardless of the content's quality.",
+        },
+        {
+          question: "A high-traffic homepage links out to a brand-new, less-visible service page using the anchor text 'click here'. What would improve this?",
+          options: [
+            "Nothing, generic anchor text performs identically to descriptive text",
+            "Replacing it with descriptive anchor text like 'our website redesign service', which clarifies the destination for users and search engines",
+            "Removing the link entirely",
+            "Making the anchor text bold instead of changing the wording",
+          ],
+          correctIndex: 1,
+          explanation: "Descriptive anchor text communicates what the linked page is about, which is more useful than vague phrases like 'click here' for both readers and crawlers.",
+        },
+        {
+          question: "Why might a content team deliberately add links from an old, high-traffic blog post to a newer, less-visited page?",
+          options: [
+            "To make the old post load slower",
+            "To pass some of the older page's visibility and authority to the newer page, boosting its discoverability",
+            "It has no effect on the newer page at all",
+            "Only external backlinks can influence a page's visibility",
+          ],
+          correctIndex: 1,
+          explanation: "Internal links from established, high-traffic pages can help direct both users and search engine attention toward newer content that needs a visibility boost.",
+        },
       ],
       rememberThis: "Internal links are the signposts inside your own museum — no signposts means visitors only ever see the first room.",
       keyTakeaways: [
@@ -733,6 +1142,11 @@ const seo: CurriculumModuleDef = {
         "Avoid orphaned pages with no internal links pointing to them.",
       ],
     },
+      ],
+    },
+    {
+      name: "Local SEO & Auditing Tools",
+      lessons: [
     {
       title: "Local SEO",
       description: "Optimizing for searches with local intent, like 'near me' queries and map results.",
@@ -785,6 +1199,39 @@ const seo: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Inconsistent NAP information across platforms undermines the trust and clarity signals Google uses to rank local businesses accurately.",
+        },
+        {
+          question: "In the lesson's NAP example, the website lists 'BrightSmile Dental Clinic' at '24 MG Road, Jaipur' but Justdial lists it as 'Bright Smile Dental Center' at '24 M.G. Road, Jaipur'. What's the concern?",
+          options: [
+            "There is no concern — minor naming differences never matter",
+            "The inconsistent name and address formatting across listings can confuse Google's local ranking signals",
+            "Justdial listings never affect Google rankings",
+            "Only phone number consistency matters, not name or address",
+          ],
+          correctIndex: 1,
+          explanation: "Even small inconsistencies in name or address formatting across directories can weaken the trust signals Google uses to verify and rank local businesses.",
+        },
+        {
+          question: "A plumber's Google Business Profile is unclaimed and has zero reviews, while a competitor's is fully verified with 80 genuine reviews. Who is more likely to appear in the local map pack for 'plumber near me'?",
+          options: [
+            "The plumber with the unclaimed, empty profile",
+            "The competitor with the verified, review-rich profile",
+            "Neither, since map pack results are random",
+            "It depends only on which business is physically closer",
+          ],
+          correctIndex: 1,
+          explanation: "A complete, verified profile with genuine reviews builds trust and prominence signals that heavily influence local map pack rankings.",
+        },
+        {
+          question: "Why does proximity matter as a local ranking factor, based on this lesson?",
+          options: [
+            "It doesn't — Google ignores searcher location for local queries",
+            "Google factors in how close a business is to the searcher when ranking local results, alongside relevance and prominence",
+            "Proximity only matters for online-only businesses",
+            "Proximity replaces the need for a Google Business Profile entirely",
+          ],
+          correctIndex: 1,
+          explanation: "Google's local ranking algorithm weighs proximity together with relevance and prominence, which is why physically nearby businesses often surface first for 'near me' searches.",
         },
       ],
       rememberThis: "Local SEO is your storefront sign for the internet — make sure it says the same address everywhere someone might look.",
@@ -848,6 +1295,39 @@ const seo: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Strong content can still underperform if the site is technically broken (slow, unindexed, or mobile-unfriendly), so audits must cover all major areas together.",
         },
+        {
+          question: "An audit finds three issues: a 9-second mobile load time, one page missing a meta description, and a robots.txt blocking the entire site. Which should be fixed first?",
+          options: [
+            "The missing meta description, since it's the easiest fix",
+            "The robots.txt blocking the entire site, since it's the most severe issue preventing any indexing at all",
+            "All three should be ignored until a full redesign",
+            "The load time, since speed is always the top priority regardless of context",
+          ],
+          correctIndex: 1,
+          explanation: "A site-wide crawl block is critical — it can deindex the entire site — so it takes priority over a single missing meta description or even slow load times.",
+        },
+        {
+          question: "A site's traffic dropped sharply after a redesign. Using the audit checklist from this lesson, what's the fastest first check?",
+          options: [
+            "Reviewing the company's five-year business plan",
+            "Checking robots.txt and indexing status ('site:domain.com') for a possible accidental block",
+            "Rewriting all blog content immediately",
+            "Changing the brand's color scheme",
+          ],
+          correctIndex: 1,
+          explanation: "Sudden traffic drops after a redesign are commonly caused by accidental indexing or crawl-blocking issues, which the checklist flags as a quick, high-value first check.",
+        },
+        {
+          question: "Why does a basic SEO audit checklist typically include backlink profile health alongside technical and on-page checks?",
+          options: [
+            "Backlinks are unrelated to SEO and included only as filler",
+            "A weak or spammy backlink profile can undermine rankings even if the on-page and technical elements are strong",
+            "Backlinks are the only factor that ever matters",
+            "Auditing backlinks is required by law",
+          ],
+          correctIndex: 1,
+          explanation: "SEO audits check technical, on-page, content, and backlink health together because any one weak area — including backlinks — can suppress otherwise strong performance.",
+        },
       ],
       rememberThis: "Treat SEO like a full check-up, not a single symptom — the real cause is rarely where you first look.",
       keyTakeaways: [
@@ -910,6 +1390,34 @@ const seo: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "High impressions mean the page is appearing in search results; low CTR points to a weak title tag or meta description failing to earn the click.",
         },
+        {
+          question: "Using the lesson's example row (Impressions: 4,200, Clicks: 65), what is the page's click-through rate?",
+          options: ["1.5%", "6.5%", "15%", "0.65%"],
+          correctIndex: 0,
+          explanation: "CTR = clicks / impressions x 100 = 65 / 4,200 x 100 ≈ 1.5%, matching the CTR shown in the lesson's sample data.",
+        },
+        {
+          question: "The Coverage report shows several important pages marked 'Excluded — noindex'. What should happen next?",
+          options: [
+            "Nothing, exclusions are always intentional and safe to ignore",
+            "Investigate whether the noindex tag was applied accidentally, since it would prevent those pages from ranking at all",
+            "Immediately delete those pages from the site",
+            "Increase the ad budget to compensate",
+          ],
+          correctIndex: 1,
+          explanation: "An accidental noindex tag silently removes a page from search results; the Coverage report is exactly how this kind of costly mistake gets caught.",
+        },
+        {
+          question: "A page ranks at position 3 with high impressions but the click count seems low relative to that strong position. What's the most useful next step in Search Console?",
+          options: [
+            "Assume the page is performing perfectly since position 3 is strong",
+            "Review and improve the title tag and meta description to make the listing more compelling to click",
+            "Submit a new sitemap, since that always fixes low CTR",
+            "Request re-indexing, since ranking position must be wrong",
+          ],
+          correctIndex: 1,
+          explanation: "When a page ranks well but still earns relatively few clicks, the listing itself (title/description) is usually the lever to pull, not indexing or ranking.",
+        },
       ],
       rememberThis: "Search Console is Google talking back to you directly — ignoring it means guessing about a conversation you could just read.",
       keyTakeaways: [
@@ -917,6 +1425,8 @@ const seo: CurriculumModuleDef = {
         "The Performance report shows impressions, clicks, CTR, and average position per query.",
         "The Coverage report reveals indexing errors that can silently hurt traffic.",
         "GSC also supports submitting sitemaps and requesting indexing for specific URLs.",
+      ],
+    },
       ],
     },
   ],
@@ -980,6 +1490,39 @@ const contentMarketing: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Tracking funnel stage prevents a calendar from being lopsided (e.g. all awareness content with nothing to convert interested readers).",
         },
+        {
+          question: "A brand's calendar shows a major product launch in six weeks but no supporting content has been planned yet. What does this reveal about the current planning approach?",
+          options: [
+            "Nothing — content can always be created the day of launch",
+            "Planning isn't looking far enough ahead, risking a scramble to produce supporting content right before the launch",
+            "Product launches don't need supporting content",
+            "The calendar should be deleted and restarted",
+          ],
+          correctIndex: 1,
+          explanation: "A calendar should be built with key business dates planned well in advance, so supporting content can be prepared thoughtfully rather than rushed at the last minute.",
+        },
+        {
+          question: "A skincare brand's calendar has 8 promotional posts and 0 educational or story-driven posts this month. What risk does this raise?",
+          options: [
+            "No risk — more promotional content always performs better",
+            "The content mix is unbalanced and may feel like constant advertising rather than a plan tied to the customer journey",
+            "This is the ideal ratio for every brand",
+            "Promotional-only calendars rank better in search engines",
+          ],
+          correctIndex: 1,
+          explanation: "A calendar should reflect a deliberate mix across funnel stages; an all-promotional plan skips the trust-building content most audiences need first.",
+        },
+        {
+          question: "Why might a content calendar list an 'owner' and a 'status' (idea/draft/published) for each entry, not just a date and title?",
+          options: [
+            "These fields are decorative and rarely used",
+            "They make the calendar an operational tool that tracks accountability and progress, not just a static schedule",
+            "Only large agencies need to track ownership",
+            "Status tracking replaces the need for a publish date",
+          ],
+          correctIndex: 1,
+          explanation: "Tracking owner and status turns the calendar into a working coordination tool, showing who's responsible for what and how close each piece is to publishing.",
+        },
       ],
       rememberThis: "A content calendar is a flight schedule — without it, everything takes off whenever, and connections get missed.",
       keyTakeaways: [
@@ -1041,6 +1584,34 @@ const contentMarketing: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Online readers tend to scan rather than read every word, so short, scannable formatting keeps them engaged and prevents them from bouncing.",
+        },
+        {
+          question: "A landing page opens with: 'Problem: Manually tracking expenses wastes hours every month. Agitate: One missed entry and tax season becomes a nightmare. Solution: ExpenseFlow auto-categorizes everything.' Which framework is this?",
+          options: ["AIDA", "PAS", "SWOT", "SMART"],
+          correctIndex: 1,
+          explanation: "This structure names a Problem, Agitates why it matters, then presents the Solution — the defining shape of the PAS framework.",
+        },
+        {
+          question: "A blog post is one giant 400-word paragraph with no subheadings. What's the most likely reader behavior, based on this lesson?",
+          options: [
+            "Readers will read every word carefully regardless of formatting",
+            "Many readers will scan briefly, feel overwhelmed, and leave without reading much of it",
+            "Long unbroken paragraphs always rank higher in search engines",
+            "Formatting has no effect on how people read online content",
+          ],
+          correctIndex: 1,
+          explanation: "Web readers scan rather than read densely; a wall of unbroken text with no scannable structure tends to lose readers quickly.",
+        },
+        {
+          question: "Which sentence better fits the 'write like giving directions, not a poem' advice from this lesson?",
+          options: [
+            "'In the ever-evolving landscape of contemporary consumer behavior, one must consider myriad methodologies.'",
+            "'Struggling to find new customers? Here's where to start.'",
+            "'A tapestry of possibilities awaits the discerning modern enterprise.'",
+            "'It is with great pleasure that we present our extensive suite of offerings.'",
+          ],
+          correctIndex: 1,
+          explanation: "The second option is short, plain, and direct — exactly the clear, scannable style the lesson recommends over dense or flowery language.",
         },
       ],
       rememberThis: "Write like you're giving directions to someone driving, not composing a poem for someone relaxing.",
@@ -1104,6 +1675,39 @@ const contentMarketing: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Message match between the ad and the landing page headline keeps visitor trust and expectation intact, improving conversion rates.",
         },
+        {
+          question: "An ad promises 'Free 14-Day Trial' but clicking it sends visitors to the general homepage with a full navigation menu and no mention of the trial. What's the likely result?",
+          options: [
+            "Higher conversions, since homepages contain more information",
+            "Lower conversions, since visitors expected the trial offer and instead face a confusing, unrelated page with easy exits",
+            "No effect, since all pages on a site convert equally",
+            "The mismatch will improve SEO rankings",
+          ],
+          correctIndex: 1,
+          explanation: "Breaking message match between ad and landing page confuses and loses visitors who expected to see the specific offer they clicked on.",
+        },
+        {
+          question: "A landing page has a strong headline but no testimonials, reviews, or proof of results anywhere on the page. What is it missing, according to this lesson?",
+          options: [
+            "Nothing — headlines alone are sufficient",
+            "Supporting proof, which builds trust and credibility alongside the headline's promise",
+            "A navigation menu",
+            "Multiple competing calls-to-action",
+          ],
+          correctIndex: 1,
+          explanation: "Strong landing pages pair their headline promise with supporting proof like testimonials or numbers, since claims alone are less convincing without evidence.",
+        },
+        {
+          question: "Why might a landing page repeat the same call-to-action button near the top and again near the bottom of the page?",
+          options: [
+            "It's a mistake that should be fixed by removing the duplicate",
+            "So visitors who are ready to convert at any point while scrolling don't have to scroll back up to find the button",
+            "Repeated buttons are required by ad platform policy",
+            "It has no impact on conversion behavior",
+          ],
+          correctIndex: 1,
+          explanation: "Repeating the call-to-action lets visitors convert the moment they're persuaded, without friction from having to scroll back to find it.",
+        },
       ],
       rememberThis: "A landing page is one clear checkout counter, not the whole store — remove every aisle that isn't leading to the sale.",
       keyTakeaways: [
@@ -1120,7 +1724,10 @@ const socialMediaMarketing: CurriculumModuleDef = {
   name: "Social Media Marketing",
   description: "Choosing the right platforms, building an engaging content strategy, and measuring what's actually working on social.",
   estimatedDuration: "1 week",
-  lessons: [
+  topics: [
+    {
+      name: "Platform & Content Strategy",
+      lessons: [
     {
       title: "Platform Overview: Choosing the Right Social Channel",
       description: "Understanding Instagram, Facebook, LinkedIn, and YouTube's distinct strengths so you don't waste effort everywhere at once.",
@@ -1173,6 +1780,39 @@ const socialMediaMarketing: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Limited time and budget spread across many platforms typically produces weak, inconsistent presence rather than strong traction anywhere.",
+        },
+        {
+          question: "A tutoring service wants to reach parents researching options and share short how-to study tips in depth. Which platform combination best fits, based on this lesson's platform-fit reference?",
+          options: [
+            "Only LinkedIn, since it's for professionals",
+            "Facebook for parent communities/discovery and YouTube for in-depth tutorial content",
+            "Only Instagram Reels",
+            "Only a print newsletter",
+          ],
+          correctIndex: 1,
+          explanation: "Facebook's community/local discovery strength fits reaching parents, while YouTube's long-form, searchable format suits detailed study tip content.",
+        },
+        {
+          question: "A recruiter wants to find and engage professionals for open roles. Which platform is the strongest fit, and why?",
+          options: [
+            "Instagram, because it has the largest user base",
+            "LinkedIn, because it's built specifically for professional and B2B/recruiting content",
+            "YouTube, because video always outperforms text",
+            "Facebook, because it's the oldest platform",
+          ],
+          correctIndex: 1,
+          explanation: "LinkedIn's audience and format are purpose-built for professional and recruiting use cases, unlike lifestyle-oriented platforms like Instagram.",
+        },
+        {
+          question: "A small team has budget and time to truly maintain only one platform well. Based on this lesson, what should guide that single choice?",
+          options: [
+            "Whichever platform is currently the most talked-about in the news",
+            "Where the specific target persona actually spends time, validated through testing rather than assumption",
+            "The platform with the most total global users, regardless of audience fit",
+            "Whichever platform is easiest to post on",
+          ],
+          correctIndex: 1,
+          explanation: "Platform choice should be driven by where the actual target audience spends time and engages, then validated with real testing — not by popularity or ease alone.",
         },
       ],
       rememberThis: "Don't hand out festival flyers at a business conference — match the platform to where your actual audience already is.",
@@ -1236,6 +1876,34 @@ const socialMediaMarketing: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Content pillars are the recurring themes (e.g. educational tips, behind-the-scenes, testimonials) that structure a varied, sustainable content mix.",
         },
+        {
+          question: "Using the lesson's suggested healthy mix (40% educational, 30% entertaining, 20% social proof, 10% promotional), how many posts out of a 20-post monthly plan should be purely promotional?",
+          options: ["2 posts", "8 posts", "10 posts", "20 posts"],
+          correctIndex: 0,
+          explanation: "10% of 20 posts = 2 posts, illustrating how promotional content should stay a small share of the overall mix.",
+        },
+        {
+          question: "A brand posts every single day for two weeks, then disappears for a month before returning. What problem does this illustrate?",
+          options: [
+            "No problem — total post volume is what matters most",
+            "Inconsistent posting cadence, which can make an account feel abandoned and lose audience trust",
+            "Posting too frequently is always penalized by every platform",
+            "This pattern is ideal for algorithm performance",
+          ],
+          correctIndex: 1,
+          explanation: "A consistent, sustainable cadence keeps followers engaged over time; bursts followed by long silence tend to feel unreliable to an audience.",
+        },
+        {
+          question: "A discount promotion post is framed as 'Struggling with dry skin this winter? Here's 20% off the moisturizer our dermatologist-followers love.' Why does this work better than a plain 'Sale ends soon!' post?",
+          options: [
+            "It doesn't work better; plain sale posts always convert best",
+            "It blends a promotional offer with a relatable problem, making it feel more like helpful content than a pure ad",
+            "It removes the discount entirely",
+            "It only works because it mentions a dermatologist",
+          ],
+          correctIndex: 1,
+          explanation: "Framing a promotional post around a real problem keeps it feeling valuable rather than purely sales-driven, which fits the lesson's advice on balancing pillars.",
+        },
       ],
       rememberThis: "An all-dessert menu gets old fast — balance promotional posts with content that's genuinely useful or entertaining on its own.",
       keyTakeaways: [
@@ -1245,6 +1913,11 @@ const socialMediaMarketing: CurriculumModuleDef = {
         "Consistency in cadence matters as much as the content mix itself.",
       ],
     },
+      ],
+    },
+    {
+      name: "Engagement & Measurement",
+      lessons: [
     {
       title: "Engagement & Community Management",
       description: "Turning a one-way broadcast into a genuine two-way relationship with your audience.",
@@ -1297,6 +1970,39 @@ const socialMediaMarketing: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Community management focuses on genuine, ongoing engagement — listening and responding — not just one-way broadcasting.",
+        },
+        {
+          question: "A customer comments publicly: 'Been waiting 3 weeks for a refund with no response.' The brand deletes the comment. What is the likely outcome, per this lesson?",
+          options: [
+            "The issue disappears with no further consequence",
+            "It can escalate the customer's frustration and look evasive to other people who saw the comment before deletion",
+            "Deleting negative comments always improves brand trust",
+            "This is the platform-recommended way to handle complaints",
+          ],
+          correctIndex: 1,
+          explanation: "Deleting criticism instead of addressing it publicly tends to look suspicious and can worsen the original complaint rather than resolve it.",
+        },
+        {
+          question: "A follower asks a genuine product question in the comments and the brand replies helpfully within two hours. What effect does this typically have, based on this lesson?",
+          options: [
+            "It has no effect on trust or loyalty",
+            "It builds trust and demonstrates the brand is actively listening, which tends to increase loyalty",
+            "It only matters if the reply includes a discount code",
+            "Fast replies are penalized by social algorithms",
+          ],
+          correctIndex: 1,
+          explanation: "Prompt, helpful responses show followers the brand is genuinely listening, which builds the kind of trust one-way broadcasting can't achieve.",
+        },
+        {
+          question: "Why might algorithms reward posts that generate back-and-forth comments over posts that just receive likes?",
+          options: [
+            "Algorithms cannot detect the difference between likes and comments",
+            "Genuine conversation is a stronger signal of real engagement and relevance than passive likes alone",
+            "Comments always come from bots, so they're weighted lower",
+            "This has nothing to do with community management",
+          ],
+          correctIndex: 1,
+          explanation: "Active conversation signals deeper engagement than a passive like, which is why fostering real dialogue (a core community management task) often improves organic reach.",
         },
       ],
       rememberThis: "Don't give a speech and leave the room — stay and actually talk to the people who showed up.",
@@ -1360,6 +2066,34 @@ const socialMediaMarketing: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Engagement rate accounts for reach, making it possible to fairly compare a post seen by a small audience against one seen by a much larger audience.",
         },
+        {
+          question: "A post reaches 10,000 accounts and gets 150 likes, 30 comments, and 20 shares. What is its engagement rate?",
+          options: ["2%", "20%", "0.2%", "15%"],
+          correctIndex: 0,
+          explanation: "(150 + 30 + 20) / 10,000 x 100 = 2%, calculated the same way as the lesson's worked example.",
+        },
+        {
+          question: "Post A reaches 50,000 people with 500 total engagements. Post B reaches 2,000 people with 200 total engagements. Which post performed better relative to its audience?",
+          options: [
+            "Post A, because it had more total engagements",
+            "Post B, because its engagement rate (10%) is much higher than Post A's (1%)",
+            "They performed identically",
+            "It's impossible to compare posts with different reach",
+          ],
+          correctIndex: 1,
+          explanation: "Post B's 200/2,000 = 10% engagement rate far exceeds Post A's 500/50,000 = 1%, showing Post B resonated much more strongly with the people who actually saw it.",
+        },
+        {
+          question: "A brand's follower count keeps climbing, but average engagement rate per post has been steadily falling for months. What should this prompt the team to investigate?",
+          options: [
+            "Nothing — rising followers alone means the strategy is working",
+            "Whether new followers are genuinely interested in the content, and whether the content mix still resonates with the audience",
+            "Immediately deleting all older posts",
+            "Switching to a completely different platform overnight",
+          ],
+          correctIndex: 1,
+          explanation: "Growing followers with declining engagement can signal that new followers aren't genuinely interested, or that content quality/relevance has slipped — a pattern only analytics reveals.",
+        },
       ],
       rememberThis: "The plates coming back untouched are telling you something — check the analytics instead of guessing.",
       keyTakeaways: [
@@ -1369,6 +2103,8 @@ const socialMediaMarketing: CurriculumModuleDef = {
         "Regular analytics review should directly inform future content decisions.",
       ],
     },
+      ],
+    },
   ],
 };
 
@@ -1376,7 +2112,10 @@ const paidAdvertising: CurriculumModuleDef = {
   name: "Paid Advertising",
   description: "Running effective, budget-conscious ad campaigns on Google and Meta — from account structure to writing creatives that actually convert.",
   estimatedDuration: "2 weeks",
-  lessons: [
+  topics: [
+    {
+      name: "Ad Platforms",
+      lessons: [
     {
       title: "Google Ads Fundamentals",
       description: "How Google's auction-based ad system works and where ads actually appear.",
@@ -1429,6 +2168,39 @@ const paidAdvertising: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Google Ads offers fast, immediate visibility for high-intent searches, complementing SEO's slower, longer-term organic growth.",
+        },
+        {
+          question: "Advertiser A bids $3.00 with a Quality Score of 3/10 (Ad Rank 9). Advertiser B bids $1.50 with a Quality Score of 8/10 (Ad Rank 12). Who wins the better ad position?",
+          options: [
+            "Advertiser A, because they bid more money",
+            "Advertiser B, because Ad Rank combines bid and Quality Score, and B's relevance advantage produces a higher rank despite the lower bid",
+            "They tie regardless of Ad Rank",
+            "Ad position is decided by company size, not Ad Rank",
+          ],
+          correctIndex: 1,
+          explanation: "Ad Rank is a function of both bid and Quality Score, so a highly relevant, lower-bid ad can beat a less relevant, higher-bid competitor.",
+        },
+        {
+          question: "A business needs to be visible for 'emergency plumber' searches starting today, not in three months. Which approach fits best?",
+          options: [
+            "Wait for organic SEO rankings to build up naturally",
+            "Run Google Ads targeting that high-intent keyword for immediate visibility",
+            "Only post on social media",
+            "Redesign the entire website first",
+          ],
+          correctIndex: 1,
+          explanation: "Google Ads can place a business at the top of results within hours, making it well suited to urgent, high-intent search terms where SEO's slower timeline doesn't fit.",
+        },
+        {
+          question: "An advertiser keeps raising their bid on a keyword but their landing page loads slowly and barely matches the ad's message. What will most likely happen to their Quality Score and cost?",
+          options: [
+            "Quality Score will rise automatically with a higher bid",
+            "Quality Score will likely stay low due to poor landing page experience and relevance, keeping costs high for the position achieved",
+            "Bidding higher always fixes a low Quality Score",
+            "Landing page experience has no bearing on Quality Score",
+          ],
+          correctIndex: 1,
+          explanation: "Quality Score reflects relevance, expected CTR, and landing page experience — raising the bid alone doesn't fix a poor-quality landing page or irrelevant ad.",
         },
       ],
       rememberThis: "Google Ads is prime shelf space you rent by the click — but relevance, not just money, decides who gets the best spot.",
@@ -1492,6 +2264,34 @@ const paidAdvertising: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Since Meta Ads compete with organic feed content for attention rather than answering an active search, strong visuals are critical to stopping the scroll.",
         },
+        {
+          question: "A skincare brand uploads its list of past customers to Meta and asks the platform to find new people who resemble them. What is this targeting method called?",
+          options: ["Keyword targeting", "A lookalike audience", "Search intent targeting", "Manual CPC targeting"],
+          correctIndex: 1,
+          explanation: "A lookalike audience targets new people who share characteristics with an existing customer list, a Meta-specific targeting approach distinct from keyword-based search targeting.",
+        },
+        {
+          question: "A furniture brand wants to re-engage people who visited its website but didn't buy. Which Meta Ads capability fits this directly?",
+          options: [
+            "Broad interest targeting with no pixel data",
+            "A custom audience built from the Meta Pixel's website visitor data, enabling a retargeting campaign",
+            "Google Search keyword bidding",
+            "A lookalike audience based on random users",
+          ],
+          correctIndex: 1,
+          explanation: "The Meta Pixel tracks website visitors, letting advertisers build a custom audience of past visitors specifically for retargeting campaigns.",
+        },
+        {
+          question: "A brand runs the same plain, text-heavy ad creative on both Google Search and Meta feeds. Where is it more likely to underperform, and why?",
+          options: [
+            "On Google Search, because text ads never work there",
+            "On Meta, because the audience isn't actively searching and needs a visually engaging creative to stop the scroll",
+            "Both platforms perform identically regardless of creative style",
+            "On Meta, because Meta doesn't allow text in ads",
+          ],
+          correctIndex: 1,
+          explanation: "Meta's feed-based, lower-intent context makes strong visuals far more important for capturing attention than on Search, where explicit keyword intent already exists.",
+        },
       ],
       rememberThis: "Search ads answer a question already being asked; Meta ads have to earn the question in the first place.",
       keyTakeaways: [
@@ -1501,6 +2301,11 @@ const paidAdvertising: CurriculumModuleDef = {
         "Meta Ads suit awareness and demand generation; Google Ads suit capturing existing intent.",
       ],
     },
+      ],
+    },
+    {
+      name: "Campaign Setup, Creative & Measurement",
+      lessons: [
     {
       title: "Campaign Structure & Audience Targeting",
       description: "Organizing campaigns, ad groups/ad sets, and ads so performance data stays clean and actionable.",
@@ -1553,6 +2358,39 @@ const paidAdvertising: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Managing budgets and bids at the ad group/ad set level allows advertisers to allocate more spend toward better-performing audience segments.",
+        },
+        {
+          question: "A shoe retailer dumps men's running shoes, women's handbags, and kids' sandals keywords into a single ad group with one generic ad. What problem does this create?",
+          options: [
+            "No problem — grouping everything together always simplifies management",
+            "It becomes impossible to tell which specific product line or audience is actually driving results, and the generic ad likely underperforms tailored ones",
+            "It automatically improves Quality Score for all keywords",
+            "It reduces the total budget needed",
+          ],
+          correctIndex: 1,
+          explanation: "Mixed, loosely themed ad groups blur performance data and typically show a generic ad that doesn't match any single audience segment well.",
+        },
+        {
+          question: "After 3 months of running a well-structured campaign, a marketer wants to see which specific ad group is most cost-effective. What makes this possible?",
+          options: [
+            "Nothing — cost-effectiveness can never be isolated by ad group",
+            "Because performance data is tracked at the ad group level, tightly themed segments can be compared directly against each other",
+            "Only account-wide totals are ever available",
+            "This requires a manual audit outside the ad platform",
+          ],
+          correctIndex: 1,
+          explanation: "Clean campaign structure means performance metrics are attributable at the ad group level, enabling direct comparison between segments.",
+        },
+        {
+          question: "A team considers completely reorganizing a 2-year-old, well-performing campaign structure just to make it look tidier. What's the key risk to weigh first?",
+          options: [
+            "There is no risk to restructuring at any time",
+            "Restructuring can lose valuable historical performance data and reset machine-learning optimization/learning phases",
+            "Restructuring always improves performance immediately",
+            "Ad platforms prevent restructuring entirely",
+          ],
+          correctIndex: 1,
+          explanation: "Changing an established structure can discard accumulated performance history and reset algorithmic learning, so restructuring decisions should weigh that cost carefully.",
         },
       ],
       rememberThis: "An unorganized ad account is a filing cabinet with everything dumped in one folder — you'll never find out what's actually working.",
@@ -1616,6 +2454,34 @@ const paidAdvertising: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "A smaller testing budget limits financial risk while still generating enough performance data to make a confident scaling decision afterward.",
         },
+        {
+          question: "A campaign has a $450 total budget to run evenly over 30 days while testing 3 ad variants evenly. What is the daily budget per variant?",
+          options: ["$15", "$5", "$45", "$150"],
+          correctIndex: 1,
+          explanation: "$450 / 30 days = $15/day total, then $15 / 3 variants = $5 per variant per day.",
+        },
+        {
+          question: "A brand-new campaign with zero conversion history is immediately set to 'Target ROAS' bidding. Early results are erratic and expensive. What likely went wrong?",
+          options: [
+            "Target ROAS bidding is always broken and should never be used",
+            "The automated strategy lacked sufficient historical conversion data to optimize well from day one",
+            "The budget was set too low to ever work",
+            "Nothing went wrong — this is expected optimal performance",
+          ],
+          correctIndex: 1,
+          explanation: "Automated, target-based bidding strategies rely on historical conversion data; applying them with none often produces poor, unpredictable early results.",
+        },
+        {
+          question: "After 2 weeks of manual CPC testing, one ad variant clearly outperforms the other two. What is the recommended next step, based on this lesson's approach?",
+          options: [
+            "Immediately pause the entire campaign",
+            "Pause the underperforming variants and increase budget on the winning ad/audience combination",
+            "Keep spending equally across all three variants indefinitely",
+            "Switch platforms entirely",
+          ],
+          correctIndex: 1,
+          explanation: "The test-then-scale approach means reallocating budget toward the proven winner once enough data identifies it, rather than continuing to split spend evenly.",
+        },
       ],
       rememberThis: "A full tank of gas with no destination just burns fuel — set a route (strategy) before you set the budget.",
       keyTakeaways: [
@@ -1667,6 +2533,39 @@ const paidAdvertising: CurriculumModuleDef = {
           options: ["They're too short", "They focus on the seller instead of the customer's outcome", "They use too many numbers", "They're illegal in ads"],
           correctIndex: 1,
           explanation: "Customers respond to what's in it for them, not self-praise from the advertiser.",
+        },
+        {
+          question: "A course ad tests two headlines: 'Learn Digital Marketing' vs 'Get Your First 3 Paying Clients in 30 Days'. Based on this lesson, which is more likely to convert, and why?",
+          options: [
+            "'Learn Digital Marketing', because it's shorter",
+            "'Get Your First 3 Paying Clients in 30 Days', because it names a specific outcome, number, and timeframe",
+            "Both perform identically since headline wording never matters",
+            "Neither, since ad headlines have no effect on conversion",
+          ],
+          correctIndex: 1,
+          explanation: "Specific outcomes, numbers, and timeframes build credibility and give a concrete reason to believe the ad is relevant, unlike a vague, generic headline.",
+        },
+        {
+          question: "An advertiser wants to know which of 4 headline variants performs best for the same audience. What should they do, per this lesson?",
+          options: [
+            "Guess which one sounds best and only run that one",
+            "Test multiple headline variants simultaneously and let real performance data reveal the winner",
+            "Only ever run one headline per campaign, forever",
+            "Avoid testing since headlines rarely differ in performance",
+          ],
+          correctIndex: 1,
+          explanation: "Most ad platforms support testing multiple creative variants at once, letting actual click and conversion data — not guesswork — determine the winner.",
+        },
+        {
+          question: "Which headline pair best demonstrates the shift from company-focused to customer-outcome-focused messaging?",
+          options: [
+            "'We've Been in Business 20 Years' → 'Trusted Since 2004'",
+            "'We Are the Best Marketing Agency' → 'Double Your Leads in 60 Days'",
+            "'Our Office Is Downtown' → 'Visit Our Office'",
+            "'Meet Our Team' → 'Our Team Bios'",
+          ],
+          correctIndex: 1,
+          explanation: "The second option shifts from praising the company itself to naming a specific, measurable benefit for the customer — exactly the outcome-focused shift this lesson recommends.",
         },
       ],
       rememberThis: "Your headline is the book cover — if it doesn't hook them, nobody ever reads what's inside.",
@@ -1730,6 +2629,39 @@ const paidAdvertising: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Placing the tag on the confirmation page ensures it only fires when the desired action (like a completed purchase) has genuinely occurred.",
         },
+        {
+          question: "Looking at the lesson's gtag.js snippet, what does the 'value': 49.99 parameter tell the ad platform?",
+          options: [
+            "The advertiser's total monthly budget",
+            "The monetary value of this specific conversion event, so ROI/ROAS can be calculated",
+            "The cost of running the ad itself",
+            "The number of clicks the ad received",
+          ],
+          correctIndex: 1,
+          explanation: "The value parameter reports how much revenue this specific conversion was worth, letting the platform and advertiser calculate return on ad spend accurately.",
+        },
+        {
+          question: "A campaign shows 5,000 clicks and looks highly successful, but no conversion tracking was ever set up. What critical question remains unanswered?",
+          options: [
+            "Nothing — click volume alone confirms success",
+            "Whether any of those clicks actually turned into leads or sales, since clicks alone don't measure business results",
+            "How much the ads cost per click",
+            "Which device types clicked the ad",
+          ],
+          correctIndex: 1,
+          explanation: "Without conversion tracking, there's no way to know if all that click activity produced any real business outcome — it could be 5,000 clicks and zero sales.",
+        },
+        {
+          question: "A marketer mistakenly places the conversion tracking tag on the shopping cart page instead of the order confirmation page. What problem does this cause?",
+          options: [
+            "No problem — any page works equally well for tracking",
+            "It could count conversions for people who never actually completed their purchase, inflating results",
+            "It will track conversions more accurately than the confirmation page",
+            "It prevents the tag from firing at all",
+          ],
+          correctIndex: 1,
+          explanation: "The cart page loads before a purchase is finalized, so tracking there would count abandoned carts as conversions, overstating real performance.",
+        },
       ],
       rememberThis: "Foot traffic doesn't pay the bills — count the sales, not just the people who walked in.",
       keyTakeaways: [
@@ -1739,6 +2671,8 @@ const paidAdvertising: CurriculumModuleDef = {
         "Always set up conversion tracking before launching a paid campaign.",
       ],
     },
+      ],
+    },
   ],
 };
 
@@ -1746,7 +2680,10 @@ const analytics: CurriculumModuleDef = {
   name: "Analytics",
   description: "Measuring what's really happening across a marketing effort using Google Analytics, Tag Manager, and clear reporting.",
   estimatedDuration: "1 week",
-  lessons: [
+  topics: [
+    {
+      name: "Tracking & Tools",
+      lessons: [
     {
       title: "Google Analytics Fundamentals",
       description: "Understanding how website visitor behavior is tracked and reported.",
@@ -1799,6 +2736,34 @@ const analytics: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "Quality of traffic (engagement, conversions) often matters more than raw quantity — a smaller, highly engaged audience can outperform a larger, disengaged one.",
+        },
+        {
+          question: "Using the lesson's sample acquisition report, which channel has the highest conversion rate (conversions / sessions)?",
+          options: ["Organic Search (85/3,200)", "Paid Social (12/1,500)", "Email (60/800)", "All three are equal"],
+          correctIndex: 2,
+          explanation: "Email converts at 60/800 = 7.5%, versus roughly 2.7% for Organic Search and 0.8% for Paid Social — the highest of the three.",
+        },
+        {
+          question: "A GA4 report shows a 'purchase' event firing 200 times in a month, but the e-commerce platform's own order records show only 120 actual orders. What should be investigated?",
+          options: [
+            "Nothing — this discrepancy is completely normal and expected",
+            "Whether the purchase event is firing multiple times per order (e.g. on page refresh), inflating the tracked conversions",
+            "Whether Google Analytics is broken and should be abandoned",
+            "Whether the store had a sale that month",
+          ],
+          correctIndex: 1,
+          explanation: "A mismatch between tracked events and real orders often points to a tracking implementation issue, such as an event firing more than once per completed purchase.",
+        },
+        {
+          question: "A campaign brings a spike in sessions, but the Engagement report shows most sessions last under 5 seconds with no further interaction. What does this most likely indicate?",
+          options: [
+            "The campaign is bringing highly engaged, valuable visitors",
+            "The traffic may be low quality or mismatched to the landing page, since visitors are leaving almost immediately",
+            "This is a normal and desirable pattern for any channel",
+            "GA4 cannot measure session length accurately",
+          ],
+          correctIndex: 1,
+          explanation: "Very short sessions with no further engagement often suggest a mismatch between what attracted the click and what the visitor found on landing, or generally low-intent traffic.",
         },
       ],
       rememberThis: "Foot traffic without a conversion count just tells you people walked past — analytics tells you who actually stopped to buy.",
@@ -1862,6 +2827,39 @@ const analytics: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "A Trigger specifies WHEN a Tag should fire, such as on a specific page load, button click, or form submission.",
         },
+        {
+          question: "Looking at the lesson's example (Tag: Meta Pixel - Purchase Event, Trigger: 'Thank You' page URL loaded, Variable: Page URL contains '/order-confirmation'), what role does the Variable play?",
+          options: [
+            "It is the tracking code itself",
+            "It supplies the specific condition data the Trigger checks against to decide whether to fire the Tag",
+            "It replaces the need for a Trigger entirely",
+            "It only affects how the final report looks",
+          ],
+          correctIndex: 1,
+          explanation: "The Variable holds the dynamic data (like the page URL condition) that the Trigger evaluates to determine whether the Tag should fire.",
+        },
+        {
+          question: "A marketer publishes a brand-new GTM tag directly to the live site without checking Preview mode first, and it turns out the trigger condition was misspelled. What's the likely consequence?",
+          options: [
+            "Nothing — GTM automatically fixes typos in trigger conditions",
+            "The tag may silently fail to fire, breaking tracking data for potentially days before anyone notices",
+            "The website will crash immediately for all visitors",
+            "GTM will refuse to publish tags with any errors",
+          ],
+          correctIndex: 1,
+          explanation: "An untested tag with a broken trigger condition can fail silently — there's no visible error to site visitors — so testing in Preview mode before publishing is critical.",
+        },
+        {
+          question: "A team wants to track when visitors click a 'Download Brochure' button, without asking a developer to edit the site's HTML. What GTM setup accomplishes this?",
+          options: [
+            "A Tag with no Trigger at all",
+            "A Click Trigger filtered to the button's text/ID, paired with a Tag that fires on that trigger",
+            "Editing the website's source code directly",
+            "A Variable by itself with no Tag or Trigger",
+          ],
+          correctIndex: 1,
+          explanation: "GTM lets marketers set up a Click Trigger tied to a specific button, firing a Tag when clicked — all without touching the site's underlying code.",
+        },
       ],
       rememberThis: "GTM is the universal remote for your tracking tools — no more rewiring the TV every time you add a new device.",
       keyTakeaways: [
@@ -1871,6 +2869,11 @@ const analytics: CurriculumModuleDef = {
         "Always test tags in Preview mode before publishing them live.",
       ],
     },
+      ],
+    },
+    {
+      name: "Measurement & Reporting",
+      lessons: [
     {
       title: "Conversion Tracking & KPIs",
       description: "Choosing the right key performance indicators to judge whether marketing is actually working.",
@@ -1923,6 +2926,39 @@ const analytics: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "ROAS divides revenue generated by ad spend, showing how much revenue is earned for every unit of currency spent on ads.",
+        },
+        {
+          question: "A campaign spends $2,400 and generates 60 conversions worth $9,600 in total revenue. What are its CPA and ROAS?",
+          options: [
+            "CPA = $40, ROAS = 4",
+            "CPA = $160, ROAS = 0.25",
+            "CPA = $4, ROAS = 40",
+            "CPA = $9,600, ROAS = 2,400",
+          ],
+          correctIndex: 0,
+          explanation: "CPA = $2,400 / 60 = $40. ROAS = $9,600 / $2,400 = 4, meaning $4 earned for every $1 spent.",
+        },
+        {
+          question: "A campaign report highlights '2 million impressions!' as its headline result but says nothing about leads or sales. What should a marketing manager ask next?",
+          options: [
+            "Nothing — impressions alone prove the campaign worked",
+            "What business-relevant KPI (like CPA, conversion rate, or ROAS) resulted from those impressions",
+            "How many employees worked on the campaign",
+            "Whether the impressions were shown on mobile or desktop only",
+          ],
+          correctIndex: 1,
+          explanation: "Impressions are a vanity metric on their own; the real question is whether that visibility translated into a business-relevant outcome like leads or revenue.",
+        },
+        {
+          question: "Two campaigns are compared: Campaign X has a CAC of $150 and average Customer Lifetime Value (CLV) of $180. Campaign Y has a CAC of $50 and average CLV of $300. Which is the healthier investment?",
+          options: [
+            "Campaign X, because it has a higher CAC",
+            "Campaign Y, because its CLV far exceeds its CAC, generating stronger long-term value per dollar spent acquiring a customer",
+            "Both are equally healthy since CAC doesn't matter",
+            "Neither can be evaluated without follower count data",
+          ],
+          correctIndex: 1,
+          explanation: "Comparing CAC against CLV shows real profitability potential — Campaign Y earns far more per customer relative to what it costs to acquire them.",
         },
       ],
       rememberThis: "Watching only the speedometer while ignoring the fuel gauge can fly you confidently into a mountain — pick KPIs that show the whole picture.",
@@ -1986,6 +3022,39 @@ const analytics: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "Limiting the report to metrics that matter for the stated goal keeps it focused and easy to act on, rather than burying the important signal in noise.",
         },
+        {
+          question: "A stakeholder receives a report that's just a raw screenshot of a Google Analytics dashboard with 40 metrics and no commentary. What's missing, based on this lesson?",
+          options: [
+            "Nothing — more data is always better",
+            "Interpretation of what the numbers mean and a clear, specific recommendation for what to do next",
+            "A larger screenshot with even more metrics",
+            "The company's logo",
+          ],
+          correctIndex: 1,
+          explanation: "A good report translates numbers into a story with a recommendation; a raw, uninterpreted data dump forces the reader to do that analysis themselves.",
+        },
+        {
+          question: "Organic sessions grew 22% this month, coinciding with a new weekly blog publishing habit that started 5 weeks ago. How should this be framed in a report?",
+          options: [
+            "As an unexplained coincidence with no further comment",
+            "As a likely cause-and-effect connection, recommending continued or increased blog publishing based on the correlation",
+            "It shouldn't be mentioned since correlation is never useful",
+            "As proof that paid ads caused the growth",
+          ],
+          correctIndex: 1,
+          explanation: "Connecting a plausible cause (new publishing cadence) to the observed change (traffic growth) is exactly the kind of interpretation a good report provides, ending in an actionable recommendation.",
+        },
+        {
+          question: "A report states: 'Cost per lead dropped from $45 to $33 this month across paid channels; organic stayed flat at 5,000 sessions.' What is the most useful next line to add?",
+          options: [
+            "A restatement of the same two numbers in different words",
+            "A specific recommendation, such as reallocating more budget toward the paid channel now that cost efficiency has improved",
+            "An unrelated fact about a competitor",
+            "Nothing further is needed once the numbers are shown",
+          ],
+          correctIndex: 1,
+          explanation: "A report should end with a clear, specific next step drawn from the data shown — here, capitalizing on the improved cost-per-lead efficiency.",
+        },
       ],
       rememberThis: "Nobody wants every lab value in isolation — they want to know what it means and what to do next.",
       keyTakeaways: [
@@ -1993,6 +3062,8 @@ const analytics: CurriculumModuleDef = {
         "Limit reports to metrics directly tied to the stated goal.",
         "Explain the likely cause behind key changes, not just the change itself.",
         "Visual trends often communicate faster than tables of raw numbers.",
+      ],
+    },
       ],
     },
   ],
@@ -2049,6 +3120,39 @@ const projects: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "A complete marketing plan combines goals, audience understanding, content strategy, channel priorities, and measurable KPIs into one cohesive document.",
         },
+        {
+          question: "A plan lists 'post on Instagram 3x/week' and 'run some Google Ads' with no persona or funnel stage attached to either. What's missing?",
+          options: [
+            "Nothing — tactics alone are a complete plan",
+            "The underlying strategic logic connecting each tactic to a specific audience and funnel stage, explaining why it was chosen",
+            "A bigger budget",
+            "More tactics listed",
+          ],
+          correctIndex: 1,
+          explanation: "Tactics without strategic reasoning behind them are hard to justify or measure — a real plan explains why each tactic serves a specific persona and funnel stage.",
+        },
+        {
+          question: "For 'Busy Parent Priya', a bakery plans an Instagram awareness post, a 'how we source ingredients' blog post, and a first-order discount email. Which piece targets the decision stage?",
+          options: [
+            "The Instagram awareness post",
+            "The first-order discount email",
+            "The 'how we source ingredients' blog post",
+            "None of them target any funnel stage",
+          ],
+          correctIndex: 1,
+          explanation: "A discount offer aimed at converting an already-interested prospect into a first purchase is a classic decision-stage tactic.",
+        },
+        {
+          question: "Why would a marketing consultant deliver a full written plan to a client before spending any money on ads or content production?",
+          options: [
+            "It's a formality with no real purpose",
+            "It aligns the client and consultant on strategy and priorities upfront, reducing wasted spend on unproven or misaligned tactics",
+            "Clients are legally required to receive a written plan",
+            "It replaces the need for any future reporting",
+          ],
+          correctIndex: 1,
+          explanation: "A documented plan gets stakeholder alignment before execution, ensuring money is spent on tactics that are already justified by strategy.",
+        },
       ],
       rememberThis: "A blueprint connects the kitchen, roof, and staircase into one house — don't sketch your marketing pieces in isolation.",
       keyTakeaways: [
@@ -2104,6 +3208,39 @@ const projects: CurriculumModuleDef = {
           correctIndex: 1,
           explanation: "A useful audit finding names the issue, its severity/impact, and a concrete recommended fix — not just a bare observation.",
         },
+        {
+          question: "During an audit, a 'site:' search shows only 12 of a site's 80 pages are indexed, and robots.txt looks fine. What should be checked next?",
+          options: [
+            "The company's social media follower count",
+            "Whether individual pages have accidental 'noindex' tags, thin/duplicate content, or crawl errors preventing indexing",
+            "The homepage's color scheme",
+            "Nothing further — 12 indexed pages is always sufficient",
+          ],
+          correctIndex: 1,
+          explanation: "When robots.txt isn't the culprit, per-page issues like noindex tags, duplicate content, or crawl errors are the next likely explanation for low indexing coverage.",
+        },
+        {
+          question: "An audit of a real site finds: missing meta descriptions on 5 pages (minor), a 7-second mobile load time (critical), and 3 broken internal links (moderate). How should these be presented to the client?",
+          options: [
+            "In random order, since order doesn't matter",
+            "Ranked from critical to minor, so the client knows to fix the load time first, then broken links, then meta descriptions",
+            "Only the minor issues should be reported",
+            "All issues should be reported as equally urgent",
+          ],
+          correctIndex: 1,
+          explanation: "Presenting findings by severity ensures the most damaging issue (site speed) gets addressed before less urgent ones like missing meta descriptions.",
+        },
+        {
+          question: "Why is running this audit end-to-end (not just reading about each check) considered valuable practice for a junior SEO role?",
+          options: [
+            "It isn't valuable; theory alone is sufficient for the job",
+            "It mirrors the actual, billable work junior SEO specialists perform for real clients, combining every concept into one practical exercise",
+            "It replaces the need to ever learn keyword research",
+            "It only applies to advanced roles, not junior ones",
+          ],
+          correctIndex: 1,
+          explanation: "Running a full audit combines indexing, technical, on-page, and backlink checks into the exact deliverable junior SEO specialists are commonly asked to produce.",
+        },
       ],
       rememberThis: "This is the check-up you studied, now actually performed on a real patient — theory becomes a skill the moment you run it yourself.",
       keyTakeaways: [
@@ -2158,6 +3295,39 @@ const projects: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "A media plan/campaign brief documents the strategy and gets client sign-off before any ads are actually built in a platform, aligning expectations upfront.",
+        },
+        {
+          question: "A mock campaign brief for a fitness app defines 3 strong headlines and a $500 budget, but never states which specific action (signup, purchase, download) counts as the conversion event. What's the risk?",
+          options: [
+            "No risk — headlines and budget are all that matter",
+            "Without a defined conversion event, there's no way to measure whether the $500 actually produced the intended business result",
+            "The campaign will automatically default to tracking impressions only, which is equally useful",
+            "Conversion events are optional and rarely tracked in real campaigns",
+          ],
+          correctIndex: 1,
+          explanation: "A campaign needs an explicitly defined conversion event to be measurable — without it, spend can't be tied to any real outcome.",
+        },
+        {
+          question: "A mock campaign uses tightly themed ad groups, interest-based Meta targeting, and 3 headline variants, but sets a single $500/month budget with an automated Target ROAS strategy from day one. What issue does this raise, based on earlier lessons in this course?",
+          options: [
+            "No issue — Target ROAS always works immediately regardless of history",
+            "A brand-new campaign with no conversion history may perform poorly under an automated target-based strategy applied too early",
+            "The ad groups are the real problem, not the bidding strategy",
+            "$500/month is always too much for a first campaign",
+          ],
+          correctIndex: 1,
+          explanation: "This connects back to the budgeting/bidding lesson: automated strategies like Target ROAS need historical conversion data, which a brand-new campaign doesn't yet have.",
+        },
+        {
+          question: "Why does the mock campaign project require defining both Google Search keywords AND Meta interest/demographic targeting, rather than just one?",
+          options: [
+            "Because every real campaign must use every platform available",
+            "Because it reinforces the distinct targeting logic each platform uses — explicit search intent for Google versus inferred interest for Meta",
+            "Because Meta and Google Ads use identical targeting methods",
+            "Because keywords and interests are interchangeable concepts",
+          ],
+          correctIndex: 1,
+          explanation: "Practicing both targeting types reinforces that Google Ads captures expressed search intent while Meta Ads relies on inferred interest and demographic targeting.",
         },
       ],
       rememberThis: "A pilot doesn't just check the fuel gauge — every system has to be verified together before a campaign is cleared for takeoff.",
@@ -2220,6 +3390,39 @@ const projects: CurriculumModuleDef = {
           ],
           correctIndex: 1,
           explanation: "A lower cost per acquisition means more leads were generated per dollar spent — Google Ads' $40 CPA was twice as efficient as Meta Ads' $80 CPA in this dataset.",
+        },
+        {
+          question: "Using the lesson's sample dataset, Email generated 45 leads from 2,000 sends at $0 direct spend, while Paid Social generated 10 leads from $800 spend. What should the report's recommendation likely emphasize?",
+          options: [
+            "Cutting the email list since it has fewer total sends than paid social's reach",
+            "Investing more in growing and nurturing the email list, since it produced far more leads at effectively no media spend",
+            "Increasing Paid Social budget only, since it's the most 'modern' channel",
+            "No recommendation is possible from this data",
+          ],
+          correctIndex: 1,
+          explanation: "Email drove the most leads at zero incremental ad spend, making it the standout channel for cost-efficiency worth highlighting and investing further in.",
+        },
+        {
+          question: "A report states each channel's numbers in separate sections with no connecting analysis, and ends without any recommendation. What does this project's lesson say is wrong with that approach?",
+          options: [
+            "Nothing is wrong — separate sections are always clearest",
+            "It fails to synthesize the channels into one narrative and leaves the reader to do the comparative analysis and decision-making themselves",
+            "Reports should never include channel breakdowns at all",
+            "This is the ideal report format for any stakeholder",
+          ],
+          correctIndex: 1,
+          explanation: "A complete report connects channels together into a narrative and ends with a specific recommendation — siloed sections with no synthesis defeat the report's purpose.",
+        },
+        {
+          question: "Total leads grew 18% this month, driven almost entirely by organic search and email, while paid channels underperformed their targets. What is the most useful next-period recommendation?",
+          options: [
+            "Increase paid ad spend proportionally across all paid channels without changes",
+            "Investigate why paid channels underperformed (e.g. creative fatigue, targeting) before committing more budget, while continuing to support what's already working (organic and email)",
+            "Cut all paid advertising immediately with no further analysis",
+            "Ignore the underperformance since overall leads still grew",
+          ],
+          correctIndex: 1,
+          explanation: "A good recommendation digs into the underperforming piece rather than ignoring it or scaling it blindly, while reinforcing the channels already proven to work.",
         },
       ],
       rememberThis: "A report that doesn't compare channels makes the reader do the analyst's job — connect the dots yourself, in the report.",
