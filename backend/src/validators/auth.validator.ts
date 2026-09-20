@@ -17,7 +17,7 @@ const baseRegisterFields = {
     .trim()
     .regex(/^[0-9+\-\s()]{7,20}$/, "Invalid phone number"),
   password: passwordSchema,
-  confirmPassword: z.string(),
+  confirmPassword: z.string().optional(),
 };
 
 export const registerStudentSchema = z
@@ -32,10 +32,10 @@ export const registerStudentSchema = z
       .trim()
       .regex(/^[0-9a-fA-F]{24}$/, "Select a valid course"),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+  .refine(
+    (data) => data.confirmPassword === undefined || data.password === data.confirmPassword,
+    { message: "Passwords do not match", path: ["confirmPassword"] }
+  );
 
 export const registerTrainerSchema = z
   .object({
@@ -46,10 +46,10 @@ export const registerTrainerSchema = z
     specialization: z.string().trim().max(200).optional(),
     resumeUrl: z.string().trim().url().optional(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+  .refine(
+    (data) => data.confirmPassword === undefined || data.password === data.confirmPassword,
+    { message: "Passwords do not match", path: ["confirmPassword"] }
+  );
 
 export const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
