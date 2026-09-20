@@ -22,6 +22,13 @@ export function useAdminCourses(query: CourseListQuery) {
   });
 }
 
+export function useTrainerCourses() {
+  return useQuery({
+    queryKey: [COURSES_KEY, "trainer"],
+    queryFn: () => courseService.listTrainerCourses(),
+  });
+}
+
 export function useCourse(id: string | null) {
   return useQuery({
     queryKey: [COURSES_KEY, "detail", id],

@@ -23,5 +23,6 @@ const moduleSchema = new Schema<IModule>(
 );
 
 moduleSchema.index({ course: 1, order: 1 });
+moduleSchema.index({ name: "text", description: "text" });
 
 export const Module = model<IModule>("Module", moduleSchema);

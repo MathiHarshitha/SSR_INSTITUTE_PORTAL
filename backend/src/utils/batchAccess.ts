@@ -40,3 +40,34 @@ export async function listStudentBatchIds(studentId: string): Promise<string[]> 
   const enrollments = await Enrollment.find({ student: studentId }).select("batch").lean();
   return enrollments.map((e) => String(e.batch));
 }
+
+/**
+ * Curriculum-authoring access: an admin may edit any course's content; a trainer
+ * may edit a course's content only if assigned as trainer on at least one batch of
+ * that course (reuses the existing Batch.trainer assignment rather than a new
+ * course<->trainer join table). Re-fetches from the DB, never trusts the client.
+ */
+export async function assertCourseContentAccess(
+  courseId: string,
+  requester: { id: string; role: Role }
+): Promise<void> {
+  if (requester.role === "ADMIN") return;
+
+  if (requester.role === "TRAINER") {
+    const assigned = await Batch.exists({ course: courseId, trainer: requester.id });
+    if (assigned) return;
+  }
+
+  throw ApiError.forbidden("You are not assigned to this course");
+}
+
+export async function listTrainerCourseIds(trainerId: string): Promise<string[]> {
+  const courseIds = await Batch.find({ trainer: trainerId }).distinct("course");
+  return courseIds.map((id) => String(id));
+}
+
+/** A student may only read curriculum content for a course they're enrolled in. */
+export async function assertStudentEnrolledInCourse(courseId: string, studentId: string): Promise<void> {
+  const enrolled = await Enrollment.findOne({ student: studentId, course: courseId }).select("_id").lean();
+  if (!enrolled) throw ApiError.forbidden("You are not enrolled in this course");
+}

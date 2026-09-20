@@ -25,6 +25,9 @@ router.get(
   validateQuery(listCoursesQuerySchema),
   courseController.listAdminCourses
 );
+
+// A trainer's "My Courses" — courses they're assigned to teach via at least one batch.
+router.get("/trainer", authenticate, authorize("TRAINER"), courseController.listTrainerCourses);
 router.post(
   "/",
   authenticate,
@@ -32,7 +35,7 @@ router.post(
   validateBody(createCourseSchema),
   courseController.createCourse
 );
-router.get("/:id", authenticate, authorize("ADMIN"), courseController.getCourse);
+router.get("/:id", authenticate, authorize("ADMIN", "TRAINER"), courseController.getCourse);
 router.patch(
   "/:id",
   authenticate,
@@ -48,8 +51,9 @@ router.patch(
   courseController.updateCourseStatus
 );
 
-// Curriculum (modules) nested under their course. Trainers get read access too — they
-// tag materials/tasks to a module — but only admins can author the curriculum itself.
+// Curriculum (modules) nested under their course. Trainers get full read+author access
+// scoped to courses they're assigned to teach (assertCourseContentAccess, checked inside
+// the service); admins can author any course's curriculum.
 router.get(
   "/:courseId/modules",
   authenticate,
@@ -59,14 +63,14 @@ router.get(
 router.post(
   "/:courseId/modules",
   authenticate,
-  authorize("ADMIN"),
+  authorize("ADMIN", "TRAINER"),
   validateBody(createModuleSchema),
   moduleController.createModule
 );
 router.patch(
   "/:courseId/modules/reorder",
   authenticate,
-  authorize("ADMIN"),
+  authorize("ADMIN", "TRAINER"),
   validateBody(reorderModulesSchema),
   moduleController.reorderModules
 );

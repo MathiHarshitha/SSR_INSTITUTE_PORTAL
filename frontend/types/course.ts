@@ -34,6 +34,15 @@ export interface CourseListQuery {
   sortOrder?: "asc" | "desc";
 }
 
+export interface TrainerCourse {
+  _id: string;
+  name: string;
+  shortDescription: string;
+  category?: string;
+  duration: string;
+  status: CourseStatus;
+}
+
 export interface CourseFormInput {
   name: string;
   shortDescription: string;

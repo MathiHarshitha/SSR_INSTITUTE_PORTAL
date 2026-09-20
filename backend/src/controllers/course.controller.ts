@@ -19,8 +19,13 @@ export const listAdminCourses = asyncHandler(async (req: Request, res: Response)
   sendSuccess(res, 200, "Courses fetched", courses, buildPaginationMeta(query.page, query.limit, total));
 });
 
+export const listTrainerCourses = asyncHandler(async (req: Request, res: Response) => {
+  const courses = await courseService.listCoursesForTrainer(req.user!.id);
+  sendSuccess(res, 200, "Courses fetched", courses);
+});
+
 export const getCourse = asyncHandler(async (req: Request, res: Response) => {
-  const course = await courseService.getCourseById(req.params.id as string);
+  const course = await courseService.getCourseById(req.params.id as string, req.user!);
   sendSuccess(res, 200, "Course fetched", course);
 });
 

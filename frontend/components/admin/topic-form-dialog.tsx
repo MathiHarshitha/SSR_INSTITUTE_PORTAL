@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -21,72 +22,48 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { lessonFormSchema, LessonFormValues } from "@/schemas/module.schema";
-import { AdminLesson, LessonFormInput } from "@/types/module";
+import { topicFormSchema, TopicFormValues } from "@/schemas/module.schema";
+import { AdminTopic, TopicFormInput } from "@/types/module";
 
-interface LessonFormDialogProps {
+interface TopicFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  lesson?: AdminLesson | null;
+  topic?: AdminTopic | null;
   isSubmitting?: boolean;
-  onSubmit: (input: LessonFormInput) => void;
+  onSubmit: (input: TopicFormInput) => void;
 }
 
-const EMPTY: LessonFormValues = { title: "", description: "", estimatedMinutes: undefined };
+const EMPTY: TopicFormValues = { name: "", description: "" };
 
-export function LessonFormDialog({ open, onOpenChange, lesson, isSubmitting, onSubmit }: LessonFormDialogProps) {
-  const form = useForm<LessonFormValues>({ resolver: zodResolver(lessonFormSchema), defaultValues: EMPTY });
+export function TopicFormDialog({ open, onOpenChange, topic, isSubmitting, onSubmit }: TopicFormDialogProps) {
+  const form = useForm<TopicFormValues>({ resolver: zodResolver(topicFormSchema), defaultValues: EMPTY });
 
   useEffect(() => {
     if (!open) return;
-    form.reset(
-      lesson
-        ? {
-            title: lesson.title,
-            description: lesson.description ?? "",
-            estimatedMinutes: lesson.estimatedMinutes,
-          }
-        : EMPTY
-    );
-  }, [open, lesson, form]);
+    form.reset(topic ? { name: topic.name, description: topic.description ?? "" } : EMPTY);
+  }, [open, topic, form]);
 
-  function handleSubmit(values: LessonFormValues) {
-    onSubmit({
-      title: values.title,
-      description: values.description || undefined,
-      estimatedMinutes: values.estimatedMinutes,
-    });
+  function handleSubmit(values: TopicFormValues) {
+    onSubmit({ name: values.name, description: values.description || undefined });
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{lesson ? "Edit lesson" : "Add lesson"}</DialogTitle>
+          <DialogTitle>{topic ? "Edit topic" : "Add topic"}</DialogTitle>
+          <DialogDescription>Topics group related lessons within this module.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="title"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Lesson title</FormLabel>
+                  <FormLabel>Topic name</FormLabel>
                   <FormControl>
-                    <Input placeholder="Variables and Data Types" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="estimatedMinutes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Estimated minutes</FormLabel>
-                  <FormControl>
-                    <Input type="number" min={0} {...field} value={field.value ?? ""} />
+                    <Input placeholder="Functions" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -107,7 +84,7 @@ export function LessonFormDialog({ open, onOpenChange, lesson, isSubmitting, onS
             />
             <DialogFooter>
               <Button type="submit" disabled={isSubmitting} className="w-full">
-                {isSubmitting ? "Saving..." : lesson ? "Save changes" : "Add lesson"}
+                {isSubmitting ? "Saving..." : topic ? "Save changes" : "Add topic"}
               </Button>
             </DialogFooter>
           </form>
