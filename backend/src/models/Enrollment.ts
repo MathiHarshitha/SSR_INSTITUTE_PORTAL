@@ -7,6 +7,8 @@ export interface IEnrollment extends Document {
   course: Types.ObjectId;
   discount: number;
   enrolledAt: Date;
+  lastVisitedLesson?: Types.ObjectId;
+  lastVisitedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,6 +20,8 @@ const enrollmentSchema = new Schema<IEnrollment>(
     course: { type: Schema.Types.ObjectId, ref: "Course", required: true, index: true },
     discount: { type: Number, default: 0, min: 0 },
     enrolledAt: { type: Date, default: Date.now },
+    lastVisitedLesson: { type: Schema.Types.ObjectId, ref: "Lesson" },
+    lastVisitedAt: { type: Date },
   },
   { timestamps: true }
 );

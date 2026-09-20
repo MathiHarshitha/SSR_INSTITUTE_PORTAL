@@ -8,6 +8,7 @@ import jobRoutes from "./job.routes";
 import announcementRoutes from "./announcement.routes";
 import auditLogRoutes from "./auditLog.routes";
 import moduleRoutes from "./module.routes";
+import topicRoutes from "./topic.routes";
 import lessonRoutes from "./lesson.routes";
 import materialRoutes from "./material.routes";
 import classScheduleRoutes from "./classSchedule.routes";
@@ -21,6 +22,8 @@ import certificateRoutes from "./certificate.routes";
 import uploadRoutes from "./upload.routes";
 import reportRoutes from "./report.routes";
 import notificationRoutes from "./notification.routes";
+import enrollmentRoutes from "./enrollment.routes";
+import searchRoutes from "./search.routes";
 
 const router = Router();
 
@@ -33,6 +36,7 @@ router.use("/jobs", jobRoutes);
 router.use("/announcements", announcementRoutes);
 router.use("/audit-logs", auditLogRoutes);
 router.use("/modules", moduleRoutes);
+router.use("/topics", topicRoutes);
 router.use("/lessons", lessonRoutes);
 router.use("/materials", materialRoutes);
 router.use("/classes", classScheduleRoutes);
@@ -46,5 +50,7 @@ router.use("/certificates", certificateRoutes);
 router.use("/uploads", uploadRoutes);
 router.use("/reports", reportRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/enrollments", enrollmentRoutes);
+router.use("/search", searchRoutes);
 
 export default router;

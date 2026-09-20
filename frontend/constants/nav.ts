@@ -18,6 +18,7 @@ import {
   ListChecks,
   GraduationCap,
   Bell,
+  Search,
 } from "lucide-react";
 import { Role } from "@/types/auth";
 
@@ -44,6 +45,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
   TRAINER: [
     { label: "Dashboard", href: "/trainer/dashboard", icon: LayoutDashboard },
     { label: "My Batches", href: "/trainer/batches", icon: Layers },
+    { label: "Curriculum", href: "/trainer/curriculum", icon: BookOpen },
     { label: "Schedule", href: "/trainer/schedule", icon: CalendarClock },
     { label: "Materials", href: "/trainer/materials", icon: FileText },
     { label: "Tasks", href: "/trainer/tasks", icon: ClipboardList },
@@ -54,7 +56,8 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
   ],
   STUDENT: [
     { label: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
-    { label: "My Course", href: "/student/course", icon: GraduationCap },
+    { label: "My Courses", href: "/student/courses", icon: GraduationCap },
+    { label: "Search", href: "/student/search", icon: Search },
     { label: "Materials", href: "/student/materials", icon: FileText },
     { label: "Tasks", href: "/student/tasks", icon: ClipboardList },
     { label: "Attendance", href: "/student/attendance", icon: ListChecks },

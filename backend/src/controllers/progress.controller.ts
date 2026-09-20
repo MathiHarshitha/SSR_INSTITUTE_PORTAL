@@ -20,3 +20,12 @@ export const getCourseProgress = asyncHandler(async (req: Request, res: Response
   );
   sendSuccess(res, 200, "Course progress fetched", progress);
 });
+
+export const getStudentCourseProgressForStaff = asyncHandler(async (req: Request, res: Response) => {
+  const progress = await progressService.getCourseProgressForStaff(
+    req.user!,
+    req.params.studentId as string,
+    req.params.courseId as string
+  );
+  sendSuccess(res, 200, "Student course progress fetched", progress);
+});

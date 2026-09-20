@@ -1,0 +1,2775 @@
+import type { CurriculumCourseDef, CurriculumModuleDef } from "./types";
+
+const webFundamentals: CurriculumModuleDef = {
+  name: "Web Fundamentals",
+  description: "How the internet, browsers, and websites actually work under the hood before you write a single line of code.",
+  estimatedDuration: "1 week",
+  lessons: [
+    {
+      title: "Internet Fundamentals",
+      description: "What the internet actually is, and how data physically moves between computers.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER",
+      whatIsIt: "The internet is a giant network of networks — millions of computers around the world connected by cables, satellites, and radio signals, all agreeing to speak the same set of rules so they can exchange information. When you open a website, your computer isn't magically 'seeing' it; it's sending small chunks of data called packets across this network to another computer and getting packets back.",
+      whyItMatters: "Every web app you'll ever build depends on this physical and logical network existing and working reliably. Understanding that a 'request' involves real data traveling real distances helps you reason about latency, failures, and why some things are slow.",
+      analogy: "Think of the internet like the global postal system. You don't personally drive your letter to another country — you hand it to your local post office, which passes it to regional hubs, which pass it to a hub near the destination, which delivers it to the final address. Packets travel the same way, hopping between routers until they reach their destination.",
+      simpleExample: "When you send a WhatsApp message, it doesn't travel as one big blob — it gets chopped into small packets, each one is labeled with where it's going, and they can even take different physical paths before being reassembled correctly on your friend's phone.",
+      technicalExplanation: "Your ISP (Internet Service Provider) connects your device to the wider internet. Data is broken into packets, each carrying a source address, destination address, and a fragment of the actual data, following the Internet Protocol (IP). Routers along the way read the destination address and forward each packet toward it, hop by hop, until it arrives and gets reassembled in order.",
+      codeExamples: [
+        {
+          title: "Tracing the path a packet takes",
+          language: "bash",
+          code: "traceroute google.com\n# On Windows: tracert google.com",
+          explanation: "This command sends packets toward google.com and prints every router ('hop') they pass through on the way, letting you literally see the network path your data takes across the internet.",
+        },
+      ],
+      realWorldUsage: "Every API call, video stream, online game, and page load relies on this packet-based network. Backend engineers care about this because network latency between your server and your database (or between two microservices) directly affects how fast your application feels.",
+      commonMistakes: [
+        {
+          wrong: "Assuming 'the internet' and 'the Web' are the same thing.",
+          right: "The internet is the underlying global network of connected computers; the Web (WWW) is just one service that runs on top of it, alongside email, file transfer, and others.",
+          explanation: "Conflating the two makes concepts like HTTP, browsers, and websites feel like the whole picture, when they're actually one application built on a much bigger, older infrastructure.",
+        },
+      ],
+      practice: {
+        instructions: "Open a terminal and run a traceroute (or tracert on Windows) to three different websites (e.g. google.com, github.com, a site hosted in a different country). Compare how many hops each takes and note any that fail or time out.",
+        hint: "On macOS/Linux use `traceroute <domain>`, on Windows use `tracert <domain>`.",
+      },
+      quiz: [
+        {
+          question: "What is a 'packet' in networking?",
+          options: [
+            "A full web page sent in one piece",
+            "A small chunk of data with source/destination info, sent as part of a larger message",
+            "A type of virus",
+            "A physical cable connector",
+          ],
+          correctIndex: 1,
+          explanation: "Large messages are split into smaller packets that travel independently and get reassembled at the destination.",
+        },
+        {
+          question: "What role does an ISP (Internet Service Provider) play?",
+          options: [
+            "It designs websites",
+            "It connects your device to the broader internet infrastructure",
+            "It stores your files permanently",
+            "It writes the HTML for pages you visit",
+          ],
+          correctIndex: 1,
+          explanation: "An ISP is the company (like Jio, Airtel, or Comcast) that provides your physical connection into the global internet.",
+        },
+      ],
+      rememberThis: "The internet is a global postal system for tiny chunks of data — the Web is just one of the many letters it delivers.",
+      keyTakeaways: [
+        "The internet is a network of networks connecting computers worldwide.",
+        "Data travels as small packets that are reassembled at the destination.",
+        "Routers forward packets hop by hop toward their destination address.",
+        "The Web is one application (among many) that runs on top of the internet.",
+      ],
+    },
+    {
+      title: "How Websites Work: Client & Server",
+      description: "The request/response relationship between the browser you use and the servers that power websites.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER",
+      whatIsIt: "A website works through a conversation between two roles: the client (your browser, asking for things) and the server (a computer elsewhere that stores the website's files and data, and answers requests). Your browser asks 'give me this page', and the server sends back the HTML, CSS, and data needed to display it.",
+      whyItMatters: "This client/server split is the foundation of the entire MERN stack — React runs on the client, Node/Express runs on the server, and understanding who does what tells you where a bug actually lives.",
+      analogy: "It's like ordering food at a restaurant counter. You (the client) walk up and place an order. The kitchen staff (the server) doesn't come looking for orders — they wait for a request, prepare it, and hand back exactly what was asked for, nothing more.",
+      simpleExample: "When you type youtube.com and hit enter, your browser (client) sends a request to YouTube's servers asking for the homepage; the servers process that request and send back the data and layout needed to render what you see.",
+      technicalExplanation: "The client-server model separates concerns: the client handles presentation and user interaction, while the server handles business logic, data storage, and processing. Communication happens over HTTP, where the client sends a request (method, URL, headers, optional body) and the server replies with a response (status code, headers, body).",
+      codeExamples: [
+        {
+          title: "A minimal server responding to a client",
+          language: "javascript",
+          code: "const http = require('http');\n\nconst server = http.createServer((req, res) => {\n  res.writeHead(200, { 'Content-Type': 'text/plain' });\n  res.end('Hello, client!');\n});\n\nserver.listen(3000, () => console.log('Server listening on port 3000'));",
+          explanation: "This creates a basic Node.js server that listens for incoming requests on port 3000. Whenever any client connects, the callback runs, sets a 200 (success) status with a plain-text content type, and sends back the text 'Hello, client!'.",
+        },
+      ],
+      realWorldUsage: "Every web and mobile app you use — Instagram, Gmail, online banking — is built on this pattern: a client app requesting data or actions, and a server processing and responding to those requests.",
+      commonMistakes: [
+        {
+          wrong: "Thinking the server can 'push' data to the browser whenever it wants, by default.",
+          right: "In the standard request/response model, the server only responds after the client asks; real-time push needs extra tools like WebSockets.",
+          explanation: "Beginners often expect a page to auto-update when server data changes, not realizing plain HTTP is client-initiated — you need polling, WebSockets, or Server-Sent Events for live updates.",
+        },
+      ],
+      practice: {
+        instructions: "Open your browser's Network tab (DevTools), visit any website, and find one request made to the server. Identify the request method, the status code of the response, and roughly how large the response was.",
+        hint: "In Chrome/Edge, press F12, click the 'Network' tab, then reload the page.",
+      },
+      quiz: [
+        {
+          question: "In the client-server model, who initiates a typical HTTP request?",
+          options: ["The server", "The client", "Both simultaneously", "The DNS system"],
+          correctIndex: 1,
+          explanation: "The client (browser) initiates requests; the server only responds to what it receives.",
+        },
+        {
+          question: "Which of these best matches the 'server' role in the restaurant analogy?",
+          options: ["The customer placing an order", "The menu", "The kitchen preparing and returning food", "The receipt"],
+          correctIndex: 2,
+          explanation: "The server processes the request (like a kitchen preparing food) and sends back a response.",
+        },
+      ],
+      rememberThis: "The client asks, the server answers — nothing happens on the web without a request first.",
+      keyTakeaways: [
+        "Clients (browsers/apps) initiate requests; servers respond to them.",
+        "This split separates presentation (client) from data/logic (server).",
+        "Communication typically happens over HTTP.",
+        "Real-time 'push' updates require extra technology beyond plain HTTP.",
+      ],
+    },
+    {
+      title: "HTTP & HTTPS",
+      description: "The rules browsers and servers follow to exchange requests and responses, and why the 'S' in HTTPS matters.",
+      estimatedMinutes: 18,
+      difficulty: "BEGINNER",
+      whatIsIt: "HTTP (HyperText Transfer Protocol) is the language browsers and servers use to talk to each other — a request asks for something using a method (like GET or POST) and a URL, and a response comes back with a status code and data. HTTPS is the same protocol, but encrypted, so no one snooping on the network can read or tamper with the data in transit.",
+      whyItMatters: "Without a shared protocol, every browser and server would need custom rules to talk to every other one. HTTP standardizes this, and HTTPS adds the trust and security needed for anything sensitive — logins, payments, personal data — to be safe online.",
+      analogy: "HTTP is like a standard form of postal envelope everyone agrees to use — address on the front, letter inside, agreed format. HTTPS is that same envelope, but sealed inside a locked security bag that only the intended recipient has the key to open.",
+      simpleExample: "When your bank's website shows a padlock icon in the address bar, it's telling you the connection is HTTPS — your login details are encrypted so even if someone intercepts the traffic on public Wi-Fi, they'd only see scrambled gibberish.",
+      technicalExplanation: "HTTP requests carry a method (GET, POST, PUT, DELETE, etc.), a URL, headers (metadata like content type), and optionally a body. Responses carry a status code (e.g. 200 OK, 404 Not Found, 500 Server Error), headers, and a body. HTTPS wraps this exchange in TLS (Transport Layer Security), which encrypts the data and verifies the server's identity using a certificate.",
+      codeExamples: [
+        {
+          title: "A raw HTTP request (what the browser sends behind the scenes)",
+          language: "http",
+          code: "GET /api/users/1 HTTP/1.1\nHost: example.com\nAccept: application/json",
+          explanation: "This is a GET request asking the server at example.com for the resource at /api/users/1, telling it the client prefers a JSON response via the Accept header.",
+        },
+      ],
+      realWorldUsage: "Every REST API you build with Express communicates over HTTP/HTTPS. Browsers now actively warn users and block certain features (like camera access or geolocation) on plain HTTP sites, making HTTPS mandatory for real production apps.",
+      commonMistakes: [
+        {
+          wrong: "Using GET requests to submit sensitive data like passwords, since GET data appears in the URL.",
+          right: "Use POST (or PUT) with the data in the request body for anything sensitive, and always serve it over HTTPS.",
+          explanation: "URLs (and therefore GET query parameters) can be logged in browser history, server logs, and proxies — never a safe place for passwords or tokens.",
+        },
+      ],
+      practice: {
+        instructions: "Visit three websites you use often and check whether each uses HTTP or HTTPS (look at the address bar). Then research what HTTP status code you'd expect if you requested a page that doesn't exist.",
+        hint: "A missing page typically returns a 404 status code.",
+      },
+      quiz: [
+        {
+          question: "What does the 'S' in HTTPS add to plain HTTP?",
+          options: ["Faster speed", "Encryption and identity verification via TLS", "Smaller file sizes", "Server-side rendering"],
+          correctIndex: 1,
+          explanation: "HTTPS wraps HTTP in TLS encryption, protecting data in transit and verifying the server's identity.",
+        },
+        {
+          question: "Which HTTP status code range generally indicates success?",
+          options: ["100-199", "200-299", "400-499", "500-599"],
+          correctIndex: 1,
+          explanation: "2xx status codes (like 200 OK, 201 Created) indicate the request succeeded.",
+        },
+        {
+          question: "Why shouldn't sensitive data be sent via GET request query parameters?",
+          options: [
+            "GET requests are slower",
+            "URLs can end up logged in browser history and server logs, exposing the data",
+            "GET requests don't support text data",
+            "Browsers block all GET requests",
+          ],
+          correctIndex: 1,
+          explanation: "Query parameters are part of the URL, which gets stored in history, bookmarks, and logs — an unsafe place for secrets.",
+        },
+      ],
+      rememberThis: "HTTP is the shared language of the web; HTTPS is that same language spoken inside a locked, tamper-proof envelope.",
+      keyTakeaways: [
+        "HTTP defines how clients and servers exchange requests and responses.",
+        "Requests have a method, URL, headers, and optional body; responses have a status code, headers, and body.",
+        "HTTPS encrypts HTTP traffic using TLS, protecting data and verifying server identity.",
+        "Never send sensitive data via GET query parameters — use POST/PUT with HTTPS.",
+      ],
+    },
+    {
+      title: "DNS: The Internet's Phonebook",
+      description: "How human-readable domain names get translated into the numeric addresses computers actually use.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER",
+      whatIsIt: "DNS (Domain Name System) is the system that converts a domain name like 'google.com' into the numeric IP address (like 142.250.190.14) that computers use to actually locate each other on the network. You never have to memorize IP addresses because DNS does the translation for you automatically.",
+      whyItMatters: "Humans are bad at remembering strings of numbers but good at remembering names. DNS lets the entire web be organized around memorable names while still working on top of a network that only understands numeric addresses.",
+      analogy: "DNS is exactly like your phone's contacts app. You don't dial raw phone numbers from memory for everyone you know — you tap 'Mom' and your phone looks up her actual number behind the scenes. DNS does the same thing: you type a name, and it looks up the actual numeric address.",
+      simpleExample: "Typing 'amazon.com' into your browser triggers a background lookup that finds Amazon's actual server IP address, the same way tapping a contact's name silently pulls up their real phone number.",
+      technicalExplanation: "When you enter a domain, your device queries a DNS resolver, which checks its cache or asks a hierarchy of DNS servers (root, top-level domain, and authoritative servers) until it finds the IP address mapped to that domain, typically via an 'A' record. This result is cached for a period of time (TTL) to speed up future lookups.",
+      codeExamples: [
+        {
+          title: "Looking up a domain's IP address",
+          language: "bash",
+          code: "nslookup github.com\n# or\ndig github.com",
+          explanation: "Both commands query DNS servers and print the IP address(es) associated with github.com, showing you exactly what your browser does invisibly every time you visit a site.",
+        },
+      ],
+      realWorldUsage: "When you deploy a MERN app and buy a custom domain, you configure DNS records (A records, CNAME records) to point that domain at your hosting provider's server — this is a routine task for every real deployment.",
+      commonMistakes: [
+        {
+          wrong: "Expecting DNS changes to take effect instantly everywhere.",
+          right: "DNS records are cached (by ISPs, routers, and your OS) according to a TTL value, so changes can take minutes to 48 hours to fully propagate worldwide.",
+          explanation: "Beginners often panic when a newly configured domain 'doesn't work yet' right after changing DNS settings, not realizing propagation takes time due to caching.",
+        },
+      ],
+      practice: {
+        instructions: "Use `nslookup` (or `dig`) to look up the IP addresses of three different websites. Note whether any of them return multiple IP addresses.",
+        hint: "Large sites like google.com often return several IP addresses for load balancing.",
+      },
+      quiz: [
+        {
+          question: "What does DNS primarily do?",
+          options: [
+            "Encrypts web traffic",
+            "Translates domain names into IP addresses",
+            "Stores website HTML files",
+            "Compresses images for faster loading",
+          ],
+          correctIndex: 1,
+          explanation: "DNS resolves human-readable domain names to the numeric IP addresses computers use to route traffic.",
+        },
+        {
+          question: "Why might a DNS change take time to appear for all users?",
+          options: [
+            "DNS servers are always offline",
+            "Records are cached according to a TTL and take time to propagate",
+            "Browsers ignore DNS entirely",
+            "IP addresses change every second",
+          ],
+          correctIndex: 1,
+          explanation: "Cached DNS records expire based on TTL, so different networks pick up changes at different times.",
+        },
+      ],
+      rememberThis: "DNS is your contacts app for the internet — it turns memorable names into the real addresses machines need.",
+      keyTakeaways: [
+        "DNS translates domain names into IP addresses.",
+        "Lookups traverse a hierarchy of DNS servers and get cached for speed.",
+        "TTL determines how long a DNS record stays cached before being re-checked.",
+        "Configuring DNS records is required when pointing a custom domain at a deployed app.",
+      ],
+    },
+    {
+      title: "IP Addresses & Ports",
+      description: "How a specific machine, and a specific service on that machine, gets identified on a network.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER",
+      whatIsIt: "An IP address uniquely identifies a device on a network, like a street address identifies a building. A port number then identifies a specific service running on that device, since one machine can run many services (a web server, a database, an email server) at once.",
+      whyItMatters: "Without ports, a single server couldn't run a website and a database and an API all at the same time — every service would collide. Ports let one IP address host many independent services simultaneously.",
+      analogy: "An IP address is like the address of an apartment building — it gets your mail to the right building. The port number is like the specific apartment/door number inside that building — it gets your mail (or request) to the right occupant (service) once it arrives.",
+      simpleExample: "Your Express API running on your laptop at 'localhost:5000' and your React dev server at 'localhost:3000' share the same address (localhost, your machine) but live behind different doors (ports 5000 and 3000), so they don't interfere with each other.",
+      technicalExplanation: "IPv4 addresses are 32-bit numbers written as four decimal numbers (e.g. 192.168.1.1); IPv6 addresses are longer and support far more unique addresses. Ports range from 0 to 65535, with well-known ports reserved for standard services (80 for HTTP, 443 for HTTPS, 27017 for MongoDB's default port). A full network endpoint is typically written as IP:PORT.",
+      codeExamples: [
+        {
+          title: "Starting a server on a specific port",
+          language: "javascript",
+          code: "const express = require('express');\nconst app = express();\n\nconst PORT = process.env.PORT || 5000;\napp.listen(PORT, () => console.log(`Server running on port ${PORT}`));",
+          explanation: "This tells Express which 'door' (port) to listen on for incoming requests. It uses an environment variable if one is set (common in production/hosting), otherwise it defaults to port 5000 for local development.",
+        },
+      ],
+      realWorldUsage: "Configuring which port your backend listens on, and which ports are open on a production server's firewall, is a routine part of deploying any MERN application (e.g. exposing port 443 for HTTPS traffic while keeping the database port closed to the public).",
+      commonMistakes: [
+        {
+          wrong: "Hardcoding app.listen(5000) without any fallback, then wondering why deployment fails.",
+          right: "Use app.listen(process.env.PORT || 5000) so the app respects the port assigned by the hosting provider in production.",
+          explanation: "Most hosting platforms (Render, Heroku, etc.) assign a dynamic port via an environment variable — hardcoding a port ignores that and the app won't be reachable.",
+        },
+      ],
+      practice: {
+        instructions: "Start two small Node/Express servers locally on different ports (e.g. 4000 and 5000) at the same time, and confirm in your browser that both respond independently at their own localhost:PORT addresses.",
+        hint: "Each server needs its own app.listen(PORT) call — run them in separate terminal windows.",
+      },
+      quiz: [
+        {
+          question: "What does a port number identify, given an IP address?",
+          options: [
+            "The physical location of the server",
+            "A specific service or application running on that device",
+            "The internet provider used",
+            "The domain name of the site",
+          ],
+          correctIndex: 1,
+          explanation: "Ports let a single machine run multiple independent services, each listening on its own port number.",
+        },
+        {
+          question: "Which is the well-known default port for HTTPS traffic?",
+          options: ["21", "80", "443", "3306"],
+          correctIndex: 2,
+          explanation: "Port 443 is the standard port reserved for HTTPS; port 80 is the standard for plain HTTP.",
+        },
+      ],
+      rememberThis: "The IP address gets you to the right building; the port gets you through the right door.",
+      keyTakeaways: [
+        "An IP address identifies a device on a network.",
+        "A port identifies a specific service on that device, allowing many services to run at once.",
+        "Well-known ports include 80 (HTTP), 443 (HTTPS), and 27017 (MongoDB default).",
+        "Production servers should read their port from an environment variable, not a hardcoded value.",
+      ],
+    },
+    {
+      title: "Browser Basics & Developer Tools",
+      description: "Getting comfortable with the browser as a development tool, not just a viewer.",
+      estimatedMinutes: 18,
+      difficulty: "BEGINNER",
+      whatIsIt: "A browser doesn't just display web pages — it's also a powerful inspection tool. Every modern browser ships with Developer Tools (DevTools) that let you view a page's HTML/CSS live, run JavaScript, inspect network requests, and debug errors.",
+      whyItMatters: "As a developer, the browser is your primary workspace for building and debugging front-end code. Knowing DevTools well turns 'why isn't this working?!' from a guessing game into a systematic investigation.",
+      analogy: "DevTools is like the mechanic's diagnostic computer for a car. A driver just sees the dashboard, but a mechanic plugs in a diagnostic tool to see exactly what's happening under the hood — sensor readings, error codes, live engine data. DevTools gives you that same X-ray view into a web page.",
+      simpleExample: "If a button on a page looks misaligned, instead of guessing and editing your CSS file blindly, you can right-click the button, choose 'Inspect', and see and tweak its exact CSS live in the browser until it looks right — then copy that fix into your actual code.",
+      technicalExplanation: "DevTools typically includes: the Elements panel (live HTML/CSS inspection and editing), the Console (run JavaScript and view logs/errors), the Network panel (inspect every HTTP request and response), the Sources panel (set breakpoints and step through JavaScript), and an Application panel (inspect storage like localStorage and cookies).",
+      codeExamples: [
+        {
+          title: "Logging and inspecting values in the Console",
+          language: "javascript",
+          code: "const user = { name: 'Asha', age: 22 };\nconsole.log('Current user:', user);\nconsole.table([{ id: 1, task: 'Learn HTML' }, { id: 2, task: 'Learn CSS' }]);",
+          explanation: "console.log prints a labeled value to the Console panel for quick inspection. console.table renders an array of objects as a readable table, which is often clearer than a plain log when debugging lists of data.",
+        },
+      ],
+      realWorldUsage: "Professional developers live in DevTools daily: checking failed API calls in the Network tab, debugging JavaScript errors via breakpoints in Sources, and inspecting responsive layouts using the device toolbar to simulate mobile screens.",
+      commonMistakes: [
+        {
+          wrong: "Only using console.log and alert() to debug, ignoring the rest of DevTools.",
+          right: "Use the Network tab to check failed/slow requests, and set breakpoints in Sources to step through code line by line when a bug is hard to find with logs alone.",
+          explanation: "console.log works for simple checks, but breakpoints let you pause execution and inspect the entire program state at that exact moment — far more powerful for tricky bugs.",
+        },
+      ],
+      practice: {
+        instructions: "Open DevTools (F12) on any website. Use the Elements panel to change some text on the page live, then use the Console to log window.location.href, and finally check the Network tab to see how many requests were made when the page loaded.",
+        hint: "Changes made in the Elements panel are temporary and disappear on refresh — that's expected and safe to experiment with.",
+      },
+      quiz: [
+        {
+          question: "Which DevTools panel would you use to inspect a failed API request?",
+          options: ["Elements", "Network", "Application", "Sources"],
+          correctIndex: 1,
+          explanation: "The Network panel logs every HTTP request the page makes, including status codes, timing, and response bodies.",
+        },
+        {
+          question: "What does console.table() do differently from console.log()?",
+          options: [
+            "It sends data to the server",
+            "It formats an array of objects as a readable table in the console",
+            "It deletes the console history",
+            "It only works in Node.js",
+          ],
+          correctIndex: 1,
+          explanation: "console.table() renders array/object data in a structured table view, which is easier to scan than raw log output.",
+        },
+      ],
+      rememberThis: "DevTools is the mechanic's diagnostic tool for the web — stop guessing what's under the hood and go look.",
+      keyTakeaways: [
+        "DevTools lets you inspect and edit live HTML/CSS, run JavaScript, and debug errors.",
+        "The Network panel shows every request and response a page makes.",
+        "The Sources panel supports breakpoints for step-by-step debugging.",
+        "Changes made directly in DevTools are temporary and don't persist to your actual files.",
+      ],
+    },
+  ],
+};
+
+const html: CurriculumModuleDef = {
+  name: "HTML",
+  description: "Structuring content on the web with HyperText Markup Language — the skeleton every page is built on.",
+  estimatedDuration: "1.5 weeks",
+  lessons: [
+    {
+      title: "HTML Fundamentals & Document Structure",
+      description: "The basic skeleton every HTML document needs, and what each part is for.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER",
+      whatIsIt: "HTML (HyperText Markup Language) is the language used to structure content on a web page — headings, paragraphs, images, links, and more — using elements called tags. Every HTML document follows a standard skeleton: a doctype declaration, an html root, a head for metadata, and a body for visible content.",
+      whyItMatters: "Browsers need a predictable structure to know how to interpret and display a page correctly. Without HTML's standard structure, browsers would have no consistent way to know what's a title, what's content, and what's metadata.",
+      analogy: "An HTML document is like the skeleton of a house's blueprint — before you paint walls (CSS) or wire up electronics (JavaScript), you need the basic frame: rooms, doors, and a roof, all correctly labeled so builders know what goes where.",
+      simpleExample: "A blank Word document has a title bar, a body area for typing, and hidden formatting settings — HTML documents have the same idea: a <head> for hidden settings/metadata and a <body> for the actual visible content.",
+      technicalExplanation: "A minimal HTML document starts with <!DOCTYPE html> to tell the browser to use modern HTML5 rules, followed by an <html> root element containing <head> (metadata like <title>, <meta charset>, linked stylesheets) and <body> (the actual rendered content). Tags are usually paired as opening/closing (<p>...</p>), though some are self-closing (<img />, <br />).",
+      codeExamples: [
+        {
+          title: "A minimal valid HTML document",
+          language: "html",
+          code: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <title>My First Page</title>\n  </head>\n  <body>\n    <h1>Hello, World!</h1>\n    <p>This is my first web page.</p>\n  </body>\n</html>",
+          explanation: "The DOCTYPE tells the browser to render in standards mode. lang='en' tells assistive technology and search engines the page's language. The <head> holds metadata invisible to users, while <h1> and <p> inside <body> are the visible heading and paragraph.",
+        },
+      ],
+      realWorldUsage: "Every web page on the internet — from a simple blog to a complex banking dashboard — is ultimately made of HTML elements structured this way; React itself eventually renders down to plain HTML in the browser.",
+      commonMistakes: [
+        {
+          wrong: "Forgetting the <!DOCTYPE html> declaration, causing the browser to render in inconsistent 'quirks mode'.",
+          right: "Always start every HTML file with <!DOCTYPE html> as the very first line.",
+          explanation: "Without it, older rendering quirks kick in and CSS/layout behavior can become unpredictable across browsers.",
+        },
+      ],
+      practice: {
+        instructions: "Create a new HTML file with a proper doctype, a title of 'My Profile', and a body containing an <h1> with your name and a <p> describing one hobby.",
+        starterCode: "<!DOCTYPE html>\n<html lang=\"en\">\n  <head>\n    \n  </head>\n  <body>\n    \n  </body>\n</html>",
+        hint: "Metadata like <title> goes in <head>; visible content goes in <body>.",
+      },
+      quiz: [
+        {
+          question: "What does <!DOCTYPE html> do?",
+          options: [
+            "Links a CSS stylesheet",
+            "Tells the browser to render the page using modern HTML5 standards",
+            "Creates a new paragraph",
+            "Imports JavaScript",
+          ],
+          correctIndex: 1,
+          explanation: "It's a signal to the browser about which rendering rules to use, avoiding inconsistent 'quirks mode' behavior.",
+        },
+        {
+          question: "Which section holds content that is actually visible to users?",
+          options: ["<head>", "<body>", "<title>", "<meta>"],
+          correctIndex: 1,
+          explanation: "<body> contains everything the user sees rendered on the page; <head> holds metadata.",
+        },
+      ],
+      rememberThis: "Every HTML page is a labeled skeleton: doctype sets the rules, head holds the hidden info, body holds what people actually see.",
+      keyTakeaways: [
+        "HTML structures content using nested elements called tags.",
+        "Every document needs a doctype, html root, head, and body.",
+        "<head> holds metadata; <body> holds visible content.",
+        "A missing doctype can cause inconsistent rendering across browsers.",
+      ],
+    },
+    {
+      title: "Elements & Attributes",
+      description: "How HTML tags are written, nested, and customized using attributes.",
+      estimatedMinutes: 12,
+      difficulty: "BEGINNER",
+      whatIsIt: "An HTML element is a piece of content wrapped in tags, like <p>Hello</p>. Attributes are extra pieces of information added inside the opening tag to configure that element further, like specifying a link's destination or an image's source.",
+      whyItMatters: "Plain tags alone can't describe everything a browser needs to know — a link needs to know where it goes, an image needs to know which file to load. Attributes give elements the extra configuration they need to be functional, not just structural.",
+      analogy: "Think of an element as a product on a shelf, and attributes as the details printed on its label — size, color, weight. The product (element) is the thing itself; the label details (attributes) tell you specifics about that particular one.",
+      simpleExample: "A plain envelope is just an envelope (an element), but writing 'To: Mom' and 'Fragile' on it (attributes) tells the postal worker exactly how to handle this specific one.",
+      technicalExplanation: "Attributes are written as name=\"value\" pairs inside the opening tag, e.g. <a href=\"https://example.com\">. Global attributes like id, class, and style work on almost any element, while some attributes are specific to certain elements, like href on <a> or src on <img>.",
+      codeExamples: [
+        {
+          title: "Elements with attributes",
+          language: "html",
+          code: "<a href=\"https://example.com\" target=\"_blank\">Visit Example</a>\n<img src=\"cat.jpg\" alt=\"A sleeping cat\" width=\"200\" />",
+          explanation: "The <a> tag uses href to define the link destination and target=\"_blank\" to open it in a new tab. The <img> tag uses src to load the file, alt for accessible fallback text, and width to constrain its display size.",
+        },
+      ],
+      realWorldUsage: "Attributes like class and id are the hooks CSS and JavaScript use to target specific elements — they're used on virtually every real web page for styling and interactivity.",
+      commonMistakes: [
+        {
+          wrong: "<img src='cat.jpg'>",
+          right: "<img src=\"cat.jpg\" alt=\"A sleeping cat\" />",
+          explanation: "Omitting the alt attribute hurts accessibility (screen readers have nothing to announce) and SEO — always describe images with meaningful alt text.",
+        },
+      ],
+      practice: {
+        instructions: "Create a link to your favorite website that opens in a new tab, and an image tag (using any placeholder image URL) with meaningful alt text describing the image.",
+        hint: "Use target=\"_blank\" on <a> and alt=\"...\" on <img>.",
+      },
+      quiz: [
+        {
+          question: "What is the purpose of the alt attribute on an <img> tag?",
+          options: [
+            "It sets the image's file size",
+            "It provides fallback/accessible text describing the image",
+            "It links the image to another page",
+            "It changes the image's color",
+          ],
+          correctIndex: 1,
+          explanation: "alt text is read by screen readers and shown if the image fails to load, making it essential for accessibility.",
+        },
+        {
+          question: "Which attribute defines where a link (<a>) navigates to?",
+          options: ["src", "alt", "href", "target"],
+          correctIndex: 2,
+          explanation: "href specifies the destination URL of a link.",
+        },
+      ],
+      rememberThis: "If the element is the product, attributes are the label printed on it — they add the specifics.",
+      keyTakeaways: [
+        "Elements are content wrapped in tags; attributes configure them further.",
+        "Attributes are written as name=\"value\" inside the opening tag.",
+        "href, src, and alt are among the most common attributes.",
+        "Always give images meaningful alt text for accessibility and SEO.",
+      ],
+    },
+    {
+      title: "Headings, Paragraphs, Links & Images",
+      description: "The most-used everyday HTML elements for organizing text and media.",
+      estimatedMinutes: 12,
+      difficulty: "BEGINNER",
+      whatIsIt: "Headings (<h1> through <h6>) create a hierarchy of titles and subtitles, paragraphs (<p>) hold blocks of text, links (<a>) connect pages together, and images (<img>) embed visual content. These four elements make up the bulk of everyday web content.",
+      whyItMatters: "Almost every piece of readable content on the web — articles, product descriptions, documentation — is built from this small set of elements. Mastering them covers most day-to-day HTML writing.",
+      analogy: "Think of a newspaper page: the big bold headline is <h1>, section titles are smaller headings, the actual story text is paragraphs, 'read more on page 5' is a link, and the photo next to the story is an image.",
+      simpleExample: "A recipe blog post typically has a big title (h1: 'Chocolate Cake Recipe'), a smaller heading for 'Ingredients' (h2), paragraphs describing steps, a photo of the finished cake, and a link to a related recipe.",
+      technicalExplanation: "<h1> should be used once per page for the main title, with <h2>-<h6> for decreasing levels of subheading, forming a logical outline. <p> wraps a block of running text. <a> requires an href attribute to be a working link. <img> is a self-closing (void) element requiring src and ideally alt.",
+      codeExamples: [
+        {
+          title: "A structured content section",
+          language: "html",
+          code: "<h1>Chocolate Cake Recipe</h1>\n<img src=\"cake.jpg\" alt=\"Finished chocolate cake on a plate\" />\n<h2>Ingredients</h2>\n<p>You will need flour, sugar, cocoa powder, and eggs.</p>\n<p>See our <a href=\"/frosting-guide\">frosting guide</a> for topping ideas.</p>",
+          explanation: "The <h1> is the main page title, <h2> introduces a subsection, the <p> tags hold running text, and the <a> links to a related internal page using a relative URL.",
+        },
+      ],
+      realWorldUsage: "Search engines and screen readers rely on a correct heading hierarchy to understand a page's structure — this directly affects both SEO ranking and accessibility scores in real production sites.",
+      commonMistakes: [
+        {
+          wrong: "Using multiple <h1> tags, or skipping heading levels (h1 straight to h4) purely for font size.",
+          right: "Use one <h1> per page and keep heading levels in logical order; use CSS to control font size instead of picking a heading tag for its visual size.",
+          explanation: "Heading tags convey document structure to search engines and assistive tech — using them purely for visual sizing breaks that meaning and hurts accessibility/SEO.",
+        },
+      ],
+      practice: {
+        instructions: "Build a mini 'About Me' page with one <h1> for your name, an <h2> for 'Hobbies', two <p> paragraphs, one <img> with alt text, and a link to a website you like.",
+        hint: "Keep exactly one h1, and use h2 for any subsection title.",
+      },
+      quiz: [
+        {
+          question: "How many <h1> elements should a well-structured page typically have?",
+          options: ["As many as needed for visual size", "Exactly one, for the main title", "Zero — h1 is deprecated", "One per paragraph"],
+          correctIndex: 1,
+          explanation: "A single <h1> per page represents the main title and gives the page a clear, logical structure for SEO and accessibility.",
+        },
+        {
+          question: "Why shouldn't you pick a heading level just because you like its font size?",
+          options: [
+            "Heading tags don't support CSS",
+            "It breaks the logical document outline used by search engines and screen readers",
+            "Browsers will reject the page",
+            "It's fine to do — there's no downside",
+          ],
+          correctIndex: 1,
+          explanation: "Heading levels communicate structure, not just size; visual sizing should be handled with CSS instead.",
+        },
+      ],
+      rememberThis: "Headings are your page's table of contents — use them to describe structure, not to make text bigger.",
+      keyTakeaways: [
+        "Headings (h1-h6) create a logical outline of a page's content.",
+        "Paragraphs hold blocks of running text.",
+        "Links connect pages via the href attribute.",
+        "Images embed visuals and need meaningful alt text.",
+      ],
+    },
+    {
+      title: "Lists & Tables",
+      description: "Organizing grouped items and tabular data in HTML.",
+      estimatedMinutes: 12,
+      difficulty: "BEGINNER",
+      whatIsIt: "Lists (<ul> for unordered/bulleted, <ol> for ordered/numbered, each containing <li> items) group related items together. Tables (<table>, with <tr> rows and <td>/<th> cells) organize data into rows and columns, like a spreadsheet.",
+      whyItMatters: "A lot of real content is naturally list-like (navigation menus, steps, ingredients) or grid-like (pricing comparisons, schedules). Using the right structural element makes that relationship clear to both users and machines.",
+      analogy: "A list is like a grocery checklist — order may or may not matter, but each line is one item. A table is like a class timetable — information only makes sense when read across both a specific row and a specific column at once.",
+      simpleExample: "A recipe's ingredient list is naturally an unordered list (order doesn't matter), while its numbered cooking steps are naturally an ordered list, and a nutrition facts panel is naturally a table.",
+      technicalExplanation: "<ul> and <ol> both contain <li> child elements; <ol> automatically numbers them, <ul> bullets them. <table> contains optional <thead>/<tbody>, with <tr> defining rows and <th> (header cell) or <td> (data cell) defining columns within each row.",
+      codeExamples: [
+        {
+          title: "A list and a table together",
+          language: "html",
+          code: "<h2>Ingredients</h2>\n<ul>\n  <li>2 cups flour</li>\n  <li>1 cup sugar</li>\n</ul>\n\n<table>\n  <thead>\n    <tr><th>Nutrient</th><th>Amount</th></tr>\n  </thead>\n  <tbody>\n    <tr><td>Calories</td><td>250</td></tr>\n  </tbody>\n</table>",
+          explanation: "The <ul> renders a bulleted ingredient list. The <table> uses <thead> for column headers (Nutrient, Amount) and <tbody> for the actual data row, keeping headers and data semantically distinct.",
+        },
+      ],
+      realWorldUsage: "Navigation menus are almost always built from <ul><li> elements under the hood (styled with CSS to look like a horizontal menu), and tables remain the correct choice for real tabular data like pricing plans, schedules, and financial reports.",
+      commonMistakes: [
+        {
+          wrong: "Using <table> elements to lay out an entire page's visual structure (columns, sidebars).",
+          right: "Use CSS Flexbox or Grid for page layout, and reserve <table> exclusively for genuinely tabular data.",
+          explanation: "Table-based layout was common in the 1990s-2000s but is inaccessible, inflexible, and not responsive — modern layout uses CSS.",
+        },
+      ],
+      practice: {
+        instructions: "Create an ordered list of 3 steps to make tea, and a table comparing 3 fruits with columns for Name, Color, and Price.",
+        hint: "Use <ol><li> for steps, and <table><thead><tbody> for the comparison.",
+      },
+      quiz: [
+        {
+          question: "Which element should you use for a numbered set of instructions?",
+          options: ["<ul>", "<ol>", "<table>", "<div>"],
+          correctIndex: 1,
+          explanation: "<ol> (ordered list) automatically numbers items, appropriate for sequential instructions.",
+        },
+        {
+          question: "Why is using <table> for whole-page layout considered bad practice today?",
+          options: [
+            "Tables can't contain images",
+            "It's inaccessible, inflexible, and not responsive compared to CSS layout tools",
+            "Browsers no longer support tables",
+            "Tables are only for numbers",
+          ],
+          correctIndex: 1,
+          explanation: "CSS Flexbox/Grid handle layout far better and were designed for this purpose; tables should hold tabular data only.",
+        },
+      ],
+      rememberThis: "Lists are for grouped items, tables are for anything you'd naturally read across a row AND down a column.",
+      keyTakeaways: [
+        "<ul> is for unordered lists, <ol> for ordered/numbered lists.",
+        "Tables organize genuinely tabular data using rows and columns.",
+        "<th> marks header cells, <td> marks data cells.",
+        "Never use tables purely for visual page layout — use CSS instead.",
+      ],
+    },
+    {
+      title: "Forms & Input Types",
+      description: "Collecting user input on the web using form elements.",
+      estimatedMinutes: 18,
+      difficulty: "BEGINNER",
+      whatIsIt: "A <form> is a container for collecting user input — text, choices, files — through various <input> types, along with elements like <textarea>, <select>, and <button>. Forms are how users send data back to a website.",
+      whyItMatters: "Every login screen, search bar, checkout page, and comment box is a form. Without forms, websites would be entirely read-only with no way for users to submit information.",
+      analogy: "A form is like a paper application form at a government office — labeled blank fields waiting to be filled in (name, date of birth, signature), which you then hand over (submit) to be processed.",
+      simpleExample: "A newsletter signup box with a single email field and a 'Subscribe' button is one of the simplest real-world forms — the user types their email, clicks the button, and that data gets sent off.",
+      technicalExplanation: "The <form> element wraps inputs and defines action (where data is sent) and method (GET or POST). Different input types serve different purposes: type=\"text\", \"email\", \"password\", \"checkbox\", \"radio\", \"file\", \"date\", etc. Labels should be linked to inputs via the for attribute matching the input's id, for accessibility.",
+      codeExamples: [
+        {
+          title: "A simple signup form",
+          language: "html",
+          code: "<form action=\"/signup\" method=\"POST\">\n  <label for=\"email\">Email:</label>\n  <input type=\"email\" id=\"email\" name=\"email\" required />\n\n  <label for=\"password\">Password:</label>\n  <input type=\"password\" id=\"password\" name=\"password\" required />\n\n  <button type=\"submit\">Sign Up</button>\n</form>",
+          explanation: "The form submits via POST to /signup. Each <label> is linked to its <input> via matching for/id, which lets screen readers announce the field correctly and lets users click the label to focus the input. required prevents submission with an empty field.",
+        },
+      ],
+      realWorldUsage: "In a MERN app, forms are typically 'controlled' by React (their values live in state) and submitted via fetch/axios to an Express API, rather than relying on the raw HTML form action/method submission — but the underlying input types and validation attributes remain exactly the same.",
+      commonMistakes: [
+        {
+          wrong: "<input type=\"text\" placeholder=\"Email\">",
+          right: "<label for=\"email\">Email</label><input type=\"email\" id=\"email\" name=\"email\" />",
+          explanation: "A placeholder is not a substitute for a real, linked label — it disappears once typing starts and isn't reliably announced by screen readers, and using type=\"email\" gives built-in format validation and a better mobile keyboard.",
+        },
+      ],
+      practice: {
+        instructions: "Build a contact form with fields for name (text), email (email), message (textarea), and a submit button. Make name and email required.",
+        starterCode: "<form>\n  \n</form>",
+        hint: "Use <textarea> for multi-line message input, and the required attribute on important fields.",
+      },
+      quiz: [
+        {
+          question: "What is the purpose of linking a <label> to an <input> using for/id?",
+          options: [
+            "It changes the input's color",
+            "It improves accessibility and lets clicking the label focus the input",
+            "It's required for the form to submit",
+            "It validates the input's format",
+          ],
+          correctIndex: 1,
+          explanation: "Properly linked labels are read by screen readers and expand the clickable area to focus the associated input.",
+        },
+        {
+          question: "Why is placeholder text not a good substitute for a label?",
+          options: [
+            "Placeholders are not supported in modern browsers",
+            "Placeholder text disappears once the user starts typing and isn't reliably accessible",
+            "Placeholders make forms load slower",
+            "There is no difference",
+          ],
+          correctIndex: 1,
+          explanation: "Once a value is typed, the placeholder vanishes, leaving no visible label — and it's inconsistently announced by assistive tech.",
+        },
+      ],
+      rememberThis: "A form is a paper application, and its labels are the field names printed above each blank — never rely on a placeholder to do that job.",
+      keyTakeaways: [
+        "Forms collect and submit user input.",
+        "Different input types (email, password, checkbox, etc.) provide built-in behavior and validation.",
+        "Labels should be properly linked to inputs via for/id for accessibility.",
+        "In React apps, forms are usually controlled by component state rather than native form submission.",
+      ],
+    },
+    {
+      title: "Semantic HTML & Accessibility Basics",
+      description: "Choosing elements that describe meaning, not just appearance, and why it matters for all users.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER",
+      whatIsIt: "Semantic HTML means using elements that describe what content is (like <nav>, <header>, <main>, <article>, <footer>) instead of generic containers like <div> for everything. Accessibility means building pages that work for everyone, including people using screen readers, keyboard-only navigation, or other assistive technology.",
+      whyItMatters: "Browsers, search engines, and assistive technologies all rely on meaning conveyed through HTML structure. A page built entirely of unlabeled <div>s is invisible in meaning to a screen reader user, even if it looks fine visually.",
+      analogy: "Semantic HTML is like labeling boxes 'Kitchen', 'Bedroom', 'Garage' when moving house, instead of just numbering them '1', '2', '3'. Anyone helping you unpack instantly understands what belongs where — no guessing required.",
+      simpleExample: "A news site using <header> for its top banner, <nav> for its menu, <article> for each story, and <footer> for copyright info lets a screen reader user jump straight to 'the main article' or 'the navigation' without reading through everything.",
+      technicalExplanation: "Semantic elements include <header>, <nav>, <main>, <section>, <article>, <aside>, and <footer>. Accessibility (a11y) practices include meaningful alt text, proper heading hierarchy, sufficient color contrast, keyboard-focusable interactive elements, and ARIA attributes (like aria-label) when semantic HTML alone isn't enough.",
+      codeExamples: [
+        {
+          title: "Semantic page skeleton",
+          language: "html",
+          code: "<header>\n  <nav>\n    <a href=\"/\">Home</a>\n    <a href=\"/about\">About</a>\n  </nav>\n</header>\n<main>\n  <article>\n    <h1>Blog Post Title</h1>\n    <p>Content goes here.</p>\n  </article>\n</main>\n<footer>\n  <p>&copy; 2026 My Site</p>\n</footer>",
+          explanation: "Each region of the page is wrapped in an element that describes its role — <nav> for navigation links, <main> for the primary content, <article> for a self-contained piece of content, and <footer> for closing information — giving both browsers and assistive tech a clear map of the page.",
+        },
+      ],
+      realWorldUsage: "Accessibility is a legal requirement in many countries (e.g. ADA in the US) for public-facing sites, and semantic HTML is the foundation that makes screen readers, browser reader modes, and SEO crawlers all work correctly.",
+      commonMistakes: [
+        {
+          wrong: "<div class=\"nav\"><div class=\"nav-item\">Home</div></div>",
+          right: "<nav><a href=\"/\">Home</a></nav>",
+          explanation: "Divs and classes convey nothing about meaning to assistive technology — using real <nav> and <a> elements gives free, correct accessibility behavior (keyboard focus, screen reader announcements) without extra work.",
+        },
+      ],
+      practice: {
+        instructions: "Take a page you built in an earlier lesson and rewrite its top-level structure using <header>, <nav>, <main>, and <footer> instead of generic <div>s.",
+        hint: "Ask: 'what role does this section play?' and pick the semantic tag that matches that role.",
+      },
+      quiz: [
+        {
+          question: "What is the main advantage of semantic HTML over generic <div>-only markup?",
+          options: [
+            "It makes pages load faster",
+            "It communicates meaning/structure to browsers, search engines, and assistive technology",
+            "It's required for CSS to work",
+            "It removes the need for JavaScript",
+          ],
+          correctIndex: 1,
+          explanation: "Semantic tags describe the role of content, which screen readers and search engines use to understand and navigate a page.",
+        },
+        {
+          question: "Which element is most appropriate for wrapping a website's primary navigation links?",
+          options: ["<div>", "<nav>", "<span>", "<section>"],
+          correctIndex: 1,
+          explanation: "<nav> explicitly marks a block of navigation links, which assistive tech can then let users jump to directly.",
+        },
+      ],
+      rememberThis: "Semantic HTML is labeling your moving boxes properly — everyone unpacking your page, human or machine, knows exactly where things belong.",
+      keyTakeaways: [
+        "Semantic elements describe meaning, not just visual appearance.",
+        "Screen readers and search engines rely on this meaning to navigate and index pages.",
+        "Common semantic tags: header, nav, main, article, section, footer.",
+        "Accessibility also includes alt text, heading order, contrast, and keyboard support.",
+      ],
+    },
+    {
+      title: "Multimedia: Audio, Video & Images",
+      description: "Embedding rich media directly into web pages.",
+      estimatedMinutes: 12,
+      difficulty: "BEGINNER",
+      whatIsIt: "HTML provides dedicated elements to embed media directly: <img> for images, <audio> for sound, and <video> for video, each with native browser controls and fallback options, without needing any third-party plugin.",
+      whyItMatters: "Before HTML5 introduced these elements, embedding audio/video required proprietary plugins like Flash, which were insecure, inconsistent, and eventually discontinued. Native elements make rich media a first-class, reliable part of the web.",
+      analogy: "It's like the difference between needing a separate specialized cassette player and speaker system for every format of music, versus your phone having a single built-in music/video player that just handles anything you give it.",
+      simpleExample: "An online course platform embedding a lecture recording uses a <video> tag with built-in play/pause/volume controls, exactly like the ones on YouTube, without writing any custom player code.",
+      technicalExplanation: "<video> and <audio> both accept a src attribute (or nested <source> tags for multiple formats/fallbacks), and a controls attribute to show native playback controls. Attributes like autoplay, loop, and muted adjust playback behavior, though autoplay with sound is blocked by most browsers unless muted.",
+      codeExamples: [
+        {
+          title: "Embedding video with fallback sources",
+          language: "html",
+          code: "<video controls width=\"480\">\n  <source src=\"lecture.mp4\" type=\"video/mp4\" />\n  <source src=\"lecture.webm\" type=\"video/webm\" />\n  Your browser does not support the video tag.\n</video>",
+          explanation: "The browser tries each <source> in order and plays the first format it supports. controls enables native play/pause/volume UI. The plain text inside is a fallback shown only if the browser can't render <video> at all.",
+        },
+      ],
+      realWorldUsage: "E-learning platforms (like this LMS), podcast websites, and social media feeds all rely on native <video>/<audio> elements, often enhanced with JavaScript libraries for custom-styled players.",
+      commonMistakes: [
+        {
+          wrong: "<video src=\"lecture.mp4\" autoplay>",
+          right: "<video src=\"lecture.mp4\" controls>",
+          explanation: "Unmuted autoplay is blocked by most modern browsers and is generally a poor, jarring user experience — give users control with the controls attribute instead.",
+        },
+      ],
+      practice: {
+        instructions: "Embed an audio file with native controls, and a video with two <source> fallback formats (mp4 and webm).",
+        hint: "Remember: controls shows the native play/pause UI; without it, users have no way to interact with the media.",
+      },
+      quiz: [
+        {
+          question: "What does the controls attribute on a <video> element do?",
+          options: [
+            "Restricts who can view the video",
+            "Displays native play/pause/volume UI controls",
+            "Compresses the video file",
+            "Enables autoplay",
+          ],
+          correctIndex: 1,
+          explanation: "controls tells the browser to render its built-in playback interface so users can play, pause, and adjust volume.",
+        },
+        {
+          question: "Why might a <video> with autoplay not actually play automatically for a user?",
+          options: [
+            "Browsers ignore the video tag entirely",
+            "Most browsers block unmuted autoplay to prevent jarring, unexpected sound",
+            "The file format is unsupported everywhere",
+            "autoplay only works on mobile",
+          ],
+          correctIndex: 1,
+          explanation: "Modern browser policies block autoplay with sound by default; it typically only works if muted is also set.",
+        },
+      ],
+      rememberThis: "Native <video> and <audio> gave the web a built-in media player for every browser — no plugins required.",
+      keyTakeaways: [
+        "<img>, <audio>, and <video> embed media natively in HTML.",
+        "Multiple <source> tags provide format fallbacks for broader browser support.",
+        "The controls attribute is essential for usable playback.",
+        "Unmuted autoplay is blocked by most modern browsers.",
+      ],
+    },
+    {
+      title: "SEO Fundamentals for HTML",
+      description: "Writing HTML that helps search engines understand and rank your pages well.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER",
+      whatIsIt: "SEO (Search Engine Optimization) is the practice of structuring your content so search engines like Google can understand, index, and rank it well. A large part of basic SEO is simply writing clean, meaningful, semantic HTML with the right metadata.",
+      whyItMatters: "A beautifully designed page that search engines can't understand may never be found by real users. Good HTML-level SEO is often the difference between a page ranking on page 1 or never being indexed meaningfully at all.",
+      analogy: "SEO-friendly HTML is like writing a clear, well-labeled table of contents and back-cover summary for a book. A librarian (search engine) scanning thousands of books needs those clear signals to know what your book is about and where to shelve it.",
+      simpleExample: "A recipe page with a descriptive <title>Easy Chocolate Cake Recipe in 30 Minutes</title> and a meta description summarizing it will show up far more clearly (and clickably) in Google search results than one titled just 'Page 1'.",
+      technicalExplanation: "Key on-page SEO elements include: a unique, descriptive <title> per page, a <meta name=\"description\"> summarizing the page for search snippets, a single well-used <h1>, semantic structure, descriptive alt text on images, and clean internal links using meaningful anchor text rather than generic 'click here'.",
+      codeExamples: [
+        {
+          title: "SEO-relevant head metadata",
+          language: "html",
+          code: "<head>\n  <title>Easy Chocolate Cake Recipe in 30 Minutes</title>\n  <meta name=\"description\" content=\"A simple, moist chocolate cake recipe using ingredients you already have, ready in under 30 minutes.\" />\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n</head>",
+          explanation: "The <title> often becomes the clickable blue link in search results. The meta description often becomes the gray summary text shown beneath it. The viewport meta tag also matters for SEO because Google ranks mobile-friendly pages higher.",
+        },
+      ],
+      realWorldUsage: "Every serious business website, blog, and e-commerce store invests in on-page SEO because organic search traffic is often the largest, cheapest source of visitors — getting basic HTML-level SEO right is table stakes before any advanced SEO work.",
+      commonMistakes: [
+        {
+          wrong: "<title>Home</title> on every page of the site, or <a href=\"/cake\">click here</a>.",
+          right: "<title>Chocolate Cake Recipe | My Baking Blog</title>, and <a href=\"/cake\">our chocolate cake recipe</a>.",
+          explanation: "Generic, repeated titles give search engines nothing to distinguish pages by, and 'click here' link text wastes an opportunity to describe what the link is about, both for SEO and for screen reader users who often navigate by link text alone.",
+        },
+      ],
+      practice: {
+        instructions: "For a page about 'Best Hiking Trails in Manali', write an SEO-friendly <title>, a meta description under 160 characters, and one internal link using descriptive anchor text (not 'click here').",
+        hint: "The meta description should read like a compelling one-sentence summary a human would want to click.",
+      },
+      quiz: [
+        {
+          question: "What is the primary purpose of the <meta name=\"description\"> tag?",
+          options: [
+            "It sets the page's background color",
+            "It provides a summary often shown as the snippet text in search results",
+            "It blocks search engines from indexing the page",
+            "It defines the page's character encoding",
+          ],
+          correctIndex: 1,
+          explanation: "Search engines frequently display the meta description as the descriptive snippet below the title in search results.",
+        },
+        {
+          question: "Why is link text like 'click here' considered bad practice for SEO and accessibility?",
+          options: [
+            "It's too short to display properly",
+            "It gives no meaningful context about the link's destination to search engines or screen reader users",
+            "Browsers don't support it",
+            "It causes a page to load slower",
+          ],
+          correctIndex: 1,
+          explanation: "Descriptive anchor text helps both search engine ranking and screen reader users who often scan a list of links out of context.",
+        },
+      ],
+      rememberThis: "Good SEO starts with good HTML — a clear title and description are your page's book-cover pitch to a search engine.",
+      keyTakeaways: [
+        "SEO-friendly pages need unique, descriptive titles and meta descriptions.",
+        "Semantic structure and a single h1 help search engines understand content.",
+        "Descriptive alt text and anchor text improve both SEO and accessibility.",
+        "Mobile-friendliness (via the viewport meta tag) also affects search ranking.",
+      ],
+    },
+  ],
+};
+
+const css: CurriculumModuleDef = {
+  name: "CSS",
+  description: "Styling and laying out web pages — from basic colors to full responsive layouts.",
+  estimatedDuration: "2 weeks",
+  lessons: [
+    {
+      title: "CSS Fundamentals, Selectors & Specificity",
+      description: "How CSS targets elements and decides which style wins when rules conflict.",
+      estimatedMinutes: 18,
+      difficulty: "BEGINNER",
+      whatIsIt: "CSS (Cascading Style Sheets) is the language used to style HTML — colors, fonts, spacing, layout. Selectors are patterns that choose which elements a rule applies to, and specificity is the set of rules the browser uses to decide which style wins when multiple rules target the same element.",
+      whyItMatters: "HTML alone produces plain, unstyled documents. CSS is what turns that raw structure into something visually designed, and understanding selectors and specificity is what lets you predict exactly which style will actually be applied when there's a conflict.",
+      analogy: "Think of specificity like a dress code hierarchy at a formal event: a general house rule ('wear formal attire') can be overridden by a more specific instruction ('but the bride wears white'), which itself could be overridden by an even more specific one directed at one particular person by name.",
+      simpleExample: "If a general rule says all paragraphs are black text, but a more specific rule says paragraphs with the class 'warning' are red, any paragraph with class='warning' will show red — the more specific rule wins.",
+      technicalExplanation: "Selectors range from type selectors (p), class selectors (.warning), ID selectors (#header), to combinators and pseudo-classes (a:hover). Specificity is calculated as a weight: inline styles > ID selectors > class/attribute/pseudo-class selectors > type selectors. When specificity ties, the rule declared later in the CSS wins.",
+      codeExamples: [
+        {
+          title: "Selectors and specificity in action",
+          language: "css",
+          code: "p { color: black; }\n.warning { color: red; }\n#critical { color: orange; }\n\n/* <p class=\"warning\" id=\"critical\">Text</p> renders orange,\n   because #critical (ID) has higher specificity than .warning (class) */",
+          explanation: "All three rules could apply to the same paragraph, but the ID selector (#critical) has the highest specificity of the three, so its orange color wins over the class and type selectors.",
+        },
+      ],
+      realWorldUsage: "Every real-world stylesheet relies on selectors to target buttons, forms, navigation, and cards; understanding specificity is essential for debugging 'why isn't my CSS applying?!' — one of the most common frustrations for beginners.",
+      commonMistakes: [
+        {
+          wrong: "Overusing #id selectors or !important to force styles to apply.",
+          right: "Prefer class selectors for styling, keep specificity low and consistent, and avoid !important except as a rare last resort.",
+          explanation: "High-specificity selectors and !important make future overrides very difficult, often leading to a spiral of ever-more-specific hacks just to change one style.",
+        },
+      ],
+      practice: {
+        instructions: "Given three CSS rules — p { color: blue; }, .highlight { color: green; }, and an inline style=\"color: red\" on one paragraph — predict and then test in a browser which color actually renders.",
+        hint: "Inline styles have higher specificity than any class or type selector.",
+      },
+      quiz: [
+        {
+          question: "Which has the highest specificity?",
+          options: ["A type selector like p", "A class selector like .warning", "An ID selector like #header", "An inline style attribute"],
+          correctIndex: 3,
+          explanation: "Inline styles override any selector in a stylesheet, including IDs, because they're applied directly on the element.",
+        },
+        {
+          question: "If two rules have equal specificity, which one wins?",
+          options: ["The one declared first", "The one declared last in the stylesheet", "Neither applies", "The browser picks randomly"],
+          correctIndex: 1,
+          explanation: "When specificity ties, CSS's 'cascade' rule says the last declared rule takes precedence.",
+        },
+      ],
+      rememberThis: "Specificity is CSS's dress code hierarchy — the most specific instruction directed at an element always wins.",
+      keyTakeaways: [
+        "Selectors determine which elements a CSS rule targets.",
+        "Specificity determines which rule wins when multiple rules conflict.",
+        "IDs beat classes, classes beat type selectors, inline styles beat all of them.",
+        "Avoid overusing IDs and !important — they make future styling harder to override.",
+      ],
+    },
+    {
+      title: "The Box Model",
+      description: "How every element's size is calculated from its content, padding, border, and margin.",
+      estimatedMinutes: 18,
+      difficulty: "BEGINNER",
+      whatIsIt: "Every HTML element is rendered as a rectangular box made of four layers: the content itself, padding (space inside the border, around the content), the border (a visible or invisible line around the padding), and margin (space outside the border, separating it from other elements).",
+      whyItMatters: "Almost every layout bug — elements overlapping, spacing looking wrong, boxes being wider than expected — traces back to a misunderstanding of the box model. It's the single most foundational CSS concept for building layouts correctly.",
+      analogy: "Think of a framed photograph on a wall. The photo itself is the content. The mat around the photo inside the frame is the padding. The frame itself is the border. And the empty space between the frame and the next picture on the wall is the margin.",
+      simpleExample: "If you put a sticker (content) inside a small box (padding), wrap the box in tape (border), and then leave gaps between it and other boxes on a shelf (margin), the total space that box takes up on the shelf includes all four layers, not just the sticker.",
+      technicalExplanation: "By default (content-box), width/height apply only to the content area — padding and border are added on top, making the rendered box larger than the specified width. Setting box-sizing: border-box makes width/height include padding and border, so the box stays exactly the size you specify.",
+      codeExamples: [
+        {
+          title: "content-box vs border-box",
+          language: "css",
+          code: ".content-box {\n  box-sizing: content-box; /* default */\n  width: 100px;\n  padding: 20px;\n  border: 5px solid black;\n  /* Rendered width = 100 + 20*2 + 5*2 = 150px */\n}\n\n.border-box {\n  box-sizing: border-box;\n  width: 100px;\n  padding: 20px;\n  border: 5px solid black;\n  /* Rendered width stays 100px; padding and border eat into the content area */\n}",
+          explanation: "With content-box (the default), padding and border are added on top of the specified width, making the box 150px wide even though width: 100px was set. With border-box, the browser shrinks the content area so the total width, padding, and border together stay exactly 100px — far more predictable for layout.",
+        },
+      ],
+      realWorldUsage: "Nearly every professional CSS reset or framework (Bootstrap, Tailwind) sets * { box-sizing: border-box; } globally at the very start of a project, precisely because it makes sizing predictable across the whole app.",
+      commonMistakes: [
+        {
+          wrong: "Setting width: 100px; padding: 20px; and being confused why the element renders 140px wide.",
+          right: "Add box-sizing: border-box; (ideally globally via a CSS reset) so padding and border don't add to the declared width.",
+          explanation: "Without border-box, padding and border are added on top of the width you set, which is rarely what a developer actually intends when laying out a fixed-width component.",
+        },
+      ],
+      practice: {
+        instructions: "Create a div with width: 200px, padding: 20px, and border: 10px solid blue. First render it with box-sizing: content-box and measure its rendered width in DevTools, then switch to border-box and observe the difference.",
+        hint: "Use the Elements panel's 'Computed' tab in DevTools to see the exact box model breakdown for the element.",
+      },
+      quiz: [
+        {
+          question: "In the framed photograph analogy, what does the margin represent?",
+          options: ["The photo itself", "The mat around the photo", "The frame", "The space between the frame and the wall/next picture"],
+          correctIndex: 3,
+          explanation: "Margin is the space outside an element's border, separating it from neighboring elements.",
+        },
+        {
+          question: "With box-sizing: border-box, if you set width: 100px and padding: 20px, what is the total rendered width?",
+          options: ["140px", "120px", "100px", "80px"],
+          correctIndex: 2,
+          explanation: "border-box makes the declared width include padding and border, so the total rendered width stays exactly 100px.",
+        },
+      ],
+      rememberThis: "A box's true size is content + padding + border + margin — box-sizing: border-box is what keeps your declared width actually true.",
+      keyTakeaways: [
+        "Every element is a box made of content, padding, border, and margin.",
+        "content-box (default) adds padding/border on top of the declared width.",
+        "border-box makes the declared width include padding and border.",
+        "Most real projects set box-sizing: border-box globally for predictable sizing.",
+      ],
+    },
+    {
+      title: "Display & Positioning",
+      description: "Controlling how elements flow on the page and how to take them out of that flow deliberately.",
+      estimatedMinutes: 18,
+      difficulty: "BEGINNER",
+      whatIsIt: "The display property controls how an element behaves in the layout (e.g. block, inline, inline-block, none), while the position property controls how an element is placed relative to its normal position, its parent, or the whole page (static, relative, absolute, fixed, sticky).",
+      whyItMatters: "Every layout decision — should this sit on its own line, should this float in a fixed corner, should this stick to the top when scrolling — comes down to display and position. They're the two properties that control an element's fundamental placement behavior.",
+      analogy: "Display is like deciding whether a piece of furniture is a full room-width couch (block, takes the whole line) or a small side table that fits next to other things (inline). Position is like deciding whether that furniture moves with the room's layout (static/relative) or is bolted to one exact spot regardless of what else moves around it (absolute/fixed).",
+      simpleExample: "A 'Back to top' button that stays in the bottom-right corner even as you scroll down a long page uses position: fixed, since it's deliberately pinned to the viewport rather than flowing with the page content.",
+      technicalExplanation: "static is the default (normal document flow, top/left have no effect). relative positions an element relative to its own normal position, without removing it from flow. absolute removes it from flow entirely and positions it relative to the nearest positioned (non-static) ancestor. fixed positions relative to the viewport, ignoring scroll. sticky toggles between relative and fixed based on scroll position.",
+      codeExamples: [
+        {
+          title: "A fixed 'back to top' button and a relatively positioned badge",
+          language: "css",
+          code: ".back-to-top {\n  position: fixed;\n  bottom: 20px;\n  right: 20px;\n}\n\n.card {\n  position: relative;\n}\n.card .badge {\n  position: absolute;\n  top: -10px;\n  right: -10px;\n}",
+          explanation: "The .back-to-top button stays pinned to the bottom-right of the browser window regardless of scrolling, because fixed positions relative to the viewport. The .badge is positioned absolutely relative to its .card parent (which is set to relative), letting it hang slightly outside the card's corner.",
+        },
+      ],
+      realWorldUsage: "Sticky headers, modal overlays (position: fixed with a dark backdrop), notification badges on icons, and dropdown menus all rely on combinations of display and position to achieve their exact placement.",
+      commonMistakes: [
+        {
+          wrong: "Using position: absolute on a child without setting position: relative on its intended parent.",
+          right: "Set position: relative on the parent container so the absolutely positioned child is placed relative to it, not to the whole page.",
+          explanation: "An absolutely positioned element looks for the nearest ancestor with a non-static position; if none exists, it positions relative to the entire page, which is rarely the intended result.",
+        },
+      ],
+      practice: {
+        instructions: "Build a card with position: relative containing a small 'NEW' badge positioned absolutely in its top-right corner, overlapping the card's edge slightly.",
+        hint: "The parent needs position: relative for the child's position: absolute to be scoped to it.",
+      },
+      quiz: [
+        {
+          question: "Which position value keeps an element fixed in place relative to the browser window, even while scrolling?",
+          options: ["static", "relative", "fixed", "absolute"],
+          correctIndex: 2,
+          explanation: "fixed positions an element relative to the viewport, so it stays in place regardless of scrolling.",
+        },
+        {
+          question: "What determines where an absolutely positioned element is placed?",
+          options: [
+            "Always the top-left of the page",
+            "The nearest ancestor with a non-static position (or the page if none exists)",
+            "Its own natural content size only",
+            "The center of the viewport",
+          ],
+          correctIndex: 1,
+          explanation: "absolute positioning is relative to the closest positioned ancestor (relative, absolute, fixed, or sticky) — falling back to the document if none is found.",
+        },
+      ],
+      rememberThis: "static flows with the room, relative nudges from its own spot, absolute is bolted to its nearest positioned parent, fixed is bolted to the screen itself.",
+      keyTakeaways: [
+        "display controls how an element behaves in normal flow (block, inline, etc).",
+        "position controls how an element is placed relative to something (itself, a parent, or the viewport).",
+        "absolute positioning requires a positioned ancestor to behave predictably.",
+        "fixed and sticky are commonly used for headers, buttons, and overlays.",
+      ],
+    },
+    {
+      title: "Flexbox",
+      description: "A one-dimensional layout system for arranging items in a row or column.",
+      estimatedMinutes: 20,
+      difficulty: "BEGINNER",
+      whatIsIt: "Flexbox is a CSS layout system designed to arrange items along a single axis — either a row or a column — while easily handling spacing, alignment, and how items grow or shrink to fill available space.",
+      whyItMatters: "Before Flexbox, centering things vertically or evenly spacing items in a row required awkward hacks (floats, table displays, negative margins). Flexbox makes these extremely common layout needs simple and predictable.",
+      analogy: "Flexbox is like arranging books on a single shelf. You decide whether they stand side by side (row) or stack top to bottom (column), how much space to leave between them, whether they should stretch to fill the shelf evenly, and how they should align if the shelf is taller or wider than the books need.",
+      simpleExample: "A navigation bar with a logo on the left and menu links evenly spaced on the right is a classic Flexbox layout: display: flex on the container with justify-content: space-between handles it in two lines of CSS.",
+      technicalExplanation: "Setting display: flex on a container makes its direct children flex items. flex-direction sets the main axis (row or column). justify-content aligns items along the main axis; align-items aligns them along the cross axis. flex-wrap allows items to wrap onto multiple lines. Individual items can grow/shrink via flex-grow, flex-shrink, and flex-basis (often shorthand as flex).",
+      codeExamples: [
+        {
+          title: "A flex navbar and a centered box",
+          language: "css",
+          code: ".navbar {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n\n.centered-box {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  height: 300px;\n}",
+          explanation: ".navbar spreads its children (logo, menu) to opposite ends via space-between, and vertically centers them with align-items: center. .centered-box perfectly centers its content both horizontally and vertically — a task that used to require several lines of hacky CSS before Flexbox.",
+        },
+      ],
+      realWorldUsage: "Navigation bars, card layouts, button groups, and vertically-centered modals across virtually every modern website use Flexbox — it's one of the most-used layout tools in real-world CSS.",
+      commonMistakes: [
+        {
+          wrong: "Trying to center content with margin: auto and manual pixel calculations.",
+          right: "Use display: flex; justify-content: center; align-items: center; on the parent container.",
+          explanation: "Flexbox's alignment properties handle both horizontal and vertical centering directly and responsively, without brittle pixel math.",
+        },
+      ],
+      practice: {
+        instructions: "Build a row of three cards evenly spaced with equal gaps using Flexbox, then make them wrap onto a new line on small screens.",
+        hint: "Use display: flex, gap, and flex-wrap: wrap on the container.",
+      },
+      quiz: [
+        {
+          question: "Which property aligns flex items along the main axis?",
+          options: ["align-items", "justify-content", "flex-wrap", "flex-direction"],
+          correctIndex: 1,
+          explanation: "justify-content controls alignment/spacing along the main axis (row or column, depending on flex-direction).",
+        },
+        {
+          question: "What does flex-wrap: wrap allow?",
+          options: [
+            "Items to overlap each other",
+            "Items to move onto multiple lines when they don't fit in one row",
+            "Items to change color",
+            "The container to become scrollable only",
+          ],
+          correctIndex: 1,
+          explanation: "flex-wrap: wrap lets flex items flow onto additional lines instead of shrinking or overflowing when space runs out.",
+        },
+        {
+          question: "Which two properties together perfectly center content both horizontally and vertically in a flex container?",
+          options: ["flex-direction and flex-wrap", "justify-content: center and align-items: center", "gap and flex-basis", "position: absolute and top: 50%"],
+          correctIndex: 1,
+          explanation: "justify-content centers along the main axis and align-items centers along the cross axis — together they center in both directions.",
+        },
+      ],
+      rememberThis: "Flexbox is arranging books on one shelf — decide the direction, then let CSS handle the spacing and alignment for you.",
+      keyTakeaways: [
+        "Flexbox arranges items along a single axis (row or column).",
+        "justify-content controls main-axis alignment; align-items controls cross-axis alignment.",
+        "flex-wrap allows items to flow onto multiple lines.",
+        "Flexbox solves centering and spacing problems that used to require hacks.",
+      ],
+    },
+    {
+      title: "CSS Grid",
+      description: "A two-dimensional layout system for arranging items into rows and columns simultaneously.",
+      estimatedMinutes: 20,
+      difficulty: "INTERMEDIATE",
+      whatIsIt: "CSS Grid is a layout system that lets you define both rows and columns at once, placing items precisely into a two-dimensional grid — unlike Flexbox, which only handles one dimension at a time.",
+      whyItMatters: "Many real layouts (a full page with header, sidebar, main content, and footer; an image gallery) are inherently two-dimensional. Grid handles these directly and cleanly where Flexbox would require nesting or nested workarounds.",
+      analogy: "If Flexbox is arranging books on a single shelf, Grid is designing the entire bookshelf unit itself — deciding how many shelves (rows) and how many columns of space exist, and then placing books into specific shelf-and-column slots.",
+      simpleExample: "A photo gallery with exactly 4 equal-width columns and however many rows needed, all photos snapping neatly into a grid, is a natural fit for CSS Grid rather than trying to fake it with Flexbox wrapping.",
+      technicalExplanation: "display: grid on a container turns children into grid items. grid-template-columns and grid-template-rows define the size of each column/row track (using units like px, fr, or percentages). gap adds spacing between tracks. Items can be explicitly placed using grid-column and grid-row, or auto-placed in order.",
+      codeExamples: [
+        {
+          title: "A responsive page layout with Grid",
+          language: "css",
+          code: ".page {\n  display: grid;\n  grid-template-columns: 200px 1fr;\n  grid-template-rows: auto 1fr auto;\n  grid-template-areas:\n    \"header header\"\n    \"sidebar main\"\n    \"footer footer\";\n  min-height: 100vh;\n}\n.header { grid-area: header; }\n.sidebar { grid-area: sidebar; }\n.main { grid-area: main; }\n.footer { grid-area: footer; }",
+          explanation: "grid-template-columns defines a fixed 200px sidebar column and a flexible (1fr) main column. grid-template-areas visually maps out named regions as a text diagram, and each child is assigned to a named area via grid-area, making the layout's structure easy to read directly from the CSS.",
+        },
+      ],
+      realWorldUsage: "Full-page application layouts (sidebar + header + main content), dashboards, and image/product galleries in real production sites are commonly built with CSS Grid, often combined with Flexbox for alignment inside individual grid cells.",
+      commonMistakes: [
+        {
+          wrong: "Nesting several Flexbox containers to fake a two-dimensional grid layout.",
+          right: "Use CSS Grid directly with grid-template-columns/rows when a layout is genuinely two-dimensional.",
+          explanation: "Faking a grid with nested flex containers is more fragile and harder to maintain than expressing the same layout directly and declaratively with Grid.",
+        },
+      ],
+      practice: {
+        instructions: "Build a 3-column, 2-row image gallery using CSS Grid where all items are equal size, with a 10px gap between them.",
+        hint: "grid-template-columns: repeat(3, 1fr); and gap: 10px; will get you most of the way there.",
+      },
+      quiz: [
+        {
+          question: "What is the key difference between Flexbox and Grid?",
+          options: [
+            "Flexbox is newer than Grid",
+            "Flexbox is one-dimensional (row or column); Grid is two-dimensional (rows and columns at once)",
+            "Grid can't handle responsive design",
+            "There is no real difference",
+          ],
+          correctIndex: 1,
+          explanation: "Flexbox lays items along a single axis; Grid explicitly defines both rows and columns simultaneously.",
+        },
+        {
+          question: "What does the 'fr' unit represent in grid-template-columns?",
+          options: ["A fixed number of pixels", "A fraction of the remaining available space", "A percentage of the viewport", "A font-relative unit"],
+          correctIndex: 1,
+          explanation: "'fr' distributes remaining space proportionally among tracks, e.g. 1fr 2fr splits leftover space into a 1:2 ratio.",
+        },
+      ],
+      rememberThis: "Flexbox arranges one shelf; Grid designs the whole bookshelf, rows and columns at once.",
+      keyTakeaways: [
+        "CSS Grid handles two-dimensional layouts (rows and columns together).",
+        "grid-template-columns/rows define track sizes; fr units distribute flexible space.",
+        "grid-template-areas offers a readable way to map out named layout regions.",
+        "Grid and Flexbox are often combined — Grid for overall layout, Flexbox for alignment within cells.",
+      ],
+    },
+    {
+      title: "Responsive Design & Media Queries",
+      description: "Making layouts adapt gracefully to different screen sizes and devices.",
+      estimatedMinutes: 18,
+      difficulty: "INTERMEDIATE",
+      whatIsIt: "Responsive design means building layouts that automatically adjust to look good on any screen size — phone, tablet, or desktop. Media queries are the CSS feature that applies different styles based on conditions like the viewport's width.",
+      whyItMatters: "The majority of web traffic today comes from a huge variety of screen sizes. A layout that only looks correct at one fixed width breaks or becomes unusable on most real devices, directly hurting usability and even SEO ranking.",
+      analogy: "Responsive design is like clothing that stretches and reshapes to fit different body sizes, rather than one rigid suit made for exactly one person. Media queries are the tailor's rules that say 'if the body is this size, adjust the fit this way.'",
+      simpleExample: "A three-column layout on a wide desktop screen naturally collapsing into a single stacked column on a narrow phone screen, so nothing gets squeezed or cut off, is responsive design in action.",
+      technicalExplanation: "A media query wraps CSS rules in a condition, e.g. @media (max-width: 600px) { ... }, which only applies inside that block when the viewport matches. A 'mobile-first' approach writes base styles for small screens, then uses min-width media queries to progressively enhance the layout for larger screens.",
+      codeExamples: [
+        {
+          title: "Mobile-first responsive grid",
+          language: "css",
+          code: ".cards {\n  display: grid;\n  grid-template-columns: 1fr; /* one column by default (mobile) */\n  gap: 16px;\n}\n\n@media (min-width: 768px) {\n  .cards {\n    grid-template-columns: repeat(2, 1fr); /* two columns on tablets+ */\n  }\n}\n\n@media (min-width: 1024px) {\n  .cards {\n    grid-template-columns: repeat(3, 1fr); /* three columns on desktop */\n  }\n}",
+          explanation: "The base rule stacks cards into a single column, suitable for small phone screens. As the viewport grows past 768px and then 1024px, the media queries progressively add more columns, adapting the layout to make better use of larger screens.",
+        },
+      ],
+      realWorldUsage: "Every modern production website — e-commerce stores, news sites, dashboards — uses media queries extensively to serve one codebase that adapts across phones, tablets, and desktops instead of maintaining separate sites.",
+      commonMistakes: [
+        {
+          wrong: "Designing only for a large desktop screen first, then trying to patch mobile issues afterward with many overriding media queries.",
+          right: "Design mobile-first: write simple base styles for small screens, then progressively add complexity with min-width media queries for larger screens.",
+          explanation: "Mobile-first tends to produce simpler, more maintainable CSS because you're adding enhancements as screens grow, rather than fighting to undo desktop-specific styles for small screens.",
+        },
+      ],
+      practice: {
+        instructions: "Build a navigation bar that shows a horizontal menu on screens wider than 768px, but stacks the links vertically on narrower screens.",
+        hint: "Start with the vertical/stacked mobile styles as the default, then add a min-width: 768px media query to switch to display: flex; flex-direction: row.",
+      },
+      quiz: [
+        {
+          question: "What does a 'mobile-first' approach mean?",
+          options: [
+            "Building the mobile app version first, then the website later",
+            "Writing base styles for small screens first, then enhancing for larger screens with min-width media queries",
+            "Only supporting mobile devices",
+            "Testing exclusively on phones",
+          ],
+          correctIndex: 1,
+          explanation: "Mobile-first means the default (unqueried) styles target small screens, and larger-screen enhancements are added via min-width media queries.",
+        },
+        {
+          question: "Which media query condition applies styles only when the viewport is 600px or narrower?",
+          options: ["@media (min-width: 600px)", "@media (max-width: 600px)", "@media (width: 600px)", "@media (height: 600px)"],
+          correctIndex: 1,
+          explanation: "max-width: 600px matches viewports at or below 600px wide, commonly used to target smaller screens.",
+        },
+      ],
+      rememberThis: "Responsive design is clothing that adapts to the body wearing it — media queries are the tailoring rules that make that possible.",
+      keyTakeaways: [
+        "Responsive design makes layouts adapt to different screen sizes.",
+        "Media queries apply conditional CSS based on viewport width (or other features).",
+        "Mobile-first design starts simple and adds complexity for larger screens.",
+        "Most production sites serve one responsive codebase across all devices.",
+      ],
+    },
+    {
+      title: "Typography & Color",
+      description: "Choosing and applying fonts, text styling, and color systematically.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER",
+      whatIsIt: "Typography in CSS covers font choice, size, weight, line spacing, and text alignment, while color covers how you define and apply colors to text, backgrounds, and borders consistently across a design.",
+      whyItMatters: "Good typography and color choices are what make a page feel professional and readable versus cluttered and amateurish — they directly affect how long users stay and how easily they can read your content.",
+      analogy: "Typography and color are like the tone of voice and outfit a speaker chooses for a presentation. The same words delivered in a clear, well-paced voice with an appropriate outfit land completely differently than the same words mumbled in something clashing and distracting.",
+      simpleExample: "A blog with generous line-height, a readable font size (16px+), and high-contrast text against its background is far easier to read for long stretches than the same text cramped, tiny, and low-contrast.",
+      technicalExplanation: "Key typography properties include font-family (with fallback fonts), font-size, font-weight, line-height (spacing between lines), and text-align. Colors can be defined as named colors, hex (#RRGGBB), rgb()/rgba(), or hsl()/hsla() — with rgba/hsla adding an alpha (transparency) channel. CSS custom properties (variables) like --primary-color are commonly used to keep a color palette consistent.",
+      codeExamples: [
+        {
+          title: "Consistent typography and color via CSS variables",
+          language: "css",
+          code: ":root {\n  --primary-color: #2563eb;\n  --text-color: #1f2937;\n}\n\nbody {\n  font-family: 'Segoe UI', Arial, sans-serif;\n  font-size: 16px;\n  line-height: 1.6;\n  color: var(--text-color);\n}\n\na {\n  color: var(--primary-color);\n}",
+          explanation: "CSS custom properties (--primary-color, --text-color) are defined once on :root and reused with var(), so changing a brand color in one place updates it everywhere. line-height: 1.6 adds comfortable spacing between lines of text for readability, and the font-family list provides fallbacks if the first font isn't available.",
+        },
+      ],
+      realWorldUsage: "Design systems at companies like Google (Material Design) and Airbnb define strict typography scales and color palettes using exactly this kind of variable-based approach, ensuring visual consistency across an entire product.",
+      commonMistakes: [
+        {
+          wrong: "Hardcoding the same hex color value (like #2563eb) in dozens of different CSS rules across a project.",
+          right: "Define colors once as CSS custom properties (--primary-color: #2563eb;) and reference them everywhere with var(--primary-color).",
+          explanation: "Hardcoded repeated values make rebranding or theme changes require finding and replacing every occurrence, while a single variable can be updated in one place.",
+        },
+      ],
+      practice: {
+        instructions: "Define three CSS custom properties for a color palette (primary, secondary, text), then style a simple card component (heading, paragraph, button) using only those variables via var().",
+        hint: "Declare variables inside :root { ... } so they're available globally.",
+      },
+      quiz: [
+        {
+          question: "What does line-height control?",
+          options: ["The font used for headings", "The vertical spacing between lines of text", "The color of links", "The width of the page"],
+          correctIndex: 1,
+          explanation: "line-height sets the space between lines of text, directly affecting readability.",
+        },
+        {
+          question: "Why use CSS custom properties (variables) for colors instead of hardcoded hex values everywhere?",
+          options: [
+            "Variables load faster than hex codes",
+            "They let you update a color in one place and have it apply everywhere it's used",
+            "Hex codes are deprecated",
+            "Browsers require variables for color support",
+          ],
+          correctIndex: 1,
+          explanation: "A single source of truth for each color makes theme changes and rebranding far easier to maintain.",
+        },
+      ],
+      rememberThis: "Typography and color are your page's tone of voice and outfit — get them right and everything else reads better.",
+      keyTakeaways: [
+        "Typography properties include font-family, font-size, font-weight, and line-height.",
+        "Colors can be defined as named, hex, rgb/rgba, or hsl/hsla values.",
+        "CSS custom properties keep a color palette consistent and easy to update.",
+        "Comfortable line spacing and sufficient contrast are key for readability.",
+      ],
+    },
+    {
+      title: "Transitions & Animations",
+      description: "Adding smooth, purposeful motion to interface changes.",
+      estimatedMinutes: 15,
+      difficulty: "INTERMEDIATE",
+      whatIsIt: "CSS transitions smoothly animate a property from one value to another over time when it changes (like a button's background on hover). CSS animations go further, using @keyframes to define multi-step animations that can run automatically, repeat, or loop.",
+      whyItMatters: "Instant, abrupt changes can feel jarring and make an interface feel less polished. Small, purposeful motion helps users understand what changed and gives an app a more professional, responsive feel.",
+      analogy: "A transition is like a dimmer light switch instead of a plain on/off switch — the light change happens smoothly over a moment rather than instantly. An animation is like a full choreographed sequence of moves, not just a single dim-to-bright change.",
+      simpleExample: "A button that gradually changes color and slightly grows in size as you hover over it, rather than snapping instantly, feels more responsive and polished — that's a transition.",
+      technicalExplanation: "transition-property, transition-duration, transition-timing-function, and transition-delay (often combined as the transition shorthand) animate a property change between two states, e.g. on :hover. @keyframes defines named animation steps with percentages (0%, 50%, 100%), which are then applied to an element via the animation property, controlling duration, iteration count, and direction.",
+      codeExamples: [
+        {
+          title: "A hover transition and a looping keyframe animation",
+          language: "css",
+          code: ".button {\n  background-color: #2563eb;\n  transition: background-color 0.3s ease, transform 0.3s ease;\n}\n.button:hover {\n  background-color: #1e40af;\n  transform: scale(1.05);\n}\n\n@keyframes spin {\n  from { transform: rotate(0deg); }\n  to { transform: rotate(360deg); }\n}\n.spinner {\n  animation: spin 1s linear infinite;\n}",
+          explanation: "The .button transition smoothly animates its background-color and transform over 0.3 seconds whenever those properties change (like on hover). The @keyframes spin rule defines a full rotation, and .spinner applies it to spin continuously forever (infinite) at a constant speed (linear), commonly used for loading indicators.",
+        },
+      ],
+      realWorldUsage: "Button hover effects, loading spinners, modal fade-ins, and page transition effects across nearly every polished modern website or app rely on CSS transitions and animations rather than JavaScript, because they're smoother and more performant.",
+      commonMistakes: [
+        {
+          wrong: "Animating properties like width, height, or top/left for movement effects.",
+          right: "Animate transform (translate, scale) and opacity instead, which the browser can render far more efficiently.",
+          explanation: "Animating layout-affecting properties (width, height, top) forces the browser to recalculate layout on every frame, causing jank; transform and opacity can be handled directly by the GPU without triggering layout recalculation.",
+        },
+      ],
+      practice: {
+        instructions: "Create a card that smoothly grows slightly and gets a stronger shadow when hovered, using only transition and transform/box-shadow (no JavaScript).",
+        hint: "Use transition: transform 0.2s ease, box-shadow 0.2s ease; on the card, and change transform: scale(1.03) and box-shadow on :hover.",
+      },
+      quiz: [
+        {
+          question: "What is the main difference between a CSS transition and a CSS animation?",
+          options: [
+            "Transitions only work on colors; animations only work on movement",
+            "A transition animates between two states (e.g. on hover); an animation uses @keyframes to define multi-step sequences that can loop automatically",
+            "There is no difference",
+            "Animations require JavaScript, transitions don't",
+          ],
+          correctIndex: 1,
+          explanation: "Transitions are simple state-to-state animations, while @keyframes-based animations can define complex, looping, multi-step motion independent of user interaction.",
+        },
+        {
+          question: "Why is animating `transform` generally better for performance than animating `width` or `top`?",
+          options: [
+            "transform is a newer CSS feature",
+            "Animating transform/opacity avoids triggering expensive layout recalculations, unlike width/top",
+            "width and top don't support animation at all",
+            "There is no performance difference",
+          ],
+          correctIndex: 1,
+          explanation: "transform and opacity can be composited by the GPU without forcing the browser to recompute page layout, making them much smoother to animate.",
+        },
+      ],
+      rememberThis: "A transition is a dimmer switch; an animation is a whole choreographed routine — prefer animating transform and opacity for buttery-smooth motion.",
+      keyTakeaways: [
+        "Transitions smoothly animate a property change between two states.",
+        "@keyframes define multi-step animations that can loop or run automatically.",
+        "Prefer animating transform and opacity for better performance.",
+        "Purposeful motion improves perceived polish and usability.",
+      ],
+    },
+    {
+      title: "Practical Layout Patterns",
+      description: "Combining everything learned into the common layout patterns used in real websites.",
+      estimatedMinutes: 20,
+      difficulty: "INTERMEDIATE",
+      whatIsIt: "Practical layout patterns are the recurring, battle-tested structures you'll build over and over in real projects: sticky headers, card grids, sidebar layouts, centered modals, and holy-grail (header/footer/sidebar/main) page layouts — built by combining Flexbox, Grid, and positioning.",
+      whyItMatters: "Real projects rarely need one isolated CSS trick in a vacuum — they need these techniques combined into recognizable, reusable structures. Recognizing and reproducing these patterns quickly is what separates comfortable CSS usage from constant re-invention.",
+      analogy: "It's like a chef who knows individual techniques (dicing, sautéing, reducing a sauce) but also has a repertoire of complete recipes (a stir-fry, a pasta dish) they can produce reliably by combining those techniques in a known order.",
+      simpleExample: "Almost every dashboard you've used — a fixed sidebar on the left, a header across the top, and scrollable main content in the remaining space — is one such repeatable pattern, built from Grid or Flexbox plus position: sticky.",
+      technicalExplanation: "A 'holy grail' layout typically uses CSS Grid for the outer structure (header, sidebar, main, footer regions via grid-template-areas) and Flexbox for aligning content within each region. A sticky header uses position: sticky; top: 0; on a header inside a scrollable container. A centered modal overlay commonly combines position: fixed on a full-screen backdrop with display: flex; justify-content: center; align-items: center to center the modal box within it.",
+      codeExamples: [
+        {
+          title: "A centered modal overlay pattern",
+          language: "css",
+          code: ".modal-backdrop {\n  position: fixed;\n  inset: 0; /* shorthand for top/right/bottom/left: 0 */\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\n.modal {\n  background: white;\n  border-radius: 8px;\n  padding: 24px;\n  width: min(90%, 400px);\n}",
+          explanation: "The backdrop covers the entire screen (inset: 0) with a semi-transparent dark background, and uses Flexbox to perfectly center its child .modal box both horizontally and vertically. width: min(90%, 400px) keeps the modal responsive — never wider than 400px, but never wider than 90% of a small screen either.",
+        },
+      ],
+      realWorldUsage: "This exact modal pattern, sticky header pattern, and sidebar dashboard pattern appear in virtually every production SaaS product, admin panel, and e-commerce site — recognizing them lets you build new UIs quickly by adapting known structures.",
+      commonMistakes: [
+        {
+          wrong: "Rebuilding every layout from scratch with custom, one-off CSS instead of recognizing it as a known pattern.",
+          right: "Learn a handful of core patterns (centered modal, sticky header, holy-grail layout, card grid) deeply, and adapt them — most real UIs are combinations of these.",
+          explanation: "Reinventing layout logic from scratch every time is slower and more error-prone than confidently applying a known, tested pattern and adjusting details.",
+        },
+      ],
+      practice: {
+        instructions: "Build a full-page layout with a sticky header (stays visible while scrolling), a fixed-width left sidebar, and a scrollable main content area, using CSS Grid for the outer structure.",
+        hint: "Use grid-template-columns: 220px 1fr for the sidebar/main split, and position: sticky; top: 0; on the header.",
+      },
+      quiz: [
+        {
+          question: "Which combination of properties is most commonly used to perfectly center a modal box on screen?",
+          options: [
+            "float: left and clear: both",
+            "position: fixed on a full-screen backdrop combined with display: flex; justify-content: center; align-items: center",
+            "text-align: center only",
+            "margin: 0 auto only",
+          ],
+          correctIndex: 1,
+          explanation: "A fixed, full-screen backdrop using Flexbox centering is the standard, reliable way to center a modal both horizontally and vertically.",
+        },
+        {
+          question: "What does position: sticky combined with top: 0 achieve on a header?",
+          options: [
+            "The header disappears when scrolling",
+            "The header stays fixed at the top of its scrollable container once it reaches that position while scrolling",
+            "The header becomes unclickable",
+            "The header is centered horizontally",
+          ],
+          correctIndex: 1,
+          explanation: "sticky positioning acts like relative until the scroll position reaches the specified offset (top: 0), then it 'sticks' like fixed within its containing block.",
+        },
+      ],
+      rememberThis: "Most real UIs are just a handful of well-known layout patterns wearing different clothes — learn the patterns, not just the properties.",
+      keyTakeaways: [
+        "Real layouts combine Flexbox, Grid, and positioning into recognizable patterns.",
+        "The holy-grail layout (header/sidebar/main/footer) is commonly built with Grid.",
+        "Centered modals combine a fixed backdrop with Flexbox centering.",
+        "Sticky headers use position: sticky with a top offset.",
+      ],
+    },
+  ],
+};
+
+const javascriptLessonsPart1 = [
+    {
+      title: "JavaScript Fundamentals & How It Runs in the Browser",
+      description: "What JavaScript is, and how the browser actually executes it alongside a page.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER" as const,
+      whatIsIt: "JavaScript is a programming language that runs inside the browser (and, via Node.js, outside it too), letting web pages become interactive instead of static. While HTML structures a page and CSS styles it, JavaScript is what makes things actually respond and change — validating a form, updating content without reloading, reacting to clicks.",
+      whyItMatters: "Without JavaScript, the web would be read-only documents. Every interactive feature you take for granted — dropdown menus, live search suggestions, likes/comments updating instantly — exists because JavaScript can run logic directly in the user's browser.",
+      analogy: "If HTML is a building's structure and CSS is its paint and decoration, JavaScript is the electricity and wiring — it's what makes the lights turn on when you flip a switch, i.e. what makes the page actually do things in response to you.",
+      simpleExample: "Clicking a 'Like' button and instantly seeing the count go up by one, without the page reloading, is JavaScript running in your browser reacting to your click and updating the page.",
+      technicalExplanation: "The browser embeds a JavaScript engine (e.g. Chrome's V8) that parses and executes JS code included via <script> tags. The engine runs on a single main thread that also handles rendering, parses your code into an executable form, and executes it top to bottom, calling functions as they're invoked (including in response to events like clicks).",
+      codeExamples: [
+        {
+          title: "Linking and running JavaScript in a page",
+          language: "html",
+          code: "<button id=\"likeBtn\">Like</button>\n<script>\n  const button = document.getElementById('likeBtn');\n  let likes = 0;\n  button.addEventListener('click', () => {\n    likes++;\n    button.textContent = `Liked (${likes})`;\n  });\n</script>",
+          explanation: "The <script> tag embeds JavaScript directly in the page. document.getElementById finds the button element. addEventListener registers a function to run every time the button is clicked, which increments the likes counter and updates the button's visible text.",
+        },
+      ],
+      realWorldUsage: "Every dynamic website you use daily — Gmail updating your inbox live, Instagram's infinite scroll, form validation before submission — runs on JavaScript executing directly in the browser.",
+      commonMistakes: [
+        {
+          wrong: "Placing <script> tags in <head> without defer, before the HTML body has loaded, then trying to access elements that don't exist yet.",
+          right: "Place scripts at the end of <body>, or use the defer attribute, so the HTML is fully parsed before your JavaScript tries to access it.",
+          explanation: "If JavaScript runs before an element exists in the DOM, document.getElementById will return null, causing an error when you try to use it.",
+        },
+      ],
+      practice: {
+        instructions: "Create an HTML page with a button. Using JavaScript, make clicking the button change the page's background color to a random color each time.",
+        hint: "Use document.body.style.backgroundColor and generate a random RGB string, e.g. `rgb(${r}, ${g}, ${b})`.",
+      },
+      quiz: [
+        {
+          question: "What is JavaScript primarily responsible for in a web page, compared to HTML and CSS?",
+          options: ["Structuring content", "Styling appearance", "Adding interactivity and behavior", "Storing files on a server"],
+          correctIndex: 2,
+          explanation: "HTML structures, CSS styles, and JavaScript adds interactive behavior and logic.",
+        },
+        {
+          question: "Why can placing a <script> tag at the very top of <head> (without defer) cause errors when it tries to access page elements?",
+          options: [
+            "Scripts in <head> never run",
+            "The HTML body hasn't been parsed yet, so the elements don't exist when the script runs",
+            "JavaScript can't run in <head> at all",
+            "It causes a syntax error automatically",
+          ],
+          correctIndex: 1,
+          explanation: "If the script runs before the body's HTML is parsed, methods like getElementById return null for elements that don't exist yet.",
+        },
+      ],
+      rememberThis: "HTML is the structure, CSS is the paint, JavaScript is the electricity that makes the page actually respond to you.",
+      keyTakeaways: [
+        "JavaScript adds interactivity and dynamic behavior to web pages.",
+        "Browsers run JavaScript using a built-in engine on the main thread.",
+        "Scripts should run after (or be deferred until) the HTML they interact with exists.",
+        "addEventListener is the standard way to respond to user actions like clicks.",
+      ],
+    },
+    {
+      title: "Variables",
+      description: "Storing and naming values so your program can remember and reuse them.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER" as const,
+      whatIsIt: "A variable is a named container that holds a value your program can use later. Instead of typing the number 20 everywhere in your code, you store it once in a variable called age and refer to age from then on.",
+      whyItMatters: "Programs need to remember information — a user's name, a score, a cart total — and reuse or change it as the program runs. Without variables, every value would be a one-time-use magic number with no name and no way to update it.",
+      analogy: "Think of a variable like a labeled box in your room. You write \"age\" on a box and put the value 20 inside it. Later, you can look inside the box (read it) or replace what's inside (reassign it) — the box's label never changes, only its contents.",
+      simpleExample: "Imagine you're filling out a form: you write your name once on a sticky note labeled \"Name\", and every time the form asks for your name again, you just glance at the sticky note instead of re-typing it from memory.",
+      technicalExplanation: "In JavaScript, `let` and `const` declare a variable in the current block scope. `let` allows reassignment; `const` does not (though if the value is an object or array, its contents can still be mutated). `var` is the old, function-scoped way and should be avoided in modern code because of scoping and hoisting quirks.",
+      codeExamples: [
+        {
+          title: "Declaring and using a variable",
+          language: "javascript",
+          code: "let studentName = \"Rahul\";\nconsole.log(studentName);\n\nstudentName = \"Priya\"; // let allows reassignment\nconsole.log(studentName);",
+          explanation: "Line 1 creates a variable called studentName and stores the text \"Rahul\" in it. Line 2 prints its current value. Line 4 replaces the value with \"Priya\" — this is allowed because we used let, not const. Line 5 prints the new value.",
+        },
+      ],
+      realWorldUsage: "Every application uses variables constantly: storing a logged-in user's ID, a shopping cart's total price, a form's input values, or a game's current score. Variables are the basic unit of \"state\" that all software is built on.",
+      commonMistakes: [
+        {
+          wrong: "const age = 20; age = 21;",
+          right: "let age = 20; age = 21;",
+          explanation: "const means the variable's binding can never be reassigned. Trying to reassign a const throws a TypeError. Use let when a value needs to change, and const when it shouldn't.",
+        },
+      ],
+      practice: {
+        instructions: "Create three variables: studentName (a string), studentAge (a number), and studentCourse (a string set to \"MERN Full Stack\"). Print all three using console.log.",
+        starterCode: "// Write your variables here\n",
+        hint: "Use let or const, give each variable a clear name, and use console.log(variableName) to print it.",
+      },
+      quiz: [
+        {
+          question: "Which keyword should you use for a variable whose value will never change?",
+          options: ["let", "const", "var", "static"],
+          correctIndex: 1,
+          explanation: "const creates a binding that cannot be reassigned, which is exactly what you want for values that stay constant.",
+        },
+        {
+          question: "What happens when you run: const x = 5; x = 10;",
+          options: ["x becomes 10", "Nothing happens", "A TypeError is thrown", "x becomes 15"],
+          correctIndex: 2,
+          explanation: "const variables cannot be reassigned after declaration — JavaScript throws a TypeError at the reassignment line.",
+        },
+      ],
+      rememberThis: "A variable is a labeled box: the label (name) stays the same, but what's inside (the value) can change — unless you sealed the box with const.",
+      keyTakeaways: [
+        "A variable is a named container for a value.",
+        "Use let for values that change, const for values that don't.",
+        "Avoid var in modern JavaScript — it has confusing scoping rules.",
+        "Variable names should clearly describe what they hold.",
+      ],
+    },
+    {
+      title: "Data Types & Operators",
+      description: "The kinds of values JavaScript works with, and how to combine or compare them.",
+      estimatedMinutes: 18,
+      difficulty: "BEGINNER" as const,
+      whatIsIt: "A data type describes what kind of value something is — a number, text (string), true/false (boolean), and more. Operators are symbols like +, -, ===, and && that let you combine, compare, or transform those values.",
+      whyItMatters: "A program can't decide what to do with a value without knowing what kind of value it is — you can't 'multiply' someone's name, and you can't 'capitalize' a number the same way. Understanding types prevents confusing bugs and lets you use the right operator for the job.",
+      analogy: "Data types are like different kinds of ingredients in a kitchen — flour, water, eggs. Operators are like kitchen tools — a whisk, a knife, an oven — and using the wrong tool on the wrong ingredient (like trying to whisk a solid brick) produces confusing, broken results.",
+      simpleExample: "Adding two numbers (5 + 3 = 8) behaves completely differently from 'adding' two pieces of text (\"5\" + \"3\" = \"53\"), even though the + symbol is the same — the data type completely changes the outcome.",
+      technicalExplanation: "JavaScript's primitive types include number, string, boolean, undefined, null, symbol, and bigint; objects (including arrays and functions) are the non-primitive type. Common operators include arithmetic (+, -, *, /, %), comparison (===, !==, <, >), logical (&&, ||, !), and the crucial distinction between == (loose equality, allows type coercion) and === (strict equality, requires matching types).",
+      codeExamples: [
+        {
+          title: "Types affecting operator behavior",
+          language: "javascript",
+          code: "console.log(5 + 3);        // 8 (number addition)\nconsole.log(\"5\" + 3);      // \"53\" (string concatenation)\nconsole.log(\"5\" == 5);     // true (loose equality coerces types)\nconsole.log(\"5\" === 5);    // false (strict equality checks type too)\nconsole.log(typeof \"5\");   // \"string\"",
+          explanation: "The + operator behaves differently depending on operand types: numeric addition versus string concatenation. == coerces \"5\" and 5 to compare equal, while === correctly reports them as different types and returns false. typeof reveals a value's actual type at runtime.",
+        },
+      ],
+      realWorldUsage: "Type-related bugs are among the most common in JavaScript — form inputs are always strings even if they look like numbers, and forgetting to convert them (e.g. with Number()) before doing math is a classic real-world bug in production forms.",
+      commonMistakes: [
+        {
+          wrong: "if (userInput == 10) { ... } // using loose equality",
+          right: "if (Number(userInput) === 10) { ... } // explicitly convert, then compare strictly",
+          explanation: "Loose equality (==) silently coerces types, which can hide bugs; converting explicitly and using strict equality (===) makes your intent clear and avoids surprising coercion.",
+        },
+      ],
+      practice: {
+        instructions: "Predict, then verify in the console, the results of: '10' + 5, 10 - '5', '10' === 10, and Boolean(''). Write one sentence explaining each result.",
+        hint: "Remember: + with a string operand concatenates; - always tries to convert to numbers.",
+      },
+      quiz: [
+        {
+          question: "What does '5' + 3 evaluate to in JavaScript?",
+          options: ["8", "\"53\"", "\"8\"", "NaN"],
+          correctIndex: 1,
+          explanation: "When one operand of + is a string, JavaScript performs string concatenation, joining \"5\" and \"3\" into \"53\".",
+        },
+        {
+          question: "What is the key difference between == and ===?",
+          options: [
+            "There is no difference",
+            "== checks type and value; === only checks value",
+            "=== requires both type and value to match, while == allows type coercion",
+            "== is faster than ===",
+          ],
+          correctIndex: 2,
+          explanation: "=== (strict equality) requires matching types and values; == (loose equality) coerces types before comparing, which can cause unexpected results.",
+        },
+      ],
+      rememberThis: "Same tool, different ingredient, different result — always know what type you're working with before you operate on it.",
+      keyTakeaways: [
+        "JavaScript's core primitive types are number, string, boolean, undefined, and null.",
+        "The + operator concatenates strings but adds numbers, depending on operand types.",
+        "=== checks both type and value; == coerces types before comparing.",
+        "Form input values are always strings and often need explicit conversion.",
+      ],
+    },
+    {
+      title: "Conditionals",
+      description: "Making your program choose different paths based on a condition.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER" as const,
+      whatIsIt: "A conditional lets your code make decisions — running one block of code if something is true, and a different block if it isn't. The main tools are if/else statements and the switch statement.",
+      whyItMatters: "Real programs constantly need to behave differently depending on circumstances: show an error if a field is empty, grant access if a password matches, display 'Sold Out' if stock is zero. Without conditionals, every program would do exactly the same thing every time, regardless of input.",
+      analogy: "A conditional is like a fork in a hiking trail with a signpost: 'If it's raining, take the shelter path; otherwise, continue to the summit.' The hiker's actual path depends entirely on the current condition (whether it's raining).",
+      simpleExample: "A traffic light controls what drivers do based on its current color: if it's red, cars stop; if it's green, cars go — the exact same intersection produces different behavior depending on the condition.",
+      technicalExplanation: "if (condition) { ... } runs its block only when the condition is truthy; else if chains additional conditions; else is the fallback when none match. switch(value) compares a value against multiple case labels, useful when checking one variable against many possible fixed values, with each case typically ending in break to prevent fall-through.",
+      codeExamples: [
+        {
+          title: "if/else and switch",
+          language: "javascript",
+          code: "const stock = 0;\nif (stock > 10) {\n  console.log(\"In stock\");\n} else if (stock > 0) {\n  console.log(\"Low stock\");\n} else {\n  console.log(\"Sold out\");\n}\n\nconst day = \"Mon\";\nswitch (day) {\n  case \"Sat\":\n  case \"Sun\":\n    console.log(\"Weekend\");\n    break;\n  default:\n    console.log(\"Weekday\");\n}",
+          explanation: "The if/else chain checks stock against multiple thresholds, printing the first matching case (here, \"Sold out\" since stock is 0). The switch statement compares day against several fixed values; \"Sat\" and \"Sun\" share the same 'Weekend' outcome by intentionally omitting break between them (fall-through), and default catches anything else.",
+        },
+      ],
+      realWorldUsage: "Form validation, access control ('is this user an admin?'), pricing logic ('apply a discount if the cart total is over ₹1000'), and UI rendering ('show a spinner if loading, otherwise show the data') all rely on conditionals constantly.",
+      commonMistakes: [
+        {
+          wrong: "if (isLoggedIn = true) { ... } // single = is assignment, not comparison",
+          right: "if (isLoggedIn === true) { ... } // or simply: if (isLoggedIn)",
+          explanation: "A single = assigns a value (and the condition becomes whatever was assigned, always truthy here), while === compares values — mixing them up silently breaks the logic without throwing an error.",
+        },
+      ],
+      practice: {
+        instructions: "Write a function that takes a numeric exam score and logs 'A' for 90+, 'B' for 80-89, 'C' for 70-79, and 'Fail' for anything below 70.",
+        starterCode: "function getGrade(score) {\n  // your conditionals here\n}",
+        hint: "Order your if/else if checks from highest threshold to lowest so each condition is checked correctly.",
+      },
+      quiz: [
+        {
+          question: "What is wrong with: if (x = 5) { ... }?",
+          options: [
+            "Nothing, it correctly checks if x equals 5",
+            "It assigns 5 to x instead of comparing, and the condition is always truthy",
+            "It causes a syntax error",
+            "It only works with strings",
+          ],
+          correctIndex: 1,
+          explanation: "A single = is assignment. The condition becomes the assigned value (5), which is truthy, so the block always runs regardless of x's original value.",
+        },
+        {
+          question: "In a switch statement, what does omitting `break` after a case cause?",
+          options: [
+            "A syntax error",
+            "Execution 'falls through' into the next case's code",
+            "The switch statement stops entirely",
+            "Nothing — break is not needed in JavaScript switch statements",
+          ],
+          correctIndex: 1,
+          explanation: "Without break, execution continues into the next case block regardless of whether its condition matches — sometimes used intentionally, but often a bug source.",
+        },
+      ],
+      rememberThis: "A conditional is a signpost at a fork in the road — the path taken depends entirely on the condition at that moment.",
+      keyTakeaways: [
+        "if/else lets code branch based on a condition.",
+        "switch compares one value against multiple fixed cases.",
+        "Use === for comparison, not = (assignment).",
+        "Forgetting `break` in a switch causes unintended fall-through.",
+      ],
+    },
+    {
+      title: "Loops",
+      description: "Repeating actions without writing the same code over and over.",
+      estimatedMinutes: 15,
+      difficulty: "BEGINNER" as const,
+      whatIsIt: "A loop repeats a block of code multiple times, either a set number of times or until some condition is no longer true. The main types in JavaScript are for, while, and for...of (for iterating over collections).",
+      whyItMatters: "Real programs constantly need to process many items — every product in a cart, every comment on a post, every row in a database result. Without loops, you'd have to write separate code for every single item, which doesn't scale.",
+      analogy: "A loop is like a factory conveyor belt worker who performs the exact same inspection step on every item that passes by, one after another, until the belt is empty — rather than a different worker being hired for every single item.",
+      simpleExample: "A teacher grading 30 exam papers doesn't invent a new grading process for each paper — they repeat the same grading steps 30 times, once per paper, which is exactly what a loop does with code.",
+      technicalExplanation: "for (let i = 0; i < n; i++) { ... } repeats a fixed number of times using a counter. while (condition) { ... } repeats as long as a condition stays true, useful when the number of iterations isn't known in advance. for...of iterates directly over the values of an iterable (like an array), which is often cleaner than manually indexing.",
+      codeExamples: [
+        {
+          title: "Three ways to loop over the same data",
+          language: "javascript",
+          code: "const scores = [72, 88, 91];\n\nfor (let i = 0; i < scores.length; i++) {\n  console.log(scores[i]);\n}\n\nfor (const score of scores) {\n  console.log(score);\n}\n\nlet i = 0;\nwhile (i < scores.length) {\n  console.log(scores[i]);\n  i++;\n}",
+          explanation: "All three loops print the same three scores. The classic for loop manually tracks an index i. for...of directly gives each value without needing an index. The while loop repeats as long as its condition (i < scores.length) remains true, manually incrementing i each pass.",
+        },
+      ],
+      realWorldUsage: "Rendering a list of products on an e-commerce page, processing every row returned from a database query, and validating every field in a form all rely on loops (or array methods built on the same idea) to handle a variable number of items.",
+      commonMistakes: [
+        {
+          wrong: "for (let i = 0; i <= scores.length; i++) { console.log(scores[i]); }",
+          right: "for (let i = 0; i < scores.length; i++) { console.log(scores[i]); }",
+          explanation: "Using <= instead of < causes an off-by-one error: the loop tries to access scores[scores.length], an index that doesn't exist, producing undefined.",
+        },
+      ],
+      practice: {
+        instructions: "Write a loop that prints all numbers from 1 to 20, but only the even ones.",
+        hint: "Use the modulo operator (number % 2 === 0) to check if a number is even inside your loop.",
+      },
+      quiz: [
+        {
+          question: "What causes an 'off-by-one' error in a for loop over an array?",
+          options: [
+            "Using let instead of const for the counter",
+            "Using <= instead of < when comparing against array.length",
+            "Not using a while loop instead",
+            "Forgetting to declare the array",
+          ],
+          correctIndex: 1,
+          explanation: "Array indices go from 0 to length - 1, so using <= against length causes one extra, invalid iteration.",
+        },
+        {
+          question: "When is for...of especially useful compared to a classic for loop?",
+          options: [
+            "When you need the index and don't care about values",
+            "When you just need each value from an iterable without manually tracking an index",
+            "When looping a fixed number of times unrelated to any collection",
+            "It behaves identically to for in every case",
+          ],
+          correctIndex: 1,
+          explanation: "for...of gives direct access to each value in an iterable (like an array), which is simpler when you don't need to track the index manually.",
+        },
+      ],
+      rememberThis: "A loop is a conveyor-belt worker repeating the same step on every item — write the step once, let the loop handle the repetition.",
+      keyTakeaways: [
+        "Loops repeat code without duplicating it manually.",
+        "for is ideal for a known number of iterations; while for unknown counts.",
+        "for...of directly iterates values of an array or other iterable.",
+        "Off-by-one errors (using <= instead of <) are a very common loop bug.",
+      ],
+    },
+    {
+      title: "Functions",
+      description: "Packaging reusable logic into named, callable blocks of code.",
+      estimatedMinutes: 18,
+      difficulty: "BEGINNER" as const,
+      whatIsIt: "A function is a reusable block of code that performs a specific task, which you can 'call' by name whenever you need that task done, optionally passing in different inputs (parameters) each time and getting a result back (a return value).",
+      whyItMatters: "Without functions, you'd have to copy-paste the same logic everywhere it's needed, and any bug fix would require finding and updating every copy. Functions let you write logic once, name it clearly, and reuse it anywhere.",
+      analogy: "A function is like a recipe. The recipe (function) is written once — 'Pancake Recipe' — and takes ingredients (parameters) like flour and eggs, follows the same steps every time, and produces pancakes (the return value). You can 'run' the recipe as many times as you want without rewriting it.",
+      simpleExample: "A calculator's 'add' button always performs the same addition logic no matter what two numbers you type in — you don't need a separate button for every possible pair of numbers, just one reusable operation that accepts different inputs.",
+      technicalExplanation: "Functions are declared with function name(parameters) { ... } or as arrow functions const name = (parameters) => { ... }. Parameters are placeholders for values passed in when the function is called (arguments). The return statement sends a value back to wherever the function was called, ending its execution.",
+      codeExamples: [
+        {
+          title: "A reusable function with parameters and a return value",
+          language: "javascript",
+          code: "function calculateDiscountPrice(price, discountPercent) {\n  const discount = price * (discountPercent / 100);\n  return price - discount;\n}\n\nconsole.log(calculateDiscountPrice(1000, 10)); // 900\nconsole.log(calculateDiscountPrice(500, 20));  // 400",
+          explanation: "calculateDiscountPrice takes two parameters (price, discountPercent), computes the discount amount, and returns the final price. It's called twice with different arguments, producing different results from the exact same logic.",
+        },
+      ],
+      realWorldUsage: "Every meaningful piece of logic in a real application — validating an email, calculating a shopping cart total, formatting a date — is wrapped in a function so it can be reused consistently across the entire codebase.",
+      commonMistakes: [
+        {
+          wrong: "function calculateTotal(price, tax) { price + tax; } // missing return",
+          right: "function calculateTotal(price, tax) { return price + tax; }",
+          explanation: "Without a return statement, a function implicitly returns undefined, even if it computes a value internally — the caller never receives the computed result.",
+        },
+      ],
+      practice: {
+        instructions: "Write a function isEven(number) that returns true if a number is even and false otherwise. Test it with at least three different numbers.",
+        starterCode: "function isEven(number) {\n  // your code here\n}",
+        hint: "Use the modulo operator: number % 2 === 0 is true for even numbers.",
+      },
+      quiz: [
+        {
+          question: "What happens if a function has no return statement?",
+          options: [
+            "It causes a syntax error",
+            "It implicitly returns undefined",
+            "It automatically returns the last calculated value",
+            "It throws an exception every time it's called",
+          ],
+          correctIndex: 1,
+          explanation: "A function without an explicit return always returns undefined, regardless of what it computed internally.",
+        },
+        {
+          question: "In the recipe analogy, what do function parameters represent?",
+          options: ["The final dish", "The name of the recipe", "The ingredients that can vary each time you cook", "The kitchen itself"],
+          correctIndex: 2,
+          explanation: "Parameters are the inputs that can differ each time the function (recipe) is called, just like ingredients can vary between batches.",
+        },
+      ],
+      rememberThis: "A function is a recipe: write the steps once, feed it different ingredients (arguments), and it reliably produces a result every time.",
+      keyTakeaways: [
+        "Functions package reusable logic into a named, callable block.",
+        "Parameters let a function accept different inputs each time it's called.",
+        "return sends a result back to the caller and ends execution.",
+        "Without return, a function always resolves to undefined.",
+      ],
+    },
+    {
+      title: "Arrays",
+      description: "Storing and working with ordered lists of values.",
+      estimatedMinutes: 18,
+      difficulty: "BEGINNER" as const,
+      whatIsIt: "An array is an ordered list of values, stored in a single variable, that you can access by numeric position (index), add to, remove from, or transform using built-in methods.",
+      whyItMatters: "Most real data isn't a single value — it's a collection: a list of products, a list of comments, a list of students. Arrays give you a structured, ordered way to store and work with many related values together.",
+      analogy: "An array is like a numbered row of lockers at a gym. Each locker (index) holds one item, starting from locker number 0, and you can open any specific locker directly by its number, add a new locker at the end, or remove one.",
+      simpleExample: "A to-do list app storing your tasks — 'Buy milk', 'Call mom', 'Finish report' — as one ordered array, rather than as three separate unrelated variables, so you can loop over them, count them, or reorder them easily.",
+      technicalExplanation: "Arrays are created with square brackets: const arr = [1, 2, 3]. Elements are accessed by zero-based index (arr[0] is the first item). Common built-in methods include push/pop (add/remove from the end), shift/unshift (add/remove from the start), map (transform each item into a new array), filter (keep only items matching a condition), and find (get the first matching item).",
+      codeExamples: [
+        {
+          title: "Common array operations",
+          language: "javascript",
+          code: "const scores = [72, 88, 91, 60];\n\nconsole.log(scores[0]);            // 72\nscores.push(95);                   // add to the end\nconst passing = scores.filter(s => s >= 70); // [72, 88, 91, 95]\nconst grades = scores.map(s => s >= 70 ? 'Pass' : 'Fail');",
+          explanation: "scores[0] accesses the first element by index. push adds a new score to the end of the array. filter creates a new array containing only scores of 70 or above. map transforms every score into a 'Pass' or 'Fail' label, producing a brand new array without modifying the original scores.",
+        },
+      ],
+      realWorldUsage: "Rendering a list of products fetched from an API, filtering search results, and sorting a leaderboard by score are all everyday tasks built directly on array methods like map, filter, and sort.",
+      commonMistakes: [
+        {
+          wrong: "const first = scores[1]; // assuming index 1 is the first item",
+          right: "const first = scores[0]; // arrays are zero-indexed",
+          explanation: "Arrays start counting from index 0, not 1 — a very common source of off-by-one bugs for beginners coming from everyday counting habits.",
+        },
+      ],
+      practice: {
+        instructions: "Given const prices = [250, 100, 999, 45, 600], use array methods to: get only prices above 100, and create a new array with 18% tax added to each price.",
+        hint: "Use filter for the first task and map for the second.",
+      },
+      quiz: [
+        {
+          question: "What index does the first element of an array have?",
+          options: ["1", "0", "-1", "It depends on the array"],
+          correctIndex: 1,
+          explanation: "JavaScript arrays are zero-indexed — the first element is always at index 0.",
+        },
+        {
+          question: "What does array.filter() return?",
+          options: [
+            "A single boolean value",
+            "A new array containing only elements that match a condition",
+            "The original array modified in place",
+            "The number of matching elements",
+          ],
+          correctIndex: 1,
+          explanation: "filter builds and returns a brand new array with only the elements for which the callback returned true, leaving the original array unchanged.",
+        },
+      ],
+      rememberThis: "An array is a numbered row of lockers starting at 0 — always know which locker number actually holds what you're looking for.",
+      keyTakeaways: [
+        "Arrays store ordered lists of values, accessed by zero-based index.",
+        "push/pop and shift/unshift add or remove elements from either end.",
+        "map transforms every item; filter keeps only matching items.",
+        "Array indices start at 0, not 1.",
+      ],
+    },
+    {
+      title: "Objects",
+      description: "Grouping related data together as labeled key-value pairs.",
+      estimatedMinutes: 18,
+      difficulty: "BEGINNER" as const,
+      whatIsIt: "An object is a collection of related data stored as key-value pairs — each piece of data has a name (key) and a value. Unlike arrays, which use numeric positions, objects let you access values by meaningful names.",
+      whyItMatters: "Real-world entities have multiple related properties — a user has a name, email, and age all at once. Objects let you group these related pieces of data together under one variable instead of managing scattered, disconnected variables.",
+      analogy: "An object is like a filled-out ID card: it has labeled fields — Name, Date of Birth, ID Number — each holding a specific piece of information about one person, all bundled together on a single card rather than as separate loose pieces of paper.",
+      simpleExample: "Instead of three separate variables (userName, userEmail, userAge), a single user object groups them: { name: 'Asha', email: 'asha@mail.com', age: 22 } — one bundle representing one complete user.",
+      technicalExplanation: "Objects are created with curly braces: const obj = { key: value }. Properties are accessed with dot notation (obj.key) or bracket notation (obj['key']), the latter useful when the key is dynamic or not a valid identifier. Properties can be added, updated, or deleted after creation (even on a const object, since only the binding is fixed, not its contents).",
+      codeExamples: [
+        {
+          title: "Creating and using an object",
+          language: "javascript",
+          code: "const user = {\n  name: \"Asha\",\n  email: \"asha@mail.com\",\n  age: 22,\n};\n\nconsole.log(user.name);       // \"Asha\"\nuser.age = 23;                // update a property\nuser.course = \"MERN\";         // add a new property\nconsole.log(user);",
+          explanation: "The user object groups three related properties. Dot notation (user.name) reads a value. Even though user was declared with const, its properties can still be changed or added — const only prevents reassigning user to a completely different object.",
+        },
+      ],
+      realWorldUsage: "API responses are almost always structured as objects (or arrays of objects) — a REST API returning user profile data, product details, or order information will represent each entity as a JavaScript object once parsed from JSON.",
+      commonMistakes: [
+        {
+          wrong: "const user = { name: 'Asha' }; user = { name: 'Priya' }; // reassigning a const",
+          right: "const user = { name: 'Asha' }; user.name = 'Priya'; // mutating a property instead",
+          explanation: "const prevents reassigning the variable to a new object entirely, but it does not freeze the object's contents — you can still change its properties directly.",
+        },
+      ],
+      practice: {
+        instructions: "Create an object representing a book with title, author, and pages properties. Log the title, then update pages to a new value, then add a new property called genre.",
+        hint: "Use dot notation to both read and update properties: book.pages = 350;",
+      },
+      quiz: [
+        {
+          question: "How do you access the 'name' property of an object called user?",
+          options: ["user->name", "user[0]", "user.name", "user::name"],
+          correctIndex: 2,
+          explanation: "Dot notation (user.name) is the standard way to access an object's property by key.",
+        },
+        {
+          question: "If const user = { age: 20 }, is user.age = 21 allowed?",
+          options: [
+            "No, because const objects are fully immutable",
+            "Yes, because const only prevents reassigning the variable itself, not changing its properties",
+            "Only if you use let instead",
+            "It throws a TypeError",
+          ],
+          correctIndex: 1,
+          explanation: "const fixes the variable binding, not the object's contents — properties of a const object can still be freely modified.",
+        },
+      ],
+      rememberThis: "An object is a filled-out ID card — related facts about one thing, each clearly labeled and bundled together.",
+      keyTakeaways: [
+        "Objects group related data as key-value pairs.",
+        "Properties are accessed via dot notation or bracket notation.",
+        "const prevents reassigning the variable, not mutating its properties.",
+        "API data is almost always represented as objects (or arrays of objects).",
+      ],
+    },
+];
+
+const javascriptLessonsPart2 = [
+    {
+      title: "ES6+ Syntax: Arrow Functions, Destructuring, Spread/Rest & Template Literals",
+      description: "Modern JavaScript syntax that makes common patterns shorter and clearer.",
+      estimatedMinutes: 20,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "ES6 (ECMAScript 2015) and later versions introduced several syntax upgrades that make everyday JavaScript more concise: arrow functions (shorter function syntax), destructuring (unpacking values from arrays/objects into variables), spread/rest (expanding or collecting values), and template literals (easier string building).",
+      whyItMatters: "Older JavaScript syntax for these tasks was verbose and error-prone. These features are used constantly in modern codebases (especially React), so understanding them is essential to reading and writing real production code.",
+      analogy: "Think of these features like modern kitchen shortcuts: a garlic press (arrow functions) instead of mincing by hand, pre-portioned ingredient trays (destructuring) instead of digging through a whole pantry, and a label maker (template literals) instead of handwriting every sticky note.",
+      simpleExample: "Instead of writing `\"Hello, \" + user.name + \"!\"`, a template literal lets you write `` `Hello, ${user.name}!` `` — clearer and less error-prone, especially with multiple values.",
+      technicalExplanation: "Arrow functions ((a, b) => a + b) provide shorter syntax and don't bind their own `this`. Destructuring (const { name, age } = user; or const [first, second] = array;) extracts values directly into named variables. The spread operator (...) expands an array/object into individual elements (e.g. copying or merging), while rest (...) collects multiple arguments into a single array. Template literals (backticks with ${expression}) allow embedded expressions and multi-line strings.",
+      codeExamples: [
+        {
+          title: "ES6+ features together",
+          language: "javascript",
+          code: "const user = { name: \"Asha\", age: 22, city: \"Pune\" };\nconst { name, age } = user; // destructuring\n\nconst greet = (name) => `Hello, ${name}!`; // arrow function + template literal\n\nconst base = [1, 2];\nconst extended = [...base, 3, 4]; // spread: copies base and adds more\n\nfunction sum(...numbers) { // rest: collects all arguments into an array\n  return numbers.reduce((total, n) => total + n, 0);\n}\nconsole.log(sum(1, 2, 3, 4)); // 10",
+          explanation: "Destructuring pulls name and age directly out of user. greet is a concise arrow function using a template literal to embed name directly in the string. The spread operator (...base) copies base's elements into a new array alongside 3 and 4. The rest parameter (...numbers) gathers any number of arguments passed to sum into a single array for reduce to total up.",
+        },
+      ],
+      realWorldUsage: "React code is saturated with this syntax: destructuring props ({ title, onClick }), spreading state updates ({ ...state, loading: true }), and arrow functions for event handlers are the default style in virtually every modern JavaScript codebase.",
+      commonMistakes: [
+        {
+          wrong: "const newState = state; newState.loading = true; // mutates the original object",
+          right: "const newState = { ...state, loading: true }; // creates a new object with the updated field",
+          explanation: "Directly assigning an object copies the reference, not the data — mutating it also changes the original. Spreading creates a genuinely new object, which is especially important in React where state must not be mutated directly.",
+        },
+      ],
+      practice: {
+        instructions: "Given const product = { id: 1, name: 'Pen', price: 20, stock: 100 }, use destructuring to extract name and price into variables, then use spread to create a new object identical to product but with stock: 90.",
+        hint: "Destructuring: const { name, price } = product; Spread: const updated = { ...product, stock: 90 };",
+      },
+      quiz: [
+        {
+          question: "What does the spread operator do when used like { ...state, loading: true }?",
+          options: [
+            "It deletes all properties except loading",
+            "It creates a new object copying state's properties, then overrides loading",
+            "It mutates state directly",
+            "It converts state into an array",
+          ],
+          correctIndex: 1,
+          explanation: "Spreading an object copies its properties into a new object literal, and any properties listed afterward override the copied ones.",
+        },
+        {
+          question: "What is the purpose of a rest parameter like function sum(...numbers)?",
+          options: [
+            "It limits the function to exactly one argument",
+            "It collects any number of passed arguments into a single array",
+            "It renames the function's parameters",
+            "It makes the function asynchronous",
+          ],
+          correctIndex: 1,
+          explanation: "Rest parameters gather all remaining arguments passed to a function into one array, letting the function accept a flexible number of inputs.",
+        },
+      ],
+      rememberThis: "Spread copies things out, rest gathers things in — same three dots, opposite jobs depending on where you use them.",
+      keyTakeaways: [
+        "Arrow functions provide concise function syntax without their own `this`.",
+        "Destructuring extracts values from arrays/objects directly into variables.",
+        "Spread expands a collection; rest gathers multiple values into an array.",
+        "Template literals allow embedded expressions and multi-line strings with backticks.",
+      ],
+    },
+    {
+      title: "Scope & Hoisting",
+      description: "Where variables are visible in your code, and why some declarations seem to work before they're written.",
+      estimatedMinutes: 18,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "Scope determines where in your code a variable is accessible — globally everywhere, or only within a specific function or block. Hoisting is JavaScript's behavior of processing variable and function declarations before actually running the code, which can make some code appear to work in an order you wouldn't expect.",
+      whyItMatters: "Without understanding scope, you'll get confusing 'variable is not defined' errors, or accidentally overwrite variables you didn't mean to touch. Hoisting explains otherwise-mysterious behavior like being able to call a function before its definition appears in the file.",
+      analogy: "Scope is like rooms in a house with different access rules: something kept in your private bedroom (function scope) isn't visible from the living room (outer scope), but something placed in the shared living room is visible from every room. Hoisting is like the moving company placing all the big furniture (declarations) in the house before you actually start unpacking boxes (running your code) — the furniture is 'there' before you consciously placed it.",
+      simpleExample: "A variable declared inside one function is completely invisible to a different function, just like a note you write for yourself in your own diary isn't visible to someone reading a totally different notebook.",
+      technicalExplanation: "let and const are block-scoped (visible only within the { } they're declared in) and are hoisted but left in a 'temporal dead zone' until their declaration line runs, so accessing them earlier throws a ReferenceError. var is function-scoped and hoisted with its value initialized to undefined, so it can be accessed (as undefined) before its declaration without an error. Function declarations (function foo(){}) are fully hoisted, including their body, so they can be called before they appear in the file.",
+      codeExamples: [
+        {
+          title: "Scope and hoisting differences",
+          language: "javascript",
+          code: "console.log(a); // undefined (var is hoisted, initialized to undefined)\nvar a = 5;\n\nconsole.log(b); // ReferenceError (let is in the 'temporal dead zone')\nlet b = 10;\n\nfunction outer() {\n  let secret = \"hidden\";\n  console.log(secret); // accessible here\n}\nouter();\nconsole.log(typeof secret); // \"undefined\" — secret doesn't exist out here",
+          explanation: "var a is hoisted and initialized to undefined, so logging it before assignment doesn't error. let b is hoisted too, but stays inaccessible until its declaration line runs, so accessing it earlier throws an error. secret is scoped entirely inside outer() and simply doesn't exist outside of it.",
+        },
+      ],
+      realWorldUsage: "Understanding scope is essential for avoiding accidental variable collisions in larger codebases, and for correctly reasoning about closures, module boundaries, and why a variable declared inside an if block or loop isn't accessible outside it.",
+      commonMistakes: [
+        {
+          wrong: "if (true) { var x = 5; } console.log(x); // works, but usually unintended",
+          right: "if (true) { let x = 5; } console.log(x); // ReferenceError — correctly scoped to the block",
+          explanation: "var leaks out of blocks (if, for, while) because it's only function-scoped, not block-scoped, which often creates variables that unintentionally 'escape' further than intended — using let/const avoids this.",
+        },
+      ],
+      practice: {
+        instructions: "Write a function that declares a let variable inside a for loop, and try (outside both the loop and function) to log that variable. Observe and explain the error you get.",
+        hint: "The variable should only be accessible inside the loop's block scope.",
+      },
+      quiz: [
+        {
+          question: "What is the key difference between var and let in terms of scope?",
+          options: [
+            "There is no difference",
+            "var is function-scoped; let is block-scoped",
+            "let is function-scoped; var is block-scoped",
+            "var can only be used in loops",
+          ],
+          correctIndex: 1,
+          explanation: "var ignores block boundaries (if, for, etc.) and is scoped to the whole function, while let respects block scope.",
+        },
+        {
+          question: "What happens if you access a let variable before its declaration line runs?",
+          options: [
+            "It returns undefined",
+            "It throws a ReferenceError due to the temporal dead zone",
+            "It automatically returns null",
+            "It silently skips that line",
+          ],
+          correctIndex: 1,
+          explanation: "let (and const) are hoisted but remain inaccessible until their declaration executes — accessing them earlier throws a ReferenceError.",
+        },
+      ],
+      rememberThis: "var leaks out of the room it's in; let and const stay exactly where you put them.",
+      keyTakeaways: [
+        "Scope determines where a variable is accessible in your code.",
+        "let/const are block-scoped; var is function-scoped.",
+        "Hoisting moves declarations to the top of their scope before code runs.",
+        "Accessing let/const before declaration throws a ReferenceError (temporal dead zone).",
+      ],
+    },
+    {
+      title: "The DOM & Selecting Elements",
+      description: "How JavaScript sees and manipulates the actual structure of a web page.",
+      estimatedMinutes: 18,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "The DOM (Document Object Model) is a live, tree-shaped representation of an HTML page that JavaScript can read and change. Every HTML element becomes a 'node' in this tree that JavaScript can find, read, modify, or remove.",
+      whyItMatters: "HTML by itself is static once loaded. The DOM is what lets JavaScript reach into a rendered page and change it dynamically — updating text, adding elements, responding to actions — without reloading the page.",
+      analogy: "The DOM is like a family tree diagram of a webpage's elements — the <body> is a parent, containing children like a <header> and <main>, which themselves have children. JavaScript can walk this tree and grab any specific 'relative' (element) by name, position, or family markers (class/id).",
+      simpleExample: "When a to-do app adds your new task to the visible list instantly after you click 'Add', it's using the DOM to insert a new tree node — a new <li> — directly into the page's live structure.",
+      technicalExplanation: "document.getElementById('id'), document.querySelector('.class'), and document.querySelectorAll('selector') are the main ways to select DOM elements (querySelector accepts any valid CSS selector). Once selected, elements can be read/changed via properties like .textContent, .innerHTML, and .style, or have new elements attached via methods like .appendChild() or .append().",
+      codeExamples: [
+        {
+          title: "Selecting and modifying the DOM",
+          language: "javascript",
+          code: "const heading = document.querySelector('h1');\nheading.textContent = 'Welcome back!';\n\nconst list = document.querySelector('#todo-list');\nconst newItem = document.createElement('li');\nnewItem.textContent = 'Learn the DOM';\nlist.appendChild(newItem);",
+          explanation: "querySelector('h1') finds the first <h1> on the page, and textContent replaces its visible text. createElement builds a brand new <li> element in memory, its text is set, and appendChild inserts it as the last child of the #todo-list element, making it instantly visible on the page.",
+        },
+      ],
+      realWorldUsage: "Every dynamic UI update without a full page reload — adding a comment, removing a cart item, toggling a menu — relies on DOM manipulation, either directly (as shown here) or indirectly through a framework like React that manages it for you behind the scenes.",
+      commonMistakes: [
+        {
+          wrong: "element.innerHTML = userInput; // inserting raw, untrusted user input",
+          right: "element.textContent = userInput; // or properly sanitize before using innerHTML",
+          explanation: "innerHTML parses its content as HTML, so untrusted user input can inject malicious scripts (a cross-site scripting/XSS vulnerability); textContent always treats its value as plain text, which is safe.",
+        },
+      ],
+      practice: {
+        instructions: "Build a page with an empty <ul id='list'> and a button. On each click, use JavaScript to add a new <li> with incrementing text ('Item 1', 'Item 2', ...).",
+        hint: "Keep a counter variable outside the click handler and increment it on each click.",
+      },
+      quiz: [
+        {
+          question: "What does the DOM represent?",
+          options: [
+            "The CSS styles applied to a page",
+            "A live, tree-structured representation of the page's HTML that JavaScript can manipulate",
+            "The server-side database",
+            "A file format for images",
+          ],
+          correctIndex: 1,
+          explanation: "The DOM is an in-memory tree of the page's elements that JavaScript can read and modify dynamically.",
+        },
+        {
+          question: "Why is using innerHTML with raw user input dangerous?",
+          options: [
+            "It's slower than textContent",
+            "It can allow malicious scripts to be injected and executed (XSS)",
+            "It only works with numbers",
+            "It doesn't update the page at all",
+          ],
+          correctIndex: 1,
+          explanation: "innerHTML parses its input as HTML/JS, so unsanitized user input can inject and run malicious code — textContent avoids this by always treating input as plain text.",
+        },
+      ],
+      rememberThis: "The DOM is the page's family tree — JavaScript is the one allowed to rearrange, add, or remove relatives on it live.",
+      keyTakeaways: [
+        "The DOM is a live, tree-structured representation of the page's HTML.",
+        "querySelector/querySelectorAll select elements using CSS-style selectors.",
+        "createElement + appendChild build and insert new elements dynamically.",
+        "Prefer textContent over innerHTML when inserting untrusted input, to avoid XSS.",
+      ],
+    },
+    {
+      title: "Events",
+      description: "Responding to user actions like clicks, typing, and form submissions.",
+      estimatedMinutes: 15,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "An event is something that happens in the browser that your code can react to — a click, a key press, a page load, a form submission. Event listeners are functions you attach to elements that run automatically whenever a specific event occurs.",
+      whyItMatters: "Interactivity is fundamentally about responding to what users do. Events are the mechanism that connects a user's action (clicking a button) to code that should run in response (submitting a form, showing a menu).",
+      analogy: "An event listener is like a doorbell system: you don't stand at the door all day checking if someone arrived — you set up a doorbell (listener) once, and it automatically notifies you (runs your function) whenever someone actually presses it (the event occurs).",
+      simpleExample: "A 'Subscribe' button doing nothing until you click it, then immediately showing 'Thanks for subscribing!', is a click event triggering a response function at the exact moment of interaction.",
+      technicalExplanation: "element.addEventListener('event', callback) attaches a function to run when that event fires on that element. Common events include click, submit, input, keydown, and load. The callback receives an event object with useful details, including event.preventDefault() to stop a form's default page-reload behavior, and event.target to identify exactly which element triggered the event.",
+      codeExamples: [
+        {
+          title: "Handling a form submission event",
+          language: "javascript",
+          code: "const form = document.querySelector('#signup-form');\n\nform.addEventListener('submit', (event) => {\n  event.preventDefault(); // stop the default full page reload\n  const email = document.querySelector('#email').value;\n  console.log('Submitted email:', email);\n});",
+          explanation: "addEventListener attaches a function that runs whenever the form's submit event fires. event.preventDefault() stops the browser's default behavior of reloading the page on form submission, letting JavaScript handle the submission instead (e.g. sending it via fetch).",
+        },
+      ],
+      realWorldUsage: "Every button click, form submission, dropdown toggle, and keystroke-based live search across the web is built on event listeners — it's one of the most frequently used JavaScript features in any interactive app.",
+      commonMistakes: [
+        {
+          wrong: "Forgetting event.preventDefault() in a form submit handler, causing an unwanted full page reload.",
+          right: "Call event.preventDefault() at the start of the submit handler when you want JavaScript (not the browser's default action) to handle the form.",
+          explanation: "By default, submitting a form reloads the page and navigates to the action URL — preventDefault() stops that so your JavaScript logic (like an API call) can run instead.",
+        },
+      ],
+      practice: {
+        instructions: "Build a form with a single text input and a submit button. On submit, prevent the default page reload and instead log the entered text to the console.",
+        hint: "Attach the listener to the 'submit' event event on the <form>, not a 'click' event on the button.",
+      },
+      quiz: [
+        {
+          question: "What does event.preventDefault() do inside a form's submit handler?",
+          options: [
+            "It deletes the form",
+            "It stops the browser's default action (like reloading the page) so custom JS logic can run instead",
+            "It prevents the event listener from ever running again",
+            "It clears all input fields",
+          ],
+          correctIndex: 1,
+          explanation: "preventDefault() cancels the browser's built-in default behavior for that event, commonly used to stop a form's automatic page reload/navigation.",
+        },
+        {
+          question: "What is the purpose of addEventListener?",
+          options: [
+            "To create a new HTML element",
+            "To attach a function that runs automatically when a specific event occurs on an element",
+            "To style an element with CSS",
+            "To fetch data from a server",
+          ],
+          correctIndex: 1,
+          explanation: "addEventListener registers a callback to run in response to a specified event (click, submit, etc.) on the target element.",
+        },
+      ],
+      rememberThis: "An event listener is a doorbell — set it up once, and it notifies your code automatically every time the action happens.",
+      keyTakeaways: [
+        "Events represent user or browser actions (clicks, submits, key presses).",
+        "addEventListener attaches a callback function to run when an event fires.",
+        "event.preventDefault() stops a browser's default behavior, like form page reloads.",
+        "Events are the foundation of interactivity in web pages.",
+      ],
+    },
+    {
+      title: "Working with Forms in JavaScript",
+      description: "Reading, validating, and handling form data using plain JavaScript.",
+      estimatedMinutes: 15,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "Working with forms in JavaScript means reading what a user has typed or selected, validating it before it's used, and deciding what happens next — like sending it to a server or showing an error message.",
+      whyItMatters: "Forms are the primary way users send information into a web app — signups, searches, checkouts. JavaScript form handling ensures bad or incomplete data is caught early, before it ever reaches your server.",
+      analogy: "Client-side form handling is like a receptionist checking that you've filled out every required field on a form correctly before letting you proceed to see the doctor — catching mistakes early saves everyone time down the line.",
+      simpleExample: "A signup form immediately showing 'Passwords don't match' as soon as you type a mismatched confirmation, without needing to submit the form first, is JavaScript reading and validating input in real time.",
+      technicalExplanation: "Input values are read via element.value (for text inputs) or element.checked (for checkboxes). Validation can use built-in HTML attributes (required, pattern) combined with JavaScript checks in a submit handler. FormData can also collect an entire form's values at once, which is convenient when submitting via fetch.",
+      codeExamples: [
+        {
+          title: "Validating a form before submission",
+          language: "javascript",
+          code: "const form = document.querySelector('#signup-form');\n\nform.addEventListener('submit', (event) => {\n  event.preventDefault();\n  const password = document.querySelector('#password').value;\n  const confirm = document.querySelector('#confirm-password').value;\n\n  if (password !== confirm) {\n    alert('Passwords do not match!');\n    return;\n  }\n\n  console.log('Form is valid, ready to submit.');\n});",
+          explanation: "Both password fields' values are read via .value. The handler checks they match before proceeding; if they don't, it alerts the user and returns early, stopping further code (like an API call) from running with invalid data.",
+        },
+      ],
+      realWorldUsage: "Every signup, checkout, and settings form on production websites performs this kind of client-side validation before ever sending data to the server, improving user experience by giving instant feedback instead of a slow round-trip error.",
+      commonMistakes: [
+        {
+          wrong: "Relying only on client-side validation and trusting the data on the server.",
+          right: "Always validate again on the server, treating client-side validation as a UX convenience, not a security measure.",
+          explanation: "Client-side JavaScript can be bypassed entirely (disabled, or requests sent directly to the API), so the server must independently validate all incoming data to stay secure.",
+        },
+      ],
+      practice: {
+        instructions: "Build a form with a name field and an age field (number). On submit, prevent the default action, and show an alert if the name is empty or the age is less than 0.",
+        hint: "Use .trim() on the name value to catch inputs that are just whitespace.",
+      },
+      quiz: [
+        {
+          question: "Why is client-side form validation not enough on its own?",
+          options: [
+            "It's too slow for real use",
+            "It can be bypassed, so the server must also validate all incoming data",
+            "Browsers don't support it",
+            "It only works for text inputs",
+          ],
+          correctIndex: 1,
+          explanation: "Users can disable JavaScript or send requests directly to the server, bypassing any client-side checks — server-side validation is required for real security.",
+        },
+        {
+          question: "How do you read the current value of a text input with id 'email'?",
+          options: [
+            "document.querySelector('#email').text",
+            "document.querySelector('#email').value",
+            "document.querySelector('#email').innerHTML",
+            "document.querySelector('#email').data",
+          ],
+          correctIndex: 1,
+          explanation: "The .value property holds the current entered text of an input element.",
+        },
+      ],
+      rememberThis: "Client-side validation is a helpful receptionist, not a security guard — the real gatekeeper must live on the server.",
+      keyTakeaways: [
+        "Form values are read via .value (or .checked for checkboxes).",
+        "Client-side validation gives users instant feedback before submission.",
+        "Server-side validation is mandatory since client-side checks can be bypassed.",
+        "FormData can collect an entire form's values conveniently for submission.",
+      ],
+    },
+    {
+      title: "Browser Storage: localStorage",
+      description: "Saving small amounts of data in the browser that persists between visits.",
+      estimatedMinutes: 15,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "localStorage is a simple key-value storage system built into the browser that lets a website save small pieces of data on the user's device, which stays there even after closing the tab or browser, until explicitly cleared.",
+      whyItMatters: "Not everything needs a server round-trip — remembering a user's theme preference, a draft comment, or a shopping cart before login can be handled entirely on the client, making the app feel faster and work offline for that data.",
+      analogy: "localStorage is like a sticky note you leave on your own desk at home — it's still there tomorrow even if you left and came back, but it's only visible on that specific desk (browser), not shared with anyone else's desk.",
+      simpleExample: "A website remembering that you prefer dark mode, even after you close the browser and reopen the site days later, is typically implemented by saving that one preference in localStorage.",
+      technicalExplanation: "localStorage.setItem(key, value) stores a value (always as a string) under a key. localStorage.getItem(key) retrieves it. localStorage.removeItem(key) deletes one entry, and localStorage.clear() removes everything. Since only strings can be stored, objects/arrays must be converted with JSON.stringify() before saving and JSON.parse() after retrieving.",
+      codeExamples: [
+        {
+          title: "Saving and retrieving an object in localStorage",
+          language: "javascript",
+          code: "const preferences = { theme: 'dark', fontSize: 16 };\nlocalStorage.setItem('preferences', JSON.stringify(preferences));\n\nconst saved = JSON.parse(localStorage.getItem('preferences'));\nconsole.log(saved.theme); // \"dark\"",
+          explanation: "JSON.stringify converts the preferences object into a string, since localStorage only stores strings. JSON.parse converts that string back into a usable JavaScript object when reading it back out, restoring access to properties like .theme.",
+        },
+      ],
+      realWorldUsage: "Storing a user's UI preferences, a JWT auth token (with security caveats), or unsaved form drafts are common real-world uses of localStorage in production web apps, including many React apps for persisting light client-side state.",
+      commonMistakes: [
+        {
+          wrong: "localStorage.setItem('user', { name: 'Asha' }); // storing an object directly",
+          right: "localStorage.setItem('user', JSON.stringify({ name: 'Asha' }));",
+          explanation: "localStorage only stores strings — passing an object directly silently converts it to the useless string '[object Object]' instead of preserving its data.",
+        },
+      ],
+      practice: {
+        instructions: "Build a simple note-taking box: a textarea and a 'Save' button that stores its content in localStorage, and automatically restores that saved content when the page reloads.",
+        hint: "On page load, check localStorage.getItem('note') and populate the textarea with it if it exists.",
+      },
+      quiz: [
+        {
+          question: "What data type can localStorage natively store?",
+          options: ["Any JavaScript object", "Only strings", "Only numbers", "Only arrays"],
+          correctIndex: 1,
+          explanation: "localStorage only stores strings — objects and arrays must be serialized with JSON.stringify() before saving and parsed back with JSON.parse().",
+        },
+        {
+          question: "Does data in localStorage disappear when the browser tab is closed?",
+          options: [
+            "Yes, always",
+            "No, it persists until explicitly removed or cleared",
+            "Only if the user is not logged in",
+            "It disappears after 24 hours automatically",
+          ],
+          correctIndex: 1,
+          explanation: "Unlike sessionStorage (which clears on tab close), localStorage persists indefinitely until code or the user explicitly clears it.",
+        },
+      ],
+      rememberThis: "localStorage is a sticky note on your own desk — it survives closing the tab, but it never leaves that specific browser.",
+      keyTakeaways: [
+        "localStorage stores key-value string data that persists across sessions.",
+        "Objects/arrays must be JSON.stringify()'d before storing and JSON.parse()'d after reading.",
+        "Data stays until explicitly removed — it doesn't expire automatically.",
+        "It's client-only storage, not shared with the server or other devices.",
+      ],
+    },
+];
+
+const javascriptLessonsPart3 = [
+    {
+      title: "Async JavaScript & the Event Loop",
+      description: "How JavaScript handles slow operations (like network requests) without freezing the page.",
+      estimatedMinutes: 20,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "Asynchronous JavaScript lets slow operations — like fetching data from a server or reading a file — run in the background without blocking the rest of your code from running. The event loop is the mechanism that manages this: it lets JavaScript start a slow task, keep running other code, and come back to handle the result once it's ready.",
+      whyItMatters: "JavaScript runs on a single thread — if a slow operation blocked everything else, the entire page would freeze until it finished (no scrolling, no clicking, nothing). Asynchronous behavior keeps the page responsive while waiting for slow things to complete.",
+      analogy: "It's like ordering food at a restaurant and being given a buzzer instead of standing frozen at the counter waiting. You go sit down, chat, do other things (other code keeps running), and the buzzer (callback) goes off only when your food (the async result) is actually ready.",
+      simpleExample: "A weather app that shows a loading spinner while fetching data, but still lets you scroll and tap other buttons during that wait, is possible because the fetch happens asynchronously instead of freezing the whole page.",
+      technicalExplanation: "JavaScript has one call stack for executing code. Asynchronous operations (timers, network requests) are handed off to browser/Node APIs, and when they complete, their callback is placed in a task queue (or microtask queue, for Promises). The event loop continuously checks: if the call stack is empty, it pulls the next task from the queue and pushes it onto the stack to run — this is why async callbacks always run after all currently running synchronous code finishes.",
+      codeExamples: [
+        {
+          title: "Synchronous code always runs before queued async callbacks",
+          language: "javascript",
+          code: "console.log('1: Start');\n\nsetTimeout(() => {\n  console.log('2: Timeout callback');\n}, 0);\n\nconsole.log('3: End');\n\n// Output order: 1: Start, 3: End, 2: Timeout callback",
+          explanation: "Even with a 0ms delay, setTimeout's callback is placed in the task queue and only runs after the current synchronous code (the two console.logs) finishes and the call stack is empty — demonstrating that async callbacks never interrupt currently running code.",
+        },
+      ],
+      realWorldUsage: "Every API call, file upload, timer, and animation frame in a real web or Node app relies on this asynchronous model — it's the reason a slow network request doesn't freeze an entire application's UI.",
+      commonMistakes: [
+        {
+          wrong: "Assuming code right after an async call (like fetch) runs only after that call finishes.",
+          right: "Understand that code after an async call keeps running immediately; you need .then()/await to wait for the actual result before using it.",
+          explanation: "JavaScript doesn't pause at an async call by default — the rest of the synchronous code keeps executing, which is exactly why Promises and async/await exist: to let you explicitly say 'wait for this before continuing.'",
+        },
+      ],
+      practice: {
+        instructions: "Predict the console output order of this code, then run it to verify: console.log('A'); setTimeout(() => console.log('B'), 0); console.log('C');",
+        hint: "Remember: all synchronous code finishes running before any queued setTimeout callback executes, no matter how small the delay.",
+      },
+      quiz: [
+        {
+          question: "Why doesn't a slow network request freeze the entire browser tab?",
+          options: [
+            "Browsers use multiple threads for all JavaScript",
+            "Async operations are handled outside the main call stack and their callbacks run later via the event loop",
+            "Network requests are always instant",
+            "JavaScript pauses all other tabs instead",
+          ],
+          correctIndex: 1,
+          explanation: "Slow operations are delegated to browser APIs; the main thread stays free to keep running other code while the event loop later schedules the callback once the operation completes.",
+        },
+        {
+          question: "In the setTimeout example with a 0ms delay, why doesn't its callback run immediately?",
+          options: [
+            "0ms delays are ignored by browsers",
+            "The callback still has to wait in the task queue until the current synchronous code finishes and the call stack is empty",
+            "setTimeout with 0ms is a syntax error",
+            "It does run immediately, before the console.logs",
+          ],
+          correctIndex: 1,
+          explanation: "Even a 0ms timeout is queued, not run instantly — the event loop only processes it once all currently executing synchronous code has completed.",
+        },
+      ],
+      rememberThis: "JavaScript hands you a buzzer for slow tasks instead of making you stand frozen at the counter — that buzzer system is the event loop.",
+      keyTakeaways: [
+        "JavaScript runs on a single thread but handles slow operations asynchronously.",
+        "Async operations are delegated elsewhere and their callbacks are queued.",
+        "The event loop runs queued callbacks only once the call stack is empty.",
+        "Code after an async call keeps running immediately unless you explicitly wait for it.",
+      ],
+    },
+    {
+      title: "Promises",
+      description: "A structured way to represent and handle the eventual result of an asynchronous operation.",
+      estimatedMinutes: 18,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "A Promise is an object representing a value that isn't available yet but will be at some point in the future — either successfully (resolved) or with an error (rejected). It gives asynchronous code a clean, chainable structure instead of deeply nested callbacks.",
+      whyItMatters: "Before Promises, asynchronous code relied on nested callbacks that quickly became unreadable ('callback hell'). Promises make async logic easier to read, chain, and handle errors for consistently.",
+      analogy: "A Promise is like a restaurant order ticket. You don't get your food instantly, but you get a ticket (the Promise) representing that food is coming — you can plan what to do once it arrives (.then) or what to do if the kitchen runs out (.catch), without standing there doing nothing in the meantime.",
+      simpleExample: "A food delivery app showing 'Order confirmed, tracking...' immediately, then later updating to 'Delivered!' once the order actually arrives, mirrors exactly how a Promise starts pending and later settles as fulfilled or failed.",
+      technicalExplanation: "A Promise has three states: pending, fulfilled (resolved with a value), or rejected (failed with a reason). .then(onFulfilled) runs when it resolves; .catch(onRejected) runs when it rejects; .finally() runs regardless of outcome. Promises can be chained, since .then() itself returns a new Promise, allowing sequential async steps without nesting.",
+      codeExamples: [
+        {
+          title: "Creating and consuming a Promise",
+          language: "javascript",
+          code: "function fetchUser(id) {\n  return new Promise((resolve, reject) => {\n    setTimeout(() => {\n      if (id > 0) resolve({ id, name: 'Asha' });\n      else reject(new Error('Invalid ID'));\n    }, 1000);\n  });\n}\n\nfetchUser(1)\n  .then((user) => console.log('Got user:', user))\n  .catch((error) => console.error('Failed:', error.message))\n  .finally(() => console.log('Done.'));",
+          explanation: "fetchUser returns a new Promise that resolves with a user object after 1 second (simulating a network delay) or rejects with an error if given an invalid id. .then() handles the success case, .catch() handles any rejection, and .finally() runs regardless of the outcome, useful for cleanup like hiding a loading spinner.",
+        },
+      ],
+      realWorldUsage: "Virtually every modern browser API for asynchronous work — fetch(), reading files, database calls in Node — returns a Promise, making it the standard building block for async code across the entire JavaScript ecosystem.",
+      commonMistakes: [
+        {
+          wrong: "fetchUser(1).then(user => console.log(user)); // no .catch, silently swallowing errors",
+          right: "fetchUser(1).then(user => console.log(user)).catch(error => console.error(error));",
+          explanation: "Without a .catch(), a rejected Promise produces an unhandled promise rejection, and errors go unnoticed rather than being properly reported or recovered from.",
+        },
+      ],
+      practice: {
+        instructions: "Write a function checkAge(age) that returns a Promise resolving with 'Access granted' if age >= 18, and rejecting with an Error 'Access denied' otherwise. Test it with both a passing and failing value using .then/.catch.",
+        hint: "Wrap your resolve/reject logic in new Promise((resolve, reject) => { ... }).",
+      },
+      quiz: [
+        {
+          question: "What are the three possible states of a Promise?",
+          options: [
+            "Start, middle, end",
+            "Pending, fulfilled, rejected",
+            "Loading, success, retry",
+            "Open, closed, cancelled",
+          ],
+          correctIndex: 1,
+          explanation: "A Promise starts pending, and eventually settles as either fulfilled (resolved) or rejected.",
+        },
+        {
+          question: "What happens if a rejected Promise has no .catch() handler?",
+          options: [
+            "The rejection is silently ignored with no consequence",
+            "It produces an unhandled promise rejection, and the error goes unnoticed by your logic",
+            "The program crashes immediately every time",
+            "It automatically retries the operation",
+          ],
+          correctIndex: 1,
+          explanation: "Without a .catch (or try/catch with await), a rejection isn't properly handled, which can hide bugs and cause unexpected behavior.",
+        },
+      ],
+      rememberThis: "A Promise is a restaurant order ticket — proof something is coming, with a clear plan for when it arrives and when the kitchen runs out.",
+      keyTakeaways: [
+        "A Promise represents a future value from an asynchronous operation.",
+        "States are pending, fulfilled, or rejected.",
+        ".then handles success, .catch handles failure, .finally runs regardless.",
+        "Always handle rejections — an uncaught one can hide real errors.",
+      ],
+    },
+    {
+      title: "async/await, fetch() & REST APIs",
+      description: "Writing asynchronous code that reads like synchronous code, and using it to talk to real APIs.",
+      estimatedMinutes: 20,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "async/await is syntax built on top of Promises that lets you write asynchronous code that looks and reads like ordinary step-by-step code, using the await keyword to pause (without blocking anything else) until a Promise settles. fetch() is the built-in browser function for making HTTP requests to REST APIs, and it returns a Promise.",
+      whyItMatters: "Chaining many .then() calls can still get hard to read for complex sequences. async/await makes multi-step asynchronous logic dramatically easier to follow, while still being built entirely on Promises underneath — it's the standard modern way to write async code and consume APIs.",
+      analogy: "If a Promise is a restaurant order ticket, await is like calmly waiting at your table for that specific ticket to be fulfilled before moving to the next course, rather than juggling many separate tickets and callbacks at once — your code proceeds in a clear, readable order.",
+      simpleExample: "A weather app that says, step by step, 'fetch the data, then wait for it, then display it, then stop the loading spinner' — written with await, that's almost literally how the code reads, top to bottom.",
+      technicalExplanation: "A function marked async always returns a Promise. Inside it, await pauses execution of that function (without blocking the rest of the program) until the awaited Promise settles, then returns its resolved value (or throws if rejected, catchable with try/catch). fetch(url) sends an HTTP request and resolves with a Response object; calling .json() on that response (itself returning a Promise) parses the body as JSON.",
+      codeExamples: [
+        {
+          title: "Fetching data from a REST API with async/await",
+          language: "javascript",
+          code: "async function loadUser(id) {\n  try {\n    const response = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`);\n    if (!response.ok) throw new Error(`Request failed: ${response.status}`);\n    const user = await response.json();\n    console.log(user.name);\n  } catch (error) {\n    console.error('Could not load user:', error.message);\n  }\n}\n\nloadUser(1);",
+          explanation: "await fetch(...) pauses loadUser (not the whole program) until the HTTP response arrives. response.ok checks whether the status code indicates success (200-299); if not, an error is thrown manually. await response.json() then parses the body. Any failure — network error or thrown error — is caught by the surrounding try/catch.",
+        },
+      ],
+      realWorldUsage: "In a MERN app, the React frontend uses fetch (or axios) with async/await constantly to call the Express backend's REST endpoints — loading a user's profile, submitting a form, or fetching a paginated list all follow this exact pattern.",
+      commonMistakes: [
+        {
+          wrong: "const response = await fetch(url); const data = response.json(); // missing await here",
+          right: "const response = await fetch(url); const data = await response.json();",
+          explanation: ".json() itself returns a Promise (parsing the body takes time), so forgetting await leaves data as an unresolved Promise object rather than the actual parsed data.",
+        },
+      ],
+      practice: {
+        instructions: "Write an async function that fetches a list of posts from https://jsonplaceholder.typicode.com/posts, logs how many posts were returned, and properly catches and logs any error.",
+        hint: "Wrap the fetch and .json() calls in a try/catch block inside your async function.",
+      },
+      quiz: [
+        {
+          question: "What does the await keyword do inside an async function?",
+          options: [
+            "It blocks the entire browser until the Promise resolves",
+            "It pauses that function's execution until the awaited Promise settles, without blocking other code",
+            "It converts a Promise into a synchronous value permanently",
+            "It cancels the Promise",
+          ],
+          correctIndex: 1,
+          explanation: "await pauses only the async function it's in, letting the rest of the program continue running, until the awaited Promise resolves or rejects.",
+        },
+        {
+          question: "Why must you check response.ok (or response.status) after a fetch call?",
+          options: [
+            "fetch never fails on its own",
+            "fetch only rejects on network failure — HTTP error statuses like 404 or 500 still resolve successfully and must be checked manually",
+            "response.ok is required syntax with no real purpose",
+            "It's only needed for POST requests",
+          ],
+          correctIndex: 1,
+          explanation: "fetch's Promise resolves as long as a response was received at all, even for 4xx/5xx errors — you must explicitly check the status to detect those failures.",
+        },
+      ],
+      rememberThis: "await lets your code wait calmly at the table for one order, instead of juggling a dozen tickets and callbacks at once.",
+      keyTakeaways: [
+        "async functions always return a Promise; await pauses within them until a Promise settles.",
+        "fetch() sends HTTP requests and resolves with a Response object.",
+        "fetch only rejects on network failure — HTTP error statuses must be checked via response.ok.",
+        "try/catch around await is the standard way to handle async errors.",
+      ],
+    },
+    {
+      title: "Closures",
+      description: "Functions that remember the environment they were created in, even after that environment is gone.",
+      estimatedMinutes: 18,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "A closure is what happens when an inner function 'remembers' and keeps access to variables from its outer function's scope, even after that outer function has finished running. The inner function carries that environment along with it wherever it goes.",
+      whyItMatters: "Closures are what make patterns like private variables, counters, and function factories possible in JavaScript. They quietly power a huge amount of real-world code, including React's useState hook internally.",
+      analogy: "A closure is like a backpack a function carries with it, packed with all the variables it needed at the time it was created. Even if the function travels far away from where it was born, it can always reach into that backpack to get what it needs.",
+      simpleExample: "A ticket counter at an event that always remembers the current count even between uses, without any global variable being visible to the outside world, is a closure keeping a private running total alive.",
+      technicalExplanation: "When a function is defined inside another function, it forms a closure over its enclosing scope's variables. Even after the outer function returns, the inner function retains a live reference to those variables (not just a copy) — meaning it can both read and update them across multiple calls.",
+      codeExamples: [
+        {
+          title: "A counter using a closure",
+          language: "javascript",
+          code: "function createCounter() {\n  let count = 0;\n  return function () {\n    count++;\n    return count;\n  };\n}\n\nconst counter = createCounter();\nconsole.log(counter()); // 1\nconsole.log(counter()); // 2\nconsole.log(counter()); // 3",
+          explanation: "createCounter runs once and returns an inner function. That inner function closes over count, keeping it alive in memory even after createCounter has finished executing. Each call to counter() increments and returns the same remembered count, rather than resetting to 0 — count is effectively private and inaccessible from outside.",
+        },
+      ],
+      realWorldUsage: "Closures power React's useState (each component instance 'remembers' its own state between renders), debounce/throttle utilities, and module patterns that hide private implementation details while exposing only a public function.",
+      commonMistakes: [
+        {
+          wrong: "for (var i = 0; i < 3; i++) { setTimeout(() => console.log(i), 100); } // logs 3, 3, 3",
+          right: "for (let i = 0; i < 3; i++) { setTimeout(() => console.log(i), 100); } // logs 0, 1, 2",
+          explanation: "var is function-scoped, so all three closures share the same single i, which ends at 3 by the time the timeouts run. let creates a fresh binding of i for each loop iteration, so each closure captures its own distinct value.",
+        },
+      ],
+      practice: {
+        instructions: "Write a function createBankAccount(initialBalance) that returns an object with deposit(amount) and getBalance() functions, keeping balance private and only accessible through those two functions.",
+        hint: "Declare balance as a variable inside createBankAccount, and have the returned functions close over it.",
+      },
+      quiz: [
+        {
+          question: "What is a closure?",
+          options: [
+            "A function that has no parameters",
+            "An inner function that retains access to its outer function's variables even after the outer function has returned",
+            "A way to close a Promise",
+            "A type of loop",
+          ],
+          correctIndex: 1,
+          explanation: "Closures let an inner function keep a live reference to variables from the scope it was defined in, even after that outer scope has finished executing.",
+        },
+        {
+          question: "Why does using var (instead of let) in a for loop with setTimeout often produce unexpected repeated values?",
+          options: [
+            "var is not supported in loops",
+            "All the closures share the same single function-scoped variable, which has finished changing by the time the callbacks run",
+            "setTimeout ignores var entirely",
+            "There's no actual difference between var and let here",
+          ],
+          correctIndex: 1,
+          explanation: "var doesn't create a new binding per iteration, so every closure references the same variable, which holds its final value once the loop completes — let creates a fresh binding each iteration instead.",
+        },
+      ],
+      rememberThis: "A closure is a backpack of variables a function carries with it forever — even after the place it was packed in is long gone.",
+      keyTakeaways: [
+        "A closure lets an inner function retain access to its outer function's variables.",
+        "Closures enable private state, counters, and function factories.",
+        "Each call to an outer function creates a new, independent closure.",
+        "var vs let in loops changes whether closures share or capture their own variable.",
+      ],
+    },
+    {
+      title: "The `this` Keyword",
+      description: "How JavaScript decides what `this` refers to inside a function, and why it can be confusing.",
+      estimatedMinutes: 18,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "`this` is a special keyword inside a function that refers to 'the object the function is currently being called on' — but unlike other languages, its value in JavaScript is determined by how a function is called, not where it's defined.",
+      whyItMatters: "Misunderstanding `this` is one of the most common sources of confusing bugs in JavaScript, especially when passing methods around as callbacks or using regular functions inside classes and event handlers.",
+      analogy: "`this` is like the word 'here' in a sentence — its actual meaning completely depends on who's speaking and where they're standing when they say it, not on some fixed, permanent meaning of the word itself.",
+      simpleExample: "A person saying 'my house' means a different house depending on which person is speaking — the same word, evaluated in context, refers to something different each time, just like `this` refers to a different object depending on how the function was called.",
+      technicalExplanation: "In a regular function called as a method (obj.method()), `this` refers to obj. Called standalone (just fn()), `this` is undefined in strict mode (or the global object otherwise). Arrow functions don't have their own `this` at all — they inherit it lexically from the surrounding scope where they were defined. call(), apply(), and bind() let you explicitly control what `this` refers to when invoking a function.",
+      codeExamples: [
+        {
+          title: "How `this` changes based on the call, and how arrow functions differ",
+          language: "javascript",
+          code: "const user = {\n  name: 'Asha',\n  greetRegular: function () {\n    console.log('Regular:', this.name); // 'Asha' — called as user.greetRegular()\n  },\n  greetArrow: () => {\n    console.log('Arrow:', this.name); // undefined — arrow fn inherits outer `this`, not user\n  },\n};\n\nuser.greetRegular();\nuser.greetArrow();",
+          explanation: "greetRegular is called as user.greetRegular(), so `this` correctly refers to user. greetArrow is an arrow function, so it never gets its own `this` from how it's called — it uses `this` from the surrounding (outer, module/global) scope, which doesn't have a name property, producing undefined.",
+        },
+      ],
+      realWorldUsage: "Correctly handling `this` is critical when writing class methods used as event handlers (e.g. in vanilla JS or older React class components), where losing the right `this` binding is one of the most common real-world bugs developers encounter.",
+      commonMistakes: [
+        {
+          wrong: "button.addEventListener('click', obj.handleClick); // loses `this` binding to obj",
+          right: "button.addEventListener('click', () => obj.handleClick()); // or obj.handleClick.bind(obj)",
+          explanation: "Passing a method as a bare reference detaches it from obj — when the browser later calls it, `this` inside handleClick no longer refers to obj. Wrapping it in an arrow function or using .bind(obj) preserves the intended `this`.",
+        },
+      ],
+      practice: {
+        instructions: "Create an object with a name property and a regular method sayName that logs this.name. Call it normally, then store the method in a separate variable and call it standalone, observing how `this` changes.",
+        hint: "Compare obj.sayName() with const fn = obj.sayName; fn();",
+      },
+      quiz: [
+        {
+          question: "What determines the value of `this` inside a regular (non-arrow) function?",
+          options: [
+            "Where the function is defined in the file",
+            "How the function is actually called (e.g. as obj.method() vs a standalone call)",
+            "The function's name",
+            "It's always the global object, no matter what",
+          ],
+          correctIndex: 1,
+          explanation: "Unlike variable scope, `this` in a regular function is dynamically determined by its call site, not its definition location.",
+        },
+        {
+          question: "How do arrow functions handle `this` differently from regular functions?",
+          options: [
+            "They behave identically to regular functions",
+            "They don't have their own `this` — they inherit it from the surrounding lexical scope",
+            "Arrow functions always set `this` to undefined",
+            "Arrow functions always bind `this` to the global window object",
+          ],
+          correctIndex: 1,
+          explanation: "Arrow functions capture `this` from wherever they were defined, rather than from how they're called, which avoids many common `this`-related bugs.",
+        },
+      ],
+      rememberThis: "`this` means 'here' — its meaning depends entirely on who's speaking (how the function was called), not on where the sentence was written.",
+      keyTakeaways: [
+        "`this` is determined by how a function is called, not where it's written.",
+        "Arrow functions inherit `this` lexically from their surrounding scope.",
+        "Passing a method as a bare reference can lose its intended `this` binding.",
+        "call(), apply(), and bind() let you explicitly control `this`.",
+      ],
+    },
+    {
+      title: "Prototypes & Prototypal Inheritance",
+      description: "How JavaScript objects share behavior through a chain of linked objects.",
+      estimatedMinutes: 18,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "Every JavaScript object has an internal link to another object called its prototype, which it can 'borrow' properties and methods from if it doesn't have its own. This chain of linked objects is called the prototype chain, and it's how JavaScript implements inheritance.",
+      whyItMatters: "Understanding prototypes explains where built-in methods like array.map() or string.toUpperCase() actually come from, and it's the underlying mechanism that JavaScript's class syntax is built on top of.",
+      analogy: "The prototype chain is like inheriting a family recipe book. If you don't have your own copy of a specific recipe, you check your parent's recipe book, and if it's not there either, you check your grandparent's — going up the family line until the recipe is found or you run out of ancestors.",
+      simpleExample: "Every array you create can immediately use .map(), .filter(), and dozens of other methods you never wrote yourself — they all live on Array.prototype, and every array automatically has access to it through the prototype chain.",
+      technicalExplanation: "When you access a property on an object, JavaScript first checks the object itself; if not found, it checks the object's prototype (accessible via Object.getPrototypeOf() or the older __proto__), then that prototype's prototype, and so on, until it reaches null. Object.create(proto) creates a new object with a specified prototype directly.",
+      codeExamples: [
+        {
+          title: "Manually building a prototype chain",
+          language: "javascript",
+          code: "const animal = {\n  speak() {\n    console.log(`${this.name} makes a sound.`);\n  },\n};\n\nconst dog = Object.create(animal);\ndog.name = 'Rex';\ndog.speak(); // \"Rex makes a sound.\"\n\nconsole.log(dog.hasOwnProperty('speak')); // false — it's inherited, not its own",
+          explanation: "Object.create(animal) creates dog with animal set as its prototype. dog has its own name property, but speak() isn't defined on dog itself — when called, JavaScript walks up the prototype chain, finds speak on animal, and runs it with this referring to dog. hasOwnProperty confirms speak isn't dog's own property.",
+        },
+      ],
+      realWorldUsage: "Every built-in JavaScript type (arrays, strings, functions) shares its methods via prototypes rather than duplicating them on every single instance — this is exactly why creating a million array instances doesn't waste memory storing a million copies of .map().",
+      commonMistakes: [
+        {
+          wrong: "Assuming every object property enumerated by a for...in loop belongs directly to that object.",
+          right: "Use Object.hasOwn(obj, key) (or obj.hasOwnProperty(key)) inside the loop to distinguish an object's own properties from ones it merely inherited via the prototype chain.",
+          explanation: "for...in walks the entire prototype chain by default, so it can include inherited properties you didn't expect, leading to subtle bugs if you assumed it only listed the object's own data.",
+        },
+      ],
+      practice: {
+        instructions: "Create a 'vehicle' object with a describe() method, then use Object.create() to make a 'car' object that inherits from it, adding its own 'wheels' property. Call describe() on the car.",
+        hint: "Object.create(vehicle) sets vehicle as car's prototype, letting car use describe() without redefining it.",
+      },
+      quiz: [
+        {
+          question: "What is the prototype chain used for?",
+          options: [
+            "Encrypting object data",
+            "Letting an object access properties/methods it doesn't have directly, by looking them up on linked prototype objects",
+            "Sorting object keys alphabetically",
+            "Converting objects to JSON",
+          ],
+          correctIndex: 1,
+          explanation: "The prototype chain lets JavaScript objects share and inherit behavior without duplicating it on every single instance.",
+        },
+        {
+          question: "Why can every array use methods like .map() without you defining them yourself?",
+          options: [
+            "Arrays are a special exception with no real inheritance involved",
+            "Every array's prototype chain includes Array.prototype, which defines shared methods like map",
+            ".map() is a global JavaScript keyword, not a method",
+            "Arrays automatically copy methods from other arrays",
+          ],
+          correctIndex: 1,
+          explanation: "Array instances inherit shared methods from Array.prototype through the prototype chain, rather than each array carrying its own copy.",
+        },
+      ],
+      rememberThis: "The prototype chain is a family recipe book — if you don't have a recipe yourself, JavaScript checks your ancestors until it finds one.",
+      keyTakeaways: [
+        "Every object links to a prototype it can inherit properties/methods from.",
+        "Property lookups walk up the prototype chain until found or exhausted.",
+        "Object.create() lets you explicitly set an object's prototype.",
+        "Built-in types share methods via prototypes instead of duplicating them per instance.",
+      ],
+    },
+    {
+      title: "Object-Oriented JavaScript: Classes",
+      description: "A cleaner syntax for creating objects and inheritance, built on top of prototypes.",
+      estimatedMinutes: 20,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "JavaScript classes provide a cleaner, more familiar syntax for creating objects with shared structure and behavior, and for setting up inheritance between them — while still using prototypes underneath.",
+      whyItMatters: "As applications grow, you often need many similar objects (many users, many products) with the same shape and behavior. Classes give a clear, organized template for creating these consistently, and let you model 'is-a' relationships (a Dog is an Animal) through inheritance.",
+      analogy: "A class is like a cookie cutter — it defines the exact shape (properties and methods) every cookie (object instance) made from it will have. You can make as many cookies as you want from the same cutter, and each one has that same defined shape, even though the specific decorations (property values) can differ.",
+      simpleExample: "A game with many different enemy characters, all sharing common behavior like takeDamage() and move(), but each with their own health and position, is a natural fit for a class — one blueprint, many independent instances.",
+      technicalExplanation: "class Name { constructor(...) { ... } method() { ... } } defines a blueprint; new Name(...) creates an instance, running the constructor to initialize its properties. extends creates a subclass that inherits from a parent class, and super() calls the parent's constructor from within the subclass's constructor.",
+      codeExamples: [
+        {
+          title: "A base class and a subclass using inheritance",
+          language: "javascript",
+          code: "class Animal {\n  constructor(name) {\n    this.name = name;\n  }\n  speak() {\n    console.log(`${this.name} makes a sound.`);\n  }\n}\n\nclass Dog extends Animal {\n  speak() {\n    console.log(`${this.name} barks.`);\n  }\n}\n\nconst generic = new Animal('Some Animal');\nconst rex = new Dog('Rex');\ngeneric.speak(); // \"Some Animal makes a sound.\"\nrex.speak();      // \"Rex barks.\"",
+          explanation: "Animal's constructor sets this.name whenever a new instance is created. Dog extends Animal, inheriting its constructor automatically (since Dog doesn't define its own), but overrides speak() with its own more specific behavior — this is polymorphism, where the same method name behaves differently for different subclasses.",
+        },
+      ],
+      realWorldUsage: "Classes are used to model backend entities (e.g. a Mongoose schema-based Model resembles a class), organize game objects, and structure larger applications with clear, reusable blueprints for related objects.",
+      commonMistakes: [
+        {
+          wrong: "class Dog extends Animal { constructor(name, breed) { this.breed = breed; } } // missing super()",
+          right: "class Dog extends Animal { constructor(name, breed) { super(name); this.breed = breed; } }",
+          explanation: "In a subclass constructor, super(...) must be called before using `this`, because it runs the parent class's constructor to properly initialize inherited properties first — omitting it throws a ReferenceError.",
+        },
+      ],
+      practice: {
+        instructions: "Create a Shape class with a constructor taking a name, and an area() method returning 0. Create a Circle subclass with its own constructor (name, radius) that calls super(name) and overrides area() to return the correct circle area.",
+        hint: "Circle area formula: Math.PI * radius * radius.",
+      },
+      quiz: [
+        {
+          question: "What must be called first in a subclass's constructor before using `this`?",
+          options: ["this.init()", "super()", "extends()", "new.target()"],
+          correctIndex: 1,
+          explanation: "super() runs the parent class's constructor, which must happen before `this` can be used in the subclass constructor.",
+        },
+        {
+          question: "What is polymorphism, as demonstrated by Dog overriding Animal's speak() method?",
+          options: [
+            "Creating multiple unrelated classes",
+            "The same method name behaving differently depending on which subclass's instance calls it",
+            "Making a class private",
+            "Copying a method into every subclass manually",
+          ],
+          correctIndex: 1,
+          explanation: "Polymorphism lets different subclasses provide their own specific implementation of a shared method name, and the correct version runs automatically based on the instance's actual class.",
+        },
+      ],
+      rememberThis: "A class is a cookie cutter — one defined shape, endless cookies, each independently decorated but structurally identical.",
+      keyTakeaways: [
+        "Classes provide a clean syntax for creating objects with shared structure and behavior.",
+        "extends sets up inheritance; super() calls the parent class's constructor.",
+        "Subclasses can override parent methods (polymorphism).",
+        "Classes are syntax built on top of JavaScript's existing prototype system.",
+      ],
+    },
+    {
+      title: "Basic Performance & Security Awareness",
+      description: "Everyday habits that keep client-side JavaScript fast and safe.",
+      estimatedMinutes: 15,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "Performance awareness means writing JavaScript that doesn't unnecessarily slow down a page (excessive DOM updates, unoptimized loops), while security awareness means avoiding common client-side vulnerabilities like injecting untrusted data as executable code.",
+      whyItMatters: "A slow page frustrates and loses users, and an insecure page can leak user data or let attackers run malicious code in your users' browsers. Both are core professional responsibilities, not optional extras.",
+      analogy: "Performance is like keeping a shop's checkout line moving briskly instead of making every customer wait unnecessarily. Security is like checking IDs at the door — most visitors are fine, but you still verify before letting anyone bring something inside that could harm other customers.",
+      simpleExample: "A search box that fires an API request on every single keystroke, versus one that waits until the user pauses typing, is a simple real difference between a performance-unaware and performance-aware implementation of the same feature.",
+      technicalExplanation: "Common performance practices include minimizing direct DOM manipulation (batch changes when possible), avoiding unnecessary work inside frequently-firing event handlers (scroll, resize, input), and being mindful of algorithmic complexity in loops over large datasets. Common security practices include never trusting client-side validation alone, avoiding innerHTML with untrusted input (XSS risk), and never embedding secrets (API keys, credentials) directly in client-side JavaScript, since anyone can view it.",
+      codeExamples: [
+        {
+          title: "Avoiding excessive work in a frequently-firing event",
+          language: "javascript",
+          code: "let searchTimeout;\nsearchInput.addEventListener('input', (e) => {\n  clearTimeout(searchTimeout);\n  searchTimeout = setTimeout(() => {\n    performSearch(e.target.value);\n  }, 300);\n});",
+          explanation: "Rather than calling performSearch on every keystroke, this clears any pending timeout and starts a new 300ms one each time the user types. If the user keeps typing, the search is repeatedly delayed, so it only actually fires once they pause — significantly reducing wasted work and API calls.",
+        },
+      ],
+      realWorldUsage: "Real production apps profile slow interactions with browser DevTools' Performance tab, debounce search/autocomplete inputs, lazy-load images below the fold, and run automated security scans to catch issues like exposed API keys before shipping.",
+      commonMistakes: [
+        {
+          wrong: "const STRIPE_SECRET_KEY = 'sk_live_...'; // hardcoded in frontend JavaScript",
+          right: "Keep secret keys only on the server; the frontend should only ever hold public/publishable keys, and sensitive operations should go through your backend API.",
+          explanation: "Any value present in frontend JavaScript is visible to anyone who opens DevTools — secret keys embedded there are effectively public and can be stolen and abused immediately.",
+        },
+      ],
+      practice: {
+        instructions: "Take a search input that currently calls a function on every keystroke, and rewrite it to only call that function 300ms after the user stops typing.",
+        hint: "Use clearTimeout combined with setTimeout inside the input event handler, as shown in the example.",
+      },
+      quiz: [
+        {
+          question: "Why is it dangerous to embed a secret API key directly in frontend JavaScript?",
+          options: [
+            "It makes the code run slower",
+            "Anyone can view the frontend source code and extract the key",
+            "Browsers block secret keys automatically",
+            "It only matters for mobile apps",
+          ],
+          correctIndex: 1,
+          explanation: "Frontend JavaScript is fully visible to anyone via DevTools or view-source — secrets must stay on the server.",
+        },
+        {
+          question: "Why is firing an API call on every single keystroke in a search box often a performance problem?",
+          options: [
+            "It's actually fine and has no downside",
+            "It generates far more requests than needed, wasting bandwidth and server load, especially while the user is still typing",
+            "Keystroke events can't trigger API calls",
+            "It causes a syntax error",
+          ],
+          correctIndex: 1,
+          explanation: "Debouncing (waiting until typing pauses) drastically reduces unnecessary requests compared to firing one per keystroke.",
+        },
+      ],
+      rememberThis: "Performance keeps the checkout line moving; security checks IDs at the door — both are basic professional hygiene, not optional extras.",
+      keyTakeaways: [
+        "Avoid unnecessary work inside frequently-firing events (debounce/throttle).",
+        "Never trust client-side validation alone — always validate on the server too.",
+        "Avoid innerHTML with untrusted input to prevent XSS.",
+        "Never embed secret keys or credentials in frontend JavaScript.",
+      ],
+    },
+    {
+      title: "Using Browser DevTools for JavaScript Debugging",
+      description: "Systematically finding and fixing bugs in your JavaScript using built-in browser tools.",
+      estimatedMinutes: 18,
+      difficulty: "INTERMEDIATE" as const,
+      whatIsIt: "Debugging with DevTools means using the browser's Sources panel to pause your running JavaScript at a specific line (a breakpoint), then step through it line by line while inspecting variable values, instead of guessing what's wrong from scattered console.log statements alone.",
+      whyItMatters: "As programs grow more complex, console.log alone becomes slow and messy for tracking down subtle bugs. Breakpoint-based debugging lets you freeze time at the exact moment something goes wrong and inspect the complete state of your program.",
+      analogy: "Using console.log to debug is like trying to understand a movie by only reading a few scattered subtitles someone wrote down. Using a breakpoint is like being able to pause the movie at the exact scene you care about and walk around inspecting everything in the frame.",
+      simpleExample: "If a function is returning the wrong total, instead of sprinkling console.log everywhere, you can click the line number in DevTools' Sources panel to set a breakpoint, reload, and the browser will pause exactly there, letting you inspect every variable's live value.",
+      technicalExplanation: "In the Sources panel, clicking a line number sets a breakpoint; when execution reaches it, the browser pauses and shows the current call stack and all variables in scope. From there you can Step Over (run the current line, don't enter function calls), Step Into (enter a function call to debug inside it), Step Out (finish the current function and return to the caller), and add Watch expressions to track specific values as you step.",
+      codeExamples: [
+        {
+          title: "Using the `debugger` statement to trigger a breakpoint from code",
+          language: "javascript",
+          code: "function calculateTotal(prices) {\n  let total = 0;\n  for (const price of prices) {\n    debugger; // execution pauses here when DevTools is open\n    total += price;\n  }\n  return total;\n}\n\ncalculateTotal([10, 20, 30]);",
+          explanation: "The debugger statement acts exactly like a manually-set breakpoint, but lives directly in the code — when DevTools is open and this line executes, the browser automatically pauses, letting you inspect total and price at each iteration without clicking a line number yourself.",
+        },
+      ],
+      realWorldUsage: "Professional developers use breakpoints and the call stack constantly to debug production issues, trace how data flows through complex functions, and understand third-party library behavior when documentation isn't enough.",
+      commonMistakes: [
+        {
+          wrong: "Sprinkling dozens of console.log statements throughout code, then manually deleting them all afterward.",
+          right: "Use conditional breakpoints and the Watch panel in DevTools to inspect state precisely where needed, without modifying and cleaning up your source code.",
+          explanation: "Breakpoints require no code changes (and no risk of accidentally leaving a stray console.log in production code), and let you inspect the entire program state at that pause point, not just the one value you thought to log.",
+        },
+      ],
+      practice: {
+        instructions: "Add a `debugger;` statement inside a loop in one of your own functions, open DevTools with the Sources panel visible, reload the page, and step through the loop using Step Over, watching a variable's value change each iteration.",
+        hint: "DevTools must be open for the debugger statement to actually pause execution — otherwise it's simply ignored.",
+      },
+      quiz: [
+        {
+          question: "What does 'Step Into' do when paused at a breakpoint on a line that calls a function?",
+          options: [
+            "Skips the function entirely",
+            "Enters the called function so you can debug its internal execution line by line",
+            "Deletes the breakpoint",
+            "Restarts the whole page",
+          ],
+          correctIndex: 1,
+          explanation: "Step Into moves execution inside the function being called, letting you trace what happens within it, rather than treating it as a single opaque step.",
+        },
+        {
+          question: "What happens if a `debugger;` statement runs while DevTools is closed?",
+          options: [
+            "It throws an error",
+            "It's effectively ignored — execution continues normally",
+            "It automatically opens DevTools",
+            "It crashes the browser tab",
+          ],
+          correctIndex: 1,
+          explanation: "The debugger statement only pauses execution when developer tools are open and attached; otherwise it has no effect.",
+        },
+      ],
+      rememberThis: "console.log gives you scattered subtitles; a breakpoint lets you pause the whole movie and walk around the scene.",
+      keyTakeaways: [
+        "Breakpoints pause code execution at a specific line for full state inspection.",
+        "Step Over, Step Into, and Step Out control how you move through paused code.",
+        "The debugger statement sets a breakpoint directly from code.",
+        "Breakpoints often reveal more context than scattered console.log statements.",
+      ],
+    },
+];
+
+const javascript: CurriculumModuleDef = {
+  name: "JavaScript",
+  description: "The programming language of the web — from core syntax to asynchronous programming and the DOM.",
+  estimatedDuration: "3 weeks",
+  lessons: [...javascriptLessonsPart1, ...javascriptLessonsPart2, ...javascriptLessonsPart3],
+};
+
+export const curriculum: CurriculumCourseDef = {
+  courseName: "MERN Full Stack",
+  modules: [webFundamentals, html, css, javascript],
+};

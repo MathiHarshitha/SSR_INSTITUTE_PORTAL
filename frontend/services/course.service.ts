@@ -1,10 +1,22 @@
 import { apiClient } from "@/lib/api-client";
 import { ApiSuccessResponse } from "@/types/auth";
-import { AdminCourse, CourseFormInput, CourseListQuery, CourseStatus, PublicCourse } from "@/types/course";
+import {
+  AdminCourse,
+  CourseFormInput,
+  CourseListQuery,
+  CourseStatus,
+  PublicCourse,
+  TrainerCourse,
+} from "@/types/course";
 
 export const courseService = {
   async listPublicCourses() {
     const { data } = await apiClient.get<ApiSuccessResponse<PublicCourse[]>>("/courses");
+    return data.data;
+  },
+
+  async listTrainerCourses() {
+    const { data } = await apiClient.get<ApiSuccessResponse<TrainerCourse[]>>("/courses/trainer");
     return data.data;
   },
 

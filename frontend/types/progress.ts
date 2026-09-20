@@ -2,7 +2,20 @@ export interface LessonProgressItem {
   lessonId: string;
   title: string;
   estimatedMinutes?: number;
+  difficulty: "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
+  order: number;
   completed: boolean;
+  quizBestScore?: number;
+}
+
+export interface TopicProgress {
+  topicId: string;
+  name: string;
+  order: number;
+  totalLessons: number;
+  completedLessons: number;
+  progress: number;
+  lessons: LessonProgressItem[];
 }
 
 export interface ModuleProgress {
@@ -12,7 +25,7 @@ export interface ModuleProgress {
   totalLessons: number;
   completedLessons: number;
   progress: number;
-  lessons: LessonProgressItem[];
+  topics: TopicProgress[];
 }
 
 export interface CourseProgress {

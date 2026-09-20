@@ -5,6 +5,7 @@ import { extractErrorMessage } from "@/lib/api-client";
 import { LessonFormInput, ModuleFormInput } from "@/types/module";
 
 const MODULES_KEY = "modules";
+const TOPICS_KEY = "topics";
 const LESSONS_KEY = "lessons";
 
 export function useModules(courseId: string) {
@@ -61,58 +62,58 @@ export function useReorderModules(courseId: string) {
   });
 }
 
-export function useLessons(moduleId: string | null) {
+export function useLessons(topicId: string | null) {
   return useQuery({
-    queryKey: [LESSONS_KEY, moduleId],
-    queryFn: () => moduleService.listLessons(moduleId as string),
-    enabled: !!moduleId,
+    queryKey: [LESSONS_KEY, topicId],
+    queryFn: () => moduleService.listLessons(topicId as string),
+    enabled: !!topicId,
   });
 }
 
-export function useCreateLesson(moduleId: string, courseId: string) {
+export function useCreateLesson(topicId: string, moduleId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: LessonFormInput) => moduleService.createLesson(moduleId, input),
+    mutationFn: (input: LessonFormInput) => moduleService.createLesson(topicId, input),
     onSuccess: () => {
       toast.success("Lesson added");
-      queryClient.invalidateQueries({ queryKey: [LESSONS_KEY, moduleId] });
-      queryClient.invalidateQueries({ queryKey: [MODULES_KEY, courseId] });
+      queryClient.invalidateQueries({ queryKey: [LESSONS_KEY, topicId] });
+      queryClient.invalidateQueries({ queryKey: [TOPICS_KEY, moduleId] });
     },
     onError: (error) => toast.error(extractErrorMessage(error)),
   });
 }
 
-export function useUpdateLesson(moduleId: string) {
+export function useUpdateLesson(topicId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, input }: { id: string; input: Partial<LessonFormInput> }) =>
       moduleService.updateLesson(id, input),
     onSuccess: () => {
       toast.success("Lesson updated");
-      queryClient.invalidateQueries({ queryKey: [LESSONS_KEY, moduleId] });
+      queryClient.invalidateQueries({ queryKey: [LESSONS_KEY, topicId] });
     },
     onError: (error) => toast.error(extractErrorMessage(error)),
   });
 }
 
-export function useDeleteLesson(moduleId: string, courseId: string) {
+export function useDeleteLesson(topicId: string, moduleId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => moduleService.removeLesson(id),
     onSuccess: () => {
       toast.success("Lesson deleted");
-      queryClient.invalidateQueries({ queryKey: [LESSONS_KEY, moduleId] });
-      queryClient.invalidateQueries({ queryKey: [MODULES_KEY, courseId] });
+      queryClient.invalidateQueries({ queryKey: [LESSONS_KEY, topicId] });
+      queryClient.invalidateQueries({ queryKey: [TOPICS_KEY, moduleId] });
     },
     onError: (error) => toast.error(extractErrorMessage(error)),
   });
 }
 
-export function useReorderLessons(moduleId: string) {
+export function useReorderLessons(topicId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (orderedIds: string[]) => moduleService.reorderLessons(moduleId, orderedIds),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: [LESSONS_KEY, moduleId] }),
+    mutationFn: (orderedIds: string[]) => moduleService.reorderLessons(topicId, orderedIds),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [LESSONS_KEY, topicId] }),
     onError: (error) => toast.error(extractErrorMessage(error)),
   });
 }

@@ -2,6 +2,8 @@ import { FilterQuery } from "mongoose";
 import { Course, ICourse } from "../models/Course";
 import { ApiError } from "../utils/ApiError";
 import { recordAudit } from "./auditLog.service";
+import { assertCourseContentAccess, listTrainerCourseIds } from "../utils/batchAccess";
+import { Role } from "../constants/enums";
 import { CreateCourseInput, ListCoursesQuery, UpdateCourseInput } from "../validators/course.validator";
 
 /** Public listing used by the student registration form's course picker. No auth required. */
@@ -31,9 +33,19 @@ export async function listCoursesAdmin(query: ListCoursesQuery) {
   return { courses, total };
 }
 
-export async function getCourseById(id: string) {
+/** A trainer's "My Courses" — every course they're assigned to teach via at least one batch. */
+export async function listCoursesForTrainer(trainerId: string) {
+  const courseIds = await listTrainerCourseIds(trainerId);
+  return Course.find({ _id: { $in: courseIds } })
+    .select("name shortDescription category duration status")
+    .sort({ name: 1 })
+    .lean();
+}
+
+export async function getCourseById(id: string, requester: { id: string; role: Role }) {
   const course = await Course.findById(id).lean();
   if (!course) throw ApiError.notFound("Course not found");
+  if (requester.role === "TRAINER") await assertCourseContentAccess(id, requester);
   return course;
 }
 
