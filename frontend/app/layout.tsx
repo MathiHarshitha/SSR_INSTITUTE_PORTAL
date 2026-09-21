@@ -22,6 +22,11 @@ export const metadata: Metadata = {
   },
   description:
     "SSR Portal connects students, trainers, courses, practical learning, assessments and placement opportunities in one platform.",
+  icons: {
+    icon: [{ url: "/ssr-logo.webp", type: "image/webp" }],
+    shortcut: ["/ssr-logo.webp"],
+    apple: [{ url: "/ssr-logo.webp", type: "image/webp" }],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
