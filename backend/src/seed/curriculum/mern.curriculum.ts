@@ -10829,6 +10829,39 @@ const progressiveProjects: CurriculumModuleDef = {
               correctIndex: 1,
               explanation: "Removing an item from the UI before confirming the delete succeeded risks the UI showing a state that doesn't match reality — proper error handling keeps them in sync.",
             },
+            {
+              question: "Why does the POST /api/todos route check `if (!req.body.text?.trim())` before creating a todo?",
+              options: [
+                "To reject empty or whitespace-only todo text with a 400 error, rather than saving a meaningless empty item",
+                "trim() is required syntax for any Mongoose create() call",
+                "It has no real effect on what gets saved",
+                "It converts the text field into a number"
+              ],
+              correctIndex: 0,
+              explanation: "Basic input validation like this prevents saving empty or whitespace-only todos, catching an obviously invalid request before it ever reaches the database."
+            },
+            {
+              question: "Why does the GET /api/todos route sort by { createdAt: -1 }?",
+              options: [
+                "It has no effect on the returned order",
+                "It returns the most recently created todos first, which is the typical expected ordering for a todo list",
+                "Descending sort is required for Mongoose queries to work",
+                "It deletes older todos automatically"
+              ],
+              correctIndex: 1,
+              explanation: "Sorting by createdAt in descending order surfaces the newest todos at the top of the list, matching how users typically expect a todo list to be ordered."
+            },
+            {
+              question: "Why does the practice hint suggest testing the backend endpoints with Postman or curl before wiring up the React front end?",
+              options: [
+                "React cannot make API calls without Postman being installed",
+                "It isolates and verifies the API layer works correctly on its own first, making it easier to tell whether a later bug is in the backend or the frontend",
+                "Postman is required for Express routes to function",
+                "It has no real benefit over testing everything together at once"
+              ],
+              correctIndex: 1,
+              explanation: "Verifying each backend endpoint independently first means any bugs found while wiring up the frontend can be more confidently attributed to the frontend integration rather than the API itself."
+            }
           ],
           rememberThis: "The Todo app is your first birdhouse — small enough to finish, real enough to force every individually-practiced skill to work together for the first time.",
           keyTakeaways: [
@@ -10891,6 +10924,39 @@ const progressiveProjects: CurriculumModuleDef = {
               correctIndex: 1,
               explanation: "Debouncing waits for a pause in typing before firing the request, avoiding a flood of nearly-instantly-obsolete API calls as the user types each character.",
             },
+            {
+              question: "Why is the filter object in the GET /api/notes route built up conditionally, only adding category or $or when those query parameters are present?",
+              options: [
+                "So the endpoint only ever returns notes matching every possible filter at once",
+                "So the endpoint works correctly whether the client sends no filters, only a category, only a search term, or both — an unconditional filter would incorrectly require both to always be present",
+                "Conditional filter building is required syntax for Mongoose",
+                "It has no effect on which notes are returned"
+              ],
+              correctIndex: 1,
+              explanation: "Building the filter object conditionally lets the same endpoint correctly handle any combination of provided query parameters, rather than assuming all of them are always present."
+            },
+            {
+              question: "What does the $options: \"i\" flag do inside the $regex filter for search?",
+              options: [
+                "It sorts the search results alphabetically",
+                "It makes the regex match case-insensitively, so searching 'meeting' also matches 'Meeting' or 'MEETING'",
+                "It limits the search to the first result only",
+                "It has no effect on the match behavior"
+              ],
+              correctIndex: 1,
+              explanation: "The 'i' option makes the $regex match case-insensitive, which is the expected behavior for a general-purpose text search."
+            },
+            {
+              question: "Why does the technical explanation suggest cleaning up the previous timeout in useEffect's cleanup function when implementing debounce manually?",
+              options: [
+                "Cleanup functions are unrelated to debouncing",
+                "Without clearing the previous timeout on each keystroke, multiple pending timeouts could still fire, defeating the purpose of waiting for the user to pause typing",
+                "It prevents the component from ever unmounting",
+                "It has no effect on the debounce behavior"
+              ],
+              correctIndex: 1,
+              explanation: "Clearing the prior timeout on every keystroke ensures only the most recent one ever actually fires, which is exactly what makes the debounce wait for a genuine pause in typing."
+            }
           ],
           rememberThis: "The Notes app is your garden shed build — more rooms, more organization, and now you need a way to actually find the right tool instead of seeing everything at once.",
           keyTakeaways: [
@@ -10953,6 +11019,39 @@ const progressiveProjects: CurriculumModuleDef = {
               correctIndex: 1,
               explanation: "This reflects a deliberate, common design choice for content platforms: public consumption, restricted contribution — not every route in an app needs the same access level.",
             },
+            {
+              question: "Why does the public GET /api/posts route use populate('authorId', 'name') instead of just returning the raw authorId?",
+              options: [
+                "populate() deletes the author reference entirely",
+                "It replaces the raw authorId reference with the actual author's name, so the frontend can display who wrote each post without a separate lookup",
+                "populate() is required for any Mongoose query to run successfully",
+                "It has no effect on the response shape"
+              ],
+              correctIndex: 1,
+              explanation: "populate() resolves a referenced document's fields directly into the response, sparing the frontend from making a separate request just to show the author's name."
+            },
+            {
+              question: "Why does the Post model store authorId as a reference to the User model rather than duplicating the author's name and details directly on each post?",
+              options: [
+                "References are required by MongoDB for every field",
+                "Referencing keeps a single source of truth for user data — if a user updates their name, every post referencing them reflects it automatically without needing to update duplicated copies",
+                "It makes queries slower on purpose",
+                "There's no real difference between the two approaches"
+              ],
+              correctIndex: 1,
+              explanation: "A reference avoids data duplication and the risk of stale, inconsistent copies of user data spread across many post documents."
+            },
+            {
+              question: "What HTTP status code should the update/delete routes return when a user who is authenticated but not the post's owner attempts to edit it?",
+              options: [
+                "200 OK, since the request was technically received",
+                "403 Forbidden, indicating the user is authenticated but not authorized to modify this specific resource",
+                "404 Not Found, to hide the post's existence entirely",
+                "500 Internal Server Error"
+              ],
+              correctIndex: 1,
+              explanation: "403 Forbidden correctly communicates that the request was understood and the user is known, but they lack permission for this specific action — distinct from an authentication failure (401) or a missing resource (404)."
+            }
           ],
           rememberThis: "The Blog app is a multi-tenant apartment building — shared common areas, private apartments, and building security making sure nobody walks into someone else's unit.",
           keyTakeaways: [
@@ -11012,6 +11111,39 @@ const progressiveProjects: CurriculumModuleDef = {
               correctIndex: 1,
               explanation: "The refresh endpoint is exactly the mechanism that lets short-lived access tokens be renewed seamlessly using the longer-lived refresh token, maintaining the user's session without repeated logins.",
             },
+            {
+              question: "Why does the practice hint suggest storing a hashed version of the reset token in the database rather than the raw token?",
+              options: [
+                "Hashing tokens has no security benefit",
+                "It mirrors how passwords are hashed, so anyone who gains read access to the database still can't use the stored value directly as a valid reset link",
+                "Raw tokens cannot be stored in MongoDB at all",
+                "It makes the reset link expire faster"
+              ],
+              correctIndex: 1,
+              explanation: "Storing a hash instead of the raw token means a database leak alone wouldn't hand an attacker usable reset tokens, the same reasoning that motivates hashing passwords."
+            },
+            {
+              question: "Why does POST /auth/logout need to invalidate the refresh token server-side rather than just having the client discard it locally?",
+              options: [
+                "Client-side discarding is entirely sufficient and server-side invalidation is unnecessary",
+                "If the refresh token isn't invalidated server-side, anyone who had previously obtained a copy of it (e.g., via a stolen device) could still use it to get new access tokens after the user 'logged out'",
+                "Refresh tokens cannot be discarded on the client at all",
+                "It has no effect on the security of the system"
+              ],
+              correctIndex: 1,
+              explanation: "True logout security requires the server to reject the old refresh token going forward, not just rely on the client no longer sending it."
+            },
+            {
+              question: "What is the role of the authorize(role) middleware described in this capstone's technical explanation?",
+              options: [
+                "It hashes user passwords before storage",
+                "It restricts access to certain routes based on the authenticated user's role, layered on top of basic authentication",
+                "It issues new access and refresh tokens",
+                "It sends password reset emails"
+              ],
+              correctIndex: 1,
+              explanation: "authorize(role) adds a role-based access gate on top of authenticate, restricting specific routes to users with the appropriate role rather than just confirming identity."
+            }
           ],
           rememberThis: "This capstone is the actual security office for a whole building complex — badge issuing, renewal, and replacement, working together as one coherent system.",
         },
@@ -11060,6 +11192,39 @@ const progressiveProjects: CurriculumModuleDef = {
               correctIndex: 1,
               explanation: "Without this check, multiple simultaneous orders could oversell limited stock, and displayed inventory would drift from reality.",
             },
+            {
+              question: "Why does the technical explanation suggest using a MongoDB transaction (or careful operation ordering) when creating an order and decrementing stock?",
+              options: [
+                "Transactions make the checkout process visually faster for the user",
+                "It keeps order creation and stock decrementing consistent together, avoiding a state where an order is created but stock isn't correctly decremented (or vice versa) if one step fails",
+                "Transactions are required for any two Mongoose operations to run at all",
+                "It has no real effect on data consistency"
+              ],
+              correctIndex: 1,
+              explanation: "Without atomicity, a partial failure between creating the order and decrementing stock could leave the database in an inconsistent state — a transaction (or careful ordering) prevents that."
+            },
+            {
+              question: "Why are admin-only product management routes (create/edit/delete) role-protected while GET /api/products remains open to any customer?",
+              options: [
+                "Browsing products should be publicly accessible to any shopper, while modifying the product catalog should be restricted to trusted administrators",
+                "All routes in an e-commerce app should always require the same access level",
+                "GET routes cannot technically be protected in Express",
+                "There's no meaningful reason for the distinction"
+              ],
+              correctIndex: 0,
+              explanation: "This mirrors the same public-read/restricted-write pattern seen in the Blog capstone — browsing should stay open, while catalog changes need admin authorization."
+            },
+            {
+              question: "Why does the Order model use an embedded array of line items rather than separate references to individual product documents for each item purchased?",
+              options: [
+                "Embedding is required by MongoDB for all arrays",
+                "Embedding lets each line item capture its own price-at-purchase and quantity as a self-contained snapshot, rather than depending on a live, possibly-changed product reference",
+                "It has no benefit over storing plain product references",
+                "It prevents the order from ever being viewed again"
+              ],
+              correctIndex: 1,
+              explanation: "Embedding line items directly is what allows each one to preserve its own price-at-purchase and quantity as a fixed historical snapshot, independent of later changes to the referenced product."
+            }
           ],
           rememberThis: "This capstone is opening an actual small retail store — stocked shelves, a till connected to inventory, a customer's basket, and a manager's back office, all working together.",
         },
@@ -11108,6 +11273,39 @@ const progressiveProjects: CurriculumModuleDef = {
               correctIndex: 1,
               explanation: "Filtering directly in the database query by the authenticated user's own ID against the relevant relationship field (teacherId) is the correct, secure way to scope this data.",
             },
+            {
+              question: "Why does a student's route for viewing enrollments need to filter by studentId matching the logged-in student's own ID, rather than just checking that the user's role is 'student'?",
+              options: [
+                "A role check alone would let a student view every other student's enrollments and grades, not just their own",
+                "Role checks are technically impossible for the student role specifically",
+                "Filtering by studentId has no security benefit over a role check",
+                "Students should not be able to view their own grades at all"
+              ],
+              correctIndex: 0,
+              explanation: "Just like the teacher-scoping issue, a flat 'is this a student' check wouldn't prevent one student from seeing another's private enrollment and grade data — relationship-based filtering by their own ID is required."
+            },
+            {
+              question: "What privilege should an admin have that neither a teacher nor a student has in this system?",
+              options: [
+                "The ability to CRUD any Course, Enrollment, or User across the entire system",
+                "The ability to view only their own enrolled courses",
+                "The ability to manage only the courses they personally teach",
+                "No special privileges beyond a regular student"
+              ],
+              correctIndex: 0,
+              explanation: "The admin role is described as having full CRUD access across all Users, Courses, and Enrollments, unlike the narrower, relationship-scoped access granted to teachers and students."
+            },
+            {
+              question: "Why does this capstone describe the three-role system as requiring 'careful authorization design beyond a simple two-tier admin/user split'?",
+              options: [
+                "Because a two-tier split is always sufficient for any real application",
+                "Because teachers and students both need meaningfully different, relationship-scoped access to overlapping data, which a simple binary admin-vs-everyone-else model can't correctly express",
+                "Because MongoDB doesn't support more than two roles",
+                "Because only admins should ever have any permissions at all"
+              ],
+              correctIndex: 1,
+              explanation: "A simple two-tier model can't express the nuance that teachers and students both need different, narrower, relationship-based views into shared data — hence the need for the richer three-tier design."
+            }
           ],
           rememberThis: "This capstone is a school's front office — the principal sees everything, each teacher manages only their own classroom, and each student checks only their own report card.",
         },
@@ -11156,6 +11354,39 @@ const progressiveProjects: CurriculumModuleDef = {
               correctIndex: 1,
               explanation: "This mirrors the earlier aggregation pipeline lesson's core lesson: computing summaries at the database level avoids unnecessary data transfer and client-side computation burden.",
             },
+            {
+              question: "In the aggregation pipeline for role-scoped analytics, why should the role-based $match stage run before any $group stage?",
+              options: [
+                "Stage order in an aggregation pipeline has no effect on the result",
+                "Filtering to the correct region first ensures the subsequent $group only aggregates that region's data, rather than grouping everything and then trying to filter an already-combined result",
+                "$group is required to run before $match in every pipeline",
+                "It only affects performance, never correctness"
+              ],
+              correctIndex: 1,
+              explanation: "Since $group combines documents together, filtering with $match beforehand is what ensures the grouped result reflects only the authorized region's data — filtering after grouping could no longer cleanly separate it back out."
+            },
+            {
+              question: "Why does the technical explanation recommend independent loading/error states for each dashboard widget rather than one single loading state for the whole dashboard?",
+              options: [
+                "Independent states are required by every charting library",
+                "So a slow or failed widget doesn't block or hide the other widgets that have already loaded successfully, giving a more responsive, resilient dashboard",
+                "It has no effect on the user's experience",
+                "Independent loading states remove the need for aggregation pipelines"
+              ],
+              correctIndex: 1,
+              explanation: "If one widget's data is slow or fails, independent per-widget states let the rest of the dashboard still render and remain useful, rather than the whole page being blocked by one failing request."
+            },
+            {
+              question: "What does this capstone's analogy of a 'mission control room' emphasize about how the dashboard presents data?",
+              options: [
+                "Every user sees every possible raw log entry regardless of role",
+                "Different consoles show different pre-digested (aggregated) reports, and which reports a person sees depends on their role/clearance, not just what data technically exists in the database",
+                "Only executives are allowed to view any dashboard at all",
+                "Charts are rendered entirely without any backend computation"
+              ],
+              correctIndex: 1,
+              explanation: "The analogy captures both key ideas together: data is pre-aggregated (not raw) and access is role-scoped, mirroring how a mission control room presents digested reports appropriate to each viewer's clearance."
+            }
           ],
           rememberThis: "This capstone is a mission control room — different screens show different pre-digested reports, and which ones you see depends on your clearance level, not just what data exists.",
         },
@@ -11204,6 +11435,39 @@ const progressiveProjects: CurriculumModuleDef = {
               correctIndex: 1,
               explanation: "This capstone deliberately requires combining multiple different authorization patterns (ownership checks, enrollment checks, role checks) learned throughout the course, applied appropriately per specific route/action rather than one blanket rule.",
             },
+            {
+              question: "Why does the recommended build order start with the Course/Module/Lesson data model before anything else, according to the practice hint?",
+              options: [
+                "Data models have no real impact on later phases",
+                "Every later phase (auth, enrollment, progress, quizzes) depends on Course/Module/Lesson/Enrollment being correctly structured from the start, so getting the core relationships right first avoids costly rework later",
+                "Authentication is always built last in every application",
+                "It's an arbitrary ordering with no particular reasoning"
+              ],
+              correctIndex: 1,
+              explanation: "Since nearly every other feature references or builds on the core Course/Module/Lesson/Enrollment relationships, getting that foundation right first prevents having to rework it under later features."
+            },
+            {
+              question: "How does the aggregation-powered progress dashboard in this capstone compute a student's completion percentage per course?",
+              options: [
+                "It hardcodes a fixed percentage for every student",
+                "It aggregates data about which lessons a student has marked complete relative to a course's total lessons, computing the percentage server-side rather than in the browser",
+                "It relies entirely on the student manually entering their own progress percentage",
+                "Progress percentage cannot be computed and must always be shown as a raw count"
+              ],
+              correctIndex: 1,
+              explanation: "Consistent with the aggregation pattern used elsewhere in this course, completion percentage is computed from underlying enrollment/lesson-completion data at the database level, not guessed or entered manually."
+            },
+            {
+              question: "Why does this capstone's realWorldUsage note that it 'mirrors the structure of the very platform this curriculum is seeded into'?",
+              options: [
+                "Because this capstone literally deploys onto the exact same production database",
+                "Because building an LMS-style app with courses, enrollments, progress tracking, and quizzes is directly analogous to the real platform delivering this course, making the exercise maximally realistic and transferable",
+                "Because it has no relationship to any real LMS software",
+                "Because the capstone specifically avoids using MongoDB"
+              ],
+              correctIndex: 1,
+              explanation: "Building the same category of application (an LMS) that the course itself runs on makes this capstone about as close to real, transferable production experience as a course project can get."
+            }
           ],
           rememberThis: "This final capstone is building the entire school — not just one classroom — drawing on literally everything you've practiced individually throughout the whole course.",
         },

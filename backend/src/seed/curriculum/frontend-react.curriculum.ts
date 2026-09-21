@@ -4866,6 +4866,39 @@ const progressiveProjectsModule: CurriculumModuleDef = {
               ],
               correctIndex: 1,
               explanation: "A deployed portfolio demonstrates practical, end-to-end capability — not just writing code, but shipping something real and publicly accessible."
+            },
+            {
+              question: "In the ProjectCard example, what does spreading {...p} onto the component do?",
+              options: [
+                "It copies the component's own internal state",
+                "It passes each field of a project object (title, description, link, etc.) as an individual prop to ProjectCard in one concise step",
+                "It duplicates the ProjectCard component itself",
+                "It merges two separate arrays together"
+              ],
+              correctIndex: 1,
+              explanation: "Spreading an object onto a component is shorthand for passing every one of its keys as a separate named prop, avoiding writing each one out by hand."
+            },
+            {
+              question: "Which section is NOT part of the minimum portfolio described in the practice instructions?",
+              options: [
+                "A Hero section",
+                "A data-driven Projects section",
+                "A Contact section",
+                "A full backend admin panel for managing projects"
+              ],
+              correctIndex: 3,
+              explanation: "The practice instructions call for a Hero, a data-driven Projects section, and a Contact section — a backend admin panel isn't part of this frontend-only project's scope."
+            },
+            {
+              question: "Why does the practice instruction emphasize actually deploying the portfolio live rather than just running it locally?",
+              options: [
+                "Local development servers cannot render React components",
+                "A deployed, publicly reachable URL demonstrates the complete real-world build-and-ship cycle, which is exactly what employers or clients typically look for",
+                "Deployment is required for map() to function correctly",
+                "There is no meaningful reason; local-only is equally sufficient"
+              ],
+              correctIndex: 1,
+              explanation: "Shipping something real and publicly accessible is the whole point of a portfolio — a project that only runs locally can't be shared or reviewed by anyone else."
             }
           ],
           rememberThis: "A portfolio site is a scrapbook with a table of contents — the goal is clearly presenting what you can already do, not maximizing complexity.",
@@ -4936,6 +4969,39 @@ const progressiveProjectsModule: CurriculumModuleDef = {
               ],
               correctIndex: 1,
               explanation: "React relies on detecting new references to know something changed; mutating in place and passing back the same array/object reference can cause React to not detect the update correctly."
+            },
+            {
+              question: "What does the lazy initializer function passed to useState inside useLocalStorage accomplish?",
+              options: [
+                "It runs on every render to keep localStorage constantly in sync",
+                "It reads any existing saved value from localStorage only once, on the component's first render, to set the initial state",
+                "It deletes any previously stored value on mount",
+                "It has no effect and could be replaced with a plain default value"
+              ],
+              correctIndex: 1,
+              explanation: "Passing a function to useState makes React call it only on the very first render, which is exactly when reading and parsing localStorage should happen — not on every subsequent re-render."
+            },
+            {
+              question: "Why does the useEffect inside useLocalStorage list [key, value] as its dependency array?",
+              options: [
+                "So the effect re-runs and writes to localStorage whenever the stored value (or key) actually changes, keeping storage in sync with state",
+                "Dependency arrays are required syntax and have no functional purpose",
+                "So the effect only runs once, no matter how many times value changes",
+                "To prevent the component from ever re-rendering"
+              ],
+              correctIndex: 0,
+              explanation: "Listing value (and key) as dependencies ensures the effect re-runs and persists the latest state to localStorage exactly when that state actually changes."
+            },
+            {
+              question: "What is the purpose of the filter buttons (All / Active / Completed) being local component state rather than part of the persisted tasks array?",
+              options: [
+                "It's a mistake; filters should also be persisted to localStorage",
+                "The current filter selection is transient UI state, not data that needs to survive a refresh, so it doesn't belong in the persisted tasks array",
+                "Local state cannot be used alongside a custom hook",
+                "Filters must always be stored in a global state manager like Redux"
+              ],
+              correctIndex: 1,
+              explanation: "Only the actual task data needs to persist between visits; which filter is currently selected is a temporary view concern that can reasonably reset on reload."
             }
           ],
           rememberThis: "A todo app is the scales-and-arpeggios of React — small and self-contained, but exercising nearly every fundamental technique you'll rely on later.",
@@ -5006,6 +5072,39 @@ const progressiveProjectsModule: CurriculumModuleDef = {
               ],
               correctIndex: 1,
               explanation: "Since a city search is typically only meaningful once the user has finished typing and intends to search, waiting for an explicit submission avoids unnecessary, likely-invalid requests for every partially-typed keystroke."
+            },
+            {
+              question: "In the WeatherApp example, what is the purpose of tracking an explicit status value (idle/loading/success/error) instead of just checking whether weather is null?",
+              options: [
+                "It has no real benefit over checking weather === null",
+                "It lets the UI clearly distinguish between 'nothing searched yet', 'currently loading', and 'the request failed', which a single null check can't tell apart",
+                "status is required by the fetch() API itself",
+                "It prevents the component from re-rendering during a request"
+              ],
+              correctIndex: 1,
+              explanation: "A null weather value alone can't tell you whether nothing has been searched yet, a request is in flight, or the last request failed — an explicit status value captures each distinct state clearly."
+            },
+            {
+              question: "Why does the fetch handler check `if (!res.ok) throw new Error(...)` before calling res.json()?",
+              options: [
+                "fetch() automatically throws on any non-200 response, making this check redundant",
+                "fetch() only rejects on network failures, not on HTTP error statuses like 404, so this check is needed to treat a failed request as an error",
+                "res.ok is required for res.json() to parse correctly",
+                "This check has no effect on the request's behavior"
+              ],
+              correctIndex: 1,
+              explanation: "fetch() resolves successfully even for HTTP error responses (like a 404 for an unknown city); checking res.ok is how you detect and handle that as an error case yourself."
+            },
+            {
+              question: "Why does the practice instruction suggest deliberately searching a nonexistent city like 'asdkjfhaskdjfh'?",
+              options: [
+                "To intentionally crash the application and test error boundaries",
+                "To verify the error state is actually reachable and displays a clear message, rather than only ever testing the happy path",
+                "Because the weather API requires nonsense input to function",
+                "It has no real testing purpose"
+              ],
+              correctIndex: 1,
+              explanation: "Deliberately triggering the error case is the only reliable way to confirm the error-handling branch actually works, rather than assuming it does because the happy path succeeds."
             }
           ],
           rememberThis: "This project is placing a real phone call to an outside business, not rehearsing with yourself — you now have to handle a response you don't fully control.",
@@ -5063,6 +5162,50 @@ const progressiveProjectsModule: CurriculumModuleDef = {
               ],
               correctIndex: 1,
               explanation: "Cart contents are needed simultaneously by several distant, unrelated parts of the app, making shared state management the appropriate tool rather than local component state."
+            },
+            {
+              question: "In the addToCart function, why does it check for an existing item with the same id before adding a new one?",
+              options: [
+                "To reject the product entirely if it's already in the cart",
+                "So adding a product already in the cart increments its quantity instead of creating a duplicate, separate line item",
+                "Checking for duplicates is required by React's rendering engine",
+                "It has no real effect on the resulting cart contents"
+              ],
+              correctIndex: 1,
+              explanation: "Without this check, adding the same product twice would create two separate entries instead of one entry with quantity 2, which isn't how a real shopping cart should behave."
+            },
+            {
+              question: "Why is itemCount derived from items (items.reduce(...)) rather than stored as its own separate state variable?",
+              options: [
+                "Derived values automatically stay correct whenever items changes, avoiding a second piece of state that could drift out of sync with the actual cart contents",
+                "reduce() is required syntax for any array in React",
+                "Storing it separately would make the header badge update faster",
+                "There is no meaningful difference between the two approaches"
+              ],
+              correctIndex: 0,
+              explanation: "Computing itemCount from items on every render guarantees it's always consistent with the actual cart — a separate state variable would need to be manually kept in sync and could fall out of date."
+            },
+            {
+              question: "According to the suggested architecture, what should gate access to the /checkout route in this capstone?",
+              options: [
+                "Nothing — checkout should be fully open to anyone",
+                "Basic form validation before allowing the checkout form to be submitted",
+                "A ProtectedRoute wrapper requiring the user to be an administrator",
+                "The product's price must exceed a minimum threshold"
+              ],
+              correctIndex: 1,
+              explanation: "The technical explanation calls for basic validation on the checkout form itself before allowing submission — this capstone doesn't require user authentication to check out."
+            },
+            {
+              question: "Why does this capstone's realWorldUsage note that it 'mirrors the actual architecture' used by real production shopping sites?",
+              options: [
+                "Because it uses the exact same codebase as major e-commerce companies",
+                "Because shared cart state, routed product/cart/checkout pages, and combined forms are genuinely how real production e-commerce frontends are structured, not a simplified toy pattern",
+                "Because it deliberately avoids using React Router",
+                "Because real e-commerce sites never use Context or Redux"
+              ],
+              correctIndex: 1,
+              explanation: "The architectural pattern here — shared cart state accessible across routed pages — is the same general approach real e-commerce frontends use, which is why practicing it here is directly transferable."
             }
           ],
           rememberThis: "This capstone is where routing, shared state, and forms finally have to work together at once, exactly like a real production feature demands.",
@@ -5115,6 +5258,50 @@ const progressiveProjectsModule: CurriculumModuleDef = {
               ],
               correctIndex: 1,
               explanation: "Without memoization, an expensive sort would needlessly re-run on every render of UserTable, even ones triggered by unrelated state changes elsewhere in the app."
+            },
+            {
+              question: "Why does the sort function use [...users].sort(...) instead of users.sort(...) directly?",
+              options: [
+                "There's no difference between the two",
+                "Array.prototype.sort() mutates the array in place, so sorting a copy avoids mutating the users prop, which the component receives read-only",
+                "Spreading is required syntax before calling any array method",
+                "It makes the sort run faster"
+              ],
+              correctIndex: 1,
+              explanation: "Mutating a prop directly is unsafe since the parent component (and anything else referencing that same array) would be silently affected; sorting a shallow copy avoids that."
+            },
+            {
+              question: "What role does the ProtectedRoute wrapper play in this capstone's suggested architecture?",
+              options: [
+                "It formats table data for display",
+                "It gates the entire dashboard behind authentication, preventing unauthenticated users from reaching any dashboard content",
+                "It handles sorting and filtering of the user table",
+                "It is only used for styling the sidebar"
+              ],
+              correctIndex: 1,
+              explanation: "ProtectedRoute is specifically responsible for checking authentication and blocking access to the dashboard's routes for anyone not logged in."
+            },
+            {
+              question: "Why does the suggested architecture use nested routes with <Outlet> for the dashboard layout instead of re-rendering the sidebar on every page?",
+              options: [
+                "<Outlet> is required syntax for any React component",
+                "It keeps the sidebar persistent across navigation while only the nested page content swaps out, matching how real dashboards behave",
+                "It disables client-side routing entirely",
+                "There's no actual difference in behavior"
+              ],
+              correctIndex: 1,
+              explanation: "A nested-route layout with <Outlet> renders the shared sidebar once and swaps only the inner page content on navigation, avoiding an unnecessary full sidebar re-render or flicker."
+            },
+            {
+              question: "Why does the practice suggestion recommend testing with a few thousand generated user records?",
+              options: [
+                "To intentionally crash the browser as a test",
+                "To realistically verify whether the table stays responsive at a dataset size where naive rendering could start to struggle, informing whether virtualization is needed",
+                "Because useMemo requires a minimum array size to function",
+                "Small datasets cannot be sorted correctly"
+              ],
+              correctIndex: 1,
+              explanation: "Testing only with a handful of rows wouldn't reveal performance problems that only appear at realistic scale — deliberately testing with a large dataset surfaces whether virtualization is actually needed."
             }
           ],
           rememberThis: "An admin dashboard is where protected routing, nested layouts, and large-dataset rendering all have to hold up together, just like real internal tools demand.",
@@ -5167,6 +5354,50 @@ const progressiveProjectsModule: CurriculumModuleDef = {
               ],
               correctIndex: 1,
               explanation: "The token-based Authorization header is how the backend identifies which student is making the request, ensuring the correct, personalized course data is returned."
+            },
+            {
+              question: "In CoursesDashboard, why does the code check `if (!res.ok) throw new Error(...)` inside the first .then()?",
+              options: [
+                "fetch() automatically rejects the promise on a non-2xx HTTP status",
+                "fetch() only rejects on network-level failures, not HTTP error statuses, so this check is needed to route error responses into the .catch() handler",
+                "This check is unnecessary and has no effect",
+                "It converts the response into a course object directly"
+              ],
+              correctIndex: 1,
+              explanation: "Since fetch() resolves normally even for error HTTP statuses, explicitly throwing when res.ok is false is what allows the following .catch() to correctly treat it as a failure."
+            },
+            {
+              question: "Why does CoursesDashboard render distinct UI for 'loading', 'error', and the default success case instead of just always rendering the course list?",
+              options: [
+                "It gives the user accurate feedback at every stage, rather than showing a blank or broken-looking list while data is still loading or failed to load",
+                "Rendering conditionally is required by useEffect",
+                "It prevents the component from ever re-rendering",
+                "There's no real benefit; it could always show the list"
+              ],
+              correctIndex: 0,
+              explanation: "Always showing the list (even before or after a failed fetch) would either show stale/empty data or silently fail — explicit loading/error states keep the user correctly informed."
+            },
+            {
+              question: "Why does this lesson recommend mocking the backend with a local JSON server or delayed Promises if a real backend isn't available?",
+              options: [
+                "Mocking is required by React and cannot be skipped",
+                "It lets you build and test the full loading/error/success data-fetching lifecycle realistically, even without a real backend ready yet",
+                "Real APIs cannot be used during development for any reason",
+                "It removes the need for an Authorization header entirely"
+              ],
+              correctIndex: 1,
+              explanation: "A mock backend (including artificial delay) lets you genuinely exercise and verify the loading and error states, not just the instantaneous success case."
+            },
+            {
+              question: "What does 'this capstone mirrors this course's own platform category' mean in the context of the Student Portal project?",
+              options: [
+                "The project must use the exact same source code as this course's platform",
+                "An LMS-style student portal — login, enrolled courses, grades, profile — is the same general category of application as the platform this course itself runs on",
+                "It means the project cannot use React Router",
+                "It has no real relationship to the concepts covered in this course"
+              ],
+              correctIndex: 1,
+              explanation: "Building a student-facing portal with authentication and course data is directly analogous to the kind of application this very course platform is, making the skills highly transferable."
             }
           ],
           rememberThis: "This capstone mirrors real LMS software directly — the same authentication and data-fetching patterns you're learning them on, applied to a portal just like this one.",
@@ -5230,6 +5461,39 @@ const progressiveProjectsModule: CurriculumModuleDef = {
               ],
               correctIndex: 1,
               explanation: "Establishing tests before making further changes means every subsequent modification can be verified not to break existing behavior, which is exactly the safety net automated tests are meant to provide."
+            },
+            {
+              question: "According to the production-readiness checklist, why should an Error Boundary be connected to an error tracking service rather than just catching the error silently?",
+              options: [
+                "Silent catching is always the correct approach in production",
+                "Reporting caught errors to a tracking service lets the team actually learn that a real user hit an error in production, not just prevent the app from crashing",
+                "Error tracking services are required for Error Boundaries to function at all",
+                "It has no benefit beyond catching the error itself"
+              ],
+              correctIndex: 1,
+              explanation: "An Error Boundary alone prevents a crash from taking down the whole app, but without reporting to a tracking service, the team would have no visibility that the error happened at all."
+            },
+            {
+              question: "Why does the checklist call for environment variables instead of hardcoded values for API URLs/keys, even at this final production stage?",
+              options: [
+                "Hardcoded values are actually preferred once an app is production-ready",
+                "Environment variables let configuration (like API URLs) differ safely between environments and keep sensitive values out of the committed source code",
+                "Environment variables make the app run faster",
+                "There is no real reason; either approach is equally safe"
+              ],
+              correctIndex: 1,
+              explanation: "Externalizing configuration via environment variables avoids hardcoding values that may differ across environments or need to stay out of version control, exactly as covered earlier for API keys."
+            },
+            {
+              question: "Why does the checklist specifically mention a 'working SPA fallback rule' as part of the production deployment step?",
+              options: [
+                "It has nothing to do with routing",
+                "A single-page app using client-side routing needs the server to serve index.html for unknown paths, or refreshing on a non-root route (like /cart) would 404",
+                "SPA fallback rules are only relevant to backend APIs",
+                "It disables all client-side routing in production"
+              ],
+              correctIndex: 1,
+              explanation: "Without a fallback rule redirecting unknown paths to index.html, a client-side-routed app would break on a direct visit or refresh of any route other than the root, since the server has no matching file for that path."
             }
           ],
           rememberThis: "Working code is only part of the job — this capstone is the real bar: tested, monitored, accessible, and safely deployable, exactly like real engineering teams require before shipping.",

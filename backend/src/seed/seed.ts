@@ -12,6 +12,7 @@ import { Topic } from "../models/Topic";
 import { Lesson } from "../models/Lesson";
 import { Batch } from "../models/Batch";
 import { Enrollment } from "../models/Enrollment";
+import { LessonProgress } from "../models/LessonProgress";
 import { curriculumDefs } from "./curriculum";
 
 const ADMIN_EMAIL = "admin@ssrinstitute.in";
@@ -200,6 +201,20 @@ export async function seedCurriculum(courses: ICourse[]) {
       // module named after the module, so existing curriculum files keep seeding unchanged.
       const topicDefs =
         moduleDef.topics ?? [{ name: moduleDef.name, lessons: moduleDef.lessons ?? [] }];
+
+      // Renaming a topic in a curriculum file leaves its old Topic/Lesson documents behind
+      // as orphans (upsert is keyed by name), so prune any topic under this module that no
+      // longer matches a current topic name, along with its lessons and their progress rows.
+      const currentTopicNames = new Set(topicDefs.map((t) => t.name));
+      const staleTopics = await Topic.find({ module: module._id, name: { $nin: [...currentTopicNames] } });
+      if (staleTopics.length > 0) {
+        const staleTopicIds = staleTopics.map((t) => t._id);
+        const staleLessons = await Lesson.find({ topic: { $in: staleTopicIds } }).select("_id");
+        const staleLessonIds = staleLessons.map((l) => l._id);
+        await LessonProgress.deleteMany({ lesson: { $in: staleLessonIds } });
+        await Lesson.deleteMany({ _id: { $in: staleLessonIds } });
+        await Topic.deleteMany({ _id: { $in: staleTopicIds } });
+      }
 
       for (let tIndex = 0; tIndex < topicDefs.length; tIndex++) {
         const topicDef = topicDefs[tIndex];
