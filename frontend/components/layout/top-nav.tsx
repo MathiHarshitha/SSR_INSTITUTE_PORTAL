@@ -19,7 +19,7 @@ export function TopNav({ role, onNavigate, variant = "pills", className }: TopNa
 
   if (variant === "list") {
     return (
-      <nav className={cn("flex flex-col gap-1", className)}>
+      <nav className={cn("flex flex-col gap-0.5", className)}>
         {items.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           const Icon = item.icon;
@@ -29,14 +29,14 @@ export function TopNav({ role, onNavigate, variant = "pills", className }: TopNa
               href={item.href}
               onClick={onNavigate}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                "flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] font-medium transition-all",
                 isActive
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
-                  : "text-foreground/70 hover:bg-muted hover:text-foreground"
+                  ? "bg-white/15 text-white shadow-sm shadow-black/20"
+                  : "text-white/60 hover:bg-white/5 hover:text-white"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              <span>{item.label}</span>
+              <span className="truncate">{item.label}</span>
             </Link>
           );
         })}

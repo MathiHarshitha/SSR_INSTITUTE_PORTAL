@@ -3,10 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, Menu } from "lucide-react";
+import { Bell, ChevronDown, Menu, Moon, Search, Sun } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -85,16 +88,40 @@ function NotificationRow({
   );
 }
 
+function ThemeToggle() {
+  const { resolvedTheme, setTheme } = useTheme();
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      aria-label="Toggle theme"
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+    >
+      <Sun className="h-5 w-5 dark:hidden" />
+      <Moon className="hidden h-5 w-5 dark:block" />
+    </Button>
+  );
+}
+
 export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
   const [profileOpen, setProfileOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const router = useRouter();
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
   const { data: notificationsData } = useNotifications();
   const markAsRead = useMarkNotificationRead();
   const markAllAsRead = useMarkAllNotificationsRead();
   const notifications = notificationsData?.notifications ?? [];
 
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const q = search.trim();
+    router.push(q ? `/student/search?q=${encodeURIComponent(q)}` : "/student/search");
+  }
+
   return (
-    <header className="glass-strong sticky top-0 z-30 border-b border-border/60 !rounded-none">
+    <header className="sticky top-0 z-30 border-b border-border bg-card">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
         <Button
           variant="ghost"
@@ -112,9 +139,31 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
           </div>
         </Link>
 
-        <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">{title}</h1>
+        <h1
+          className={cn(
+            "truncate text-base font-semibold text-foreground sm:text-lg",
+            user.role === "STUDENT" && "lg:hidden"
+          )}
+        >
+          {title}
+        </h1>
+
+        {user.role === "STUDENT" && (
+          <form onSubmit={handleSearchSubmit} className="hidden max-w-xl flex-1 lg:block">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search anything... (courses, materials, tasks)"
+                className="h-10 rounded-full bg-muted pl-9"
+              />
+            </div>
+          </form>
+        )}
 
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+        <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger
             className={buttonVariants({ variant: "ghost", size: "icon" }) + " relative"}
@@ -164,7 +213,7 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
         <button
           type="button"
           onClick={() => setProfileOpen(true)}
-          className="flex items-center gap-2 rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex items-center gap-2 rounded-full pl-1 outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="Open account panel"
         >
           <Avatar className="h-9 w-9 ring-2 ring-secondary/40 ring-offset-2 ring-offset-background transition-all hover:ring-secondary/70">
@@ -173,6 +222,11 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
               {initials(user.name)}
             </AvatarFallback>
           </Avatar>
+          <span className="hidden leading-tight sm:block">
+            <span className="block text-sm font-semibold text-foreground">{user.name}</span>
+            <span className="block text-xs text-muted-foreground capitalize">{user.role.toLowerCase()}</span>
+          </span>
+          <ChevronDown className="hidden h-4 w-4 shrink-0 text-muted-foreground sm:block" />
         </button>
         </div>
       </div>

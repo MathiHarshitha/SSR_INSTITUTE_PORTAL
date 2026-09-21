@@ -1,39 +1,38 @@
-import { LucideIcon } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { ArrowRight, LucideIcon } from "lucide-react";
 import { cn } from "cn";
 
 export type StatCardColor = "primary" | "secondary" | "accent" | "violet" | "green" | "critical";
 
-const COLOR_STYLES: Record<StatCardColor, { chip: string; bar: string; value: string }> = {
+const COLOR_STYLES: Record<StatCardColor, { chip: string; icon: string; value: string }> = {
   primary: {
-    chip: "bg-primary/10 text-primary",
-    bar: "bg-primary",
-    value: "from-primary to-primary/60",
-  },
-  secondary: {
-    chip: "bg-secondary/10 text-secondary",
-    bar: "bg-secondary",
-    value: "from-secondary to-secondary/60",
+    chip: "bg-blue-50 dark:bg-blue-500/10",
+    icon: "text-blue-600 dark:text-blue-400",
+    value: "text-blue-600 dark:text-blue-400",
   },
   accent: {
-    chip: "bg-accent/10 text-accent",
-    bar: "bg-accent",
-    value: "from-accent to-accent/60",
+    chip: "bg-orange-50 dark:bg-orange-500/10",
+    icon: "text-orange-500 dark:text-orange-400",
+    value: "text-foreground",
+  },
+  secondary: {
+    chip: "bg-teal-50 dark:bg-teal-500/10",
+    icon: "text-teal-600 dark:text-teal-400",
+    value: "text-foreground",
   },
   violet: {
-    chip: "bg-chart-4/10 text-chart-4",
-    bar: "bg-chart-4",
-    value: "from-chart-4 to-chart-4/60",
+    chip: "bg-violet-50 dark:bg-violet-500/10",
+    icon: "text-violet-600 dark:text-violet-400",
+    value: "text-foreground",
   },
   green: {
-    chip: "bg-chart-5/10 text-chart-5",
-    bar: "bg-chart-5",
-    value: "from-chart-5 to-chart-5/60",
+    chip: "bg-emerald-50 dark:bg-emerald-500/10",
+    icon: "text-emerald-600 dark:text-emerald-400",
+    value: "text-emerald-600 dark:text-emerald-400",
   },
   critical: {
-    chip: "bg-status-critical/10 text-status-critical",
-    bar: "bg-status-critical",
-    value: "from-status-critical to-status-critical/60",
+    chip: "bg-rose-50 dark:bg-rose-500/10",
+    icon: "text-rose-600 dark:text-rose-400",
+    value: "text-rose-600 dark:text-rose-400",
   },
 };
 
@@ -47,24 +46,19 @@ interface StatCardProps {
 export function StatCard({ label, value, icon: Icon, color = "primary" }: StatCardProps) {
   const styles = COLOR_STYLES[color];
   return (
-    <Card className="relative overflow-hidden">
-      <span className={cn("absolute inset-x-0 top-0 h-1", styles.bar)} />
-      <CardContent className="flex items-center gap-4 pt-1">
-        <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl", styles.chip)}>
-          <Icon className="h-5 w-5" />
+    <div className="flex items-center justify-between gap-2 rounded-2xl border border-border bg-card p-3 shadow-sm">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", styles.chip)}>
+          <Icon className={cn("h-4 w-4", styles.icon)} />
         </div>
         <div className="min-w-0">
-          <p
-            className={cn(
-              "bg-gradient-to-br bg-clip-text text-2xl font-bold tracking-tight text-transparent",
-              styles.value
-            )}
-          >
-            {value}
-          </p>
-          <p className="truncate text-sm text-muted-foreground">{label}</p>
+          <p className={cn("text-lg font-bold leading-tight tracking-tight", styles.value)}>{value}</p>
+          <p className="truncate text-xs text-muted-foreground">{label}</p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+      <span className="hidden h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground sm:flex">
+        <ArrowRight className="h-3 w-3" />
+      </span>
+    </div>
   );
 }
