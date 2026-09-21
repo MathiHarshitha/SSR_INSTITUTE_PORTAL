@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, GraduationCap, Menu } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -93,7 +94,7 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
   const notifications = notificationsData?.notifications ?? [];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-card/90 backdrop-blur">
+    <header className="glass-strong sticky top-0 z-30 border-b border-border/60 !rounded-none">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
         <Button
           variant="ghost"
@@ -106,8 +107,8 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
         </Button>
 
         <Link href={roleHomePath(user.role)} className="flex shrink-0 items-center gap-2 lg:hidden">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <GraduationCap className="h-5 w-5" />
+          <div className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-black/5">
+            <Image src="/ssr-logo.webp" alt="SSR Institute" fill sizes="36px" className="object-contain p-1" />
           </div>
         </Link>
 

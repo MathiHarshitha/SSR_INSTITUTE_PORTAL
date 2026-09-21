@@ -1,6 +1,6 @@
 "use client";
 
-import { GraduationCap } from "lucide-react";
+import Image from "next/image";
 import { Topbar } from "@/components/layout/topbar";
 import { TopNav } from "@/components/layout/top-nav";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -19,12 +19,12 @@ export function DashboardShell({ user, title, children }: DashboardShellProps) {
   const closeMobileSidebar = useUIStore((s) => s.closeMobileSidebar);
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-background via-background to-secondary/[0.06]">
-      <aside className="hidden w-64 shrink-0 border-r border-sidebar-border bg-sidebar lg:block">
+    <div className="flex min-h-screen">
+      <aside className="glass-nav hidden w-64 shrink-0 border-r border-sidebar-border lg:block">
         <div className="fixed flex h-screen w-64 flex-col">
-          <div className="flex h-16 items-center gap-2 border-b border-sidebar-border px-5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/30">
-              <GraduationCap className="h-5 w-5" />
+          <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-5">
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-md shadow-primary/20 ring-1 ring-black/5">
+              <Image src="/ssr-logo.webp" alt="SSR Institute" fill sizes="36px" className="object-contain p-1" priority />
             </div>
             <div className="leading-tight">
               <p className="text-sm font-semibold text-sidebar-foreground">SSR Portal</p>
@@ -43,11 +43,11 @@ export function DashboardShell({ user, title, children }: DashboardShellProps) {
       </aside>
 
       <Sheet open={isMobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()}>
-        <SheetContent side="left" className="w-72 bg-sidebar p-0 text-sidebar-foreground">
+        <SheetContent side="left" className="glass-nav w-72 p-0 text-sidebar-foreground">
           <SheetHeader className="border-b border-sidebar-border px-5 py-4">
-            <SheetTitle className="flex items-center gap-2 text-left text-sidebar-foreground">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <GraduationCap className="h-4 w-4" />
+            <SheetTitle className="flex items-center gap-2.5 text-left text-sidebar-foreground">
+              <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-black/5">
+                <Image src="/ssr-logo.webp" alt="SSR Institute" fill sizes="32px" className="object-contain p-1" />
               </span>
               SSR Portal
             </SheetTitle>

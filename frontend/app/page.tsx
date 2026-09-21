@@ -1,6 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
-  GraduationCap,
   Briefcase,
   Award,
   Users,
@@ -28,12 +28,12 @@ const STATS = [
 
 export default function LandingPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur">
+    <div className="flex min-h-screen flex-col">
+      <header className="glass-strong sticky top-0 z-40 border-b border-border/60 !rounded-none">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <GraduationCap className="h-5 w-5" />
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-black/5">
+              <Image src="/ssr-logo.webp" alt="SSR Institute" fill sizes="36px" className="object-contain p-1" priority />
             </div>
             <span className="text-sm font-semibold text-foreground">SSR Portal</span>
           </Link>
@@ -106,7 +106,7 @@ export default function LandingPage() {
             <h2 className="text-2xl font-semibold text-foreground">Training Process</h2>
             <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {PROCESS_STEPS.map((step, i) => (
-                <div key={step.title} className="rounded-lg border border-border bg-card p-5">
+                <div key={step.title} className="glass rounded-2xl p-5 shadow-md shadow-black/5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
                     {i + 1}
                   </div>
@@ -171,7 +171,7 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer id="contact" className="border-t border-border bg-card">
+      <footer id="contact" className="glass-strong border-t border-border/60 !rounded-none">
         <div className="mx-auto max-w-6xl px-4 py-10 text-sm text-muted-foreground sm:px-6">
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
             <div>

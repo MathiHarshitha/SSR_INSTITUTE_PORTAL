@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, ListChecks, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { cn } from "cn";
@@ -12,11 +12,17 @@ interface LessonQuizProps {
   lessonId: string;
   questions: StudentQuizQuestion[];
   bestScore?: number;
+  /** Notified whenever the quiz enters or leaves its active (questions/result) phase, so the
+   * parent page can hide the topic explanation while the quiz is in progress. */
+  onActiveChange?: (active: boolean) => void;
 }
 
-/** One question at a time: the student answers, clicks Next to reveal the next question (no
- * auto-advance on select, no going back), and can Quit at any point to abandon the attempt. */
-export function LessonQuiz({ lessonId, questions, bestScore }: LessonQuizProps) {
+/** Explanation is shown by the parent page first; the quiz itself stays collapsed behind a
+ * "Start Quiz" gate until the student is ready. Once started, one question at a time: the
+ * student answers, clicks Next to reveal the next question (no auto-advance on select, no going
+ * back), and can Quit at any point to abandon the attempt. */
+export function LessonQuiz({ lessonId, questions, bestScore, onActiveChange }: LessonQuizProps) {
+  const [started, setStarted] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selected, setSelected] = useState<(number | null)[]>(questions.map(() => null));
   const [result, setResult] = useState<QuizSubmitResult | null>(null);
@@ -25,6 +31,11 @@ export function LessonQuiz({ lessonId, questions, bestScore }: LessonQuizProps) 
 
   const isLastQuestion = currentIndex === questions.length - 1;
   const currentAnswered = selected[currentIndex] !== null;
+
+  function startQuiz() {
+    setStarted(true);
+    onActiveChange?.(true);
+  }
 
   function selectOption(optionIndex: number) {
     setSelected((prev) => prev.map((v, i) => (i === currentIndex ? optionIndex : v)));
@@ -44,11 +55,31 @@ export function LessonQuiz({ lessonId, questions, bestScore }: LessonQuizProps) 
     setResult(null);
     setSelected(questions.map(() => null));
     setCurrentIndex(0);
+    setStarted(false);
+    onActiveChange?.(false);
   }
 
   function confirmQuit() {
     setQuitConfirmOpen(false);
     reset();
+  }
+
+  if (!started && !result) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border py-8 text-center">
+        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <ListChecks className="h-5 w-5" />
+        </div>
+        <div>
+          <p className="text-sm font-medium">Ready to test what you learned?</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {questions.length} question{questions.length === 1 ? "" : "s"}
+            {typeof bestScore === "number" ? ` · Best score so far: ${bestScore}%` : ""}
+          </p>
+        </div>
+        <Button onClick={startQuiz}>Start Quiz</Button>
+      </div>
+    );
   }
 
   if (result) {
@@ -127,8 +158,10 @@ export function LessonQuiz({ lessonId, questions, bestScore }: LessonQuizProps) 
                 type="button"
                 onClick={() => selectOption(oIndex)}
                 className={cn(
-                  "flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm transition-colors",
-                  isSelected ? "border-primary bg-primary/5" : "border-border hover:bg-muted"
+                  "flex w-full items-center justify-between rounded-lg border px-3 py-2.5 text-left text-sm transition-all",
+                  isSelected
+                    ? "border-primary bg-primary/10 shadow-sm"
+                    : "border-border hover:bg-muted/60"
                 )}
               >
                 {option}
