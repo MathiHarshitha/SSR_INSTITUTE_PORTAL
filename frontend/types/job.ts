@@ -78,7 +78,7 @@ export interface StudentJob {
 
 export interface StudentApplication {
   _id: string;
-  job: { _id: string; company: string; title: string; applicationDeadline: string; status: JobStatus };
+  job: { _id: string; company: string; title: string; applicationDeadline: string; status: JobStatus } | null;
   status: ApplicationStatus;
   statusNote?: string;
   appliedAt: string;
