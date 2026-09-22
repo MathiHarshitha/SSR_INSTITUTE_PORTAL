@@ -145,6 +145,30 @@ export default function StudentCertificatesPage() {
                         target="_blank"
                         rel="noreferrer"
                         className={cn(buttonVariants({ size: "sm", variant: "outline" }), "flex-1")}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                        nativeButton={false}
+                        render={<Link href={`/verify-certificate/${cert.certificateNumber}`} target="_blank" />}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                        Verify
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                        nativeButton={false}
+                        render={
+                          <a
+                            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+                              `${shareUrl}/verify-certificate/${cert.certificateNumber}`
+                            )}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          />
+                        }
                       >
                         <Share2 className="h-3.5 w-3.5" />
                         Share
