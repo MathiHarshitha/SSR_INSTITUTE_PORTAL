@@ -2,8 +2,7 @@
 
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Lock } from "lucide-react";
 import { cn } from "cn";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,9 +15,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { LessonQuiz } from "@/components/student/lesson-quiz";
-import { useLesson } from "@/hooks/useLesson";
+import { CodingQuestion } from "@/components/student/coding-question";
+import { useLesson, useMarkPracticeComplete } from "@/hooks/useLesson";
 import { useCourseProgress, useToggleLessonComplete } from "@/hooks/useProgress";
 import { useUpdateLastVisited } from "@/hooks/useEnrollments";
+import { extractErrorMessage } from "@/lib/api-client";
 
 const DIFFICULTY_LABEL: Record<string, string> = {
   BEGINNER: "🟢 Beginner",
@@ -32,11 +33,11 @@ export default function LessonPlayerPage({
   params: Promise<{ courseId: string; lessonId: string }>;
 }) {
   const { courseId, lessonId } = use(params);
-  const router = useRouter();
 
-  const { data: lesson, isLoading } = useLesson(lessonId);
+  const { data: lesson, isLoading, isError, error } = useLesson(lessonId);
   const { data: progress } = useCourseProgress(courseId);
   const toggleComplete = useToggleLessonComplete(courseId);
+  const markPracticeComplete = useMarkPracticeComplete(lessonId);
   const updateLastVisited = useUpdateLastVisited();
   const [quizActive, setQuizActive] = useState(false);
 
@@ -56,6 +57,23 @@ export default function LessonPlayerPage({
   const nextLesson =
     currentIndex >= 0 && currentIndex < flatLessons.length - 1 ? flatLessons[currentIndex + 1] : null;
 
+  if (isError) {
+    return (
+      <div className="mx-auto max-w-md space-y-4 py-16 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          <Lock className="h-6 w-6" />
+        </div>
+        <div>
+          <p className="text-sm font-medium">This lesson isn&apos;t available yet</p>
+          <p className="mt-1 text-sm text-muted-foreground">{extractErrorMessage(error)}</p>
+        </div>
+        <Link href={`/student/courses/${courseId}`} className={cn(buttonVariants({ size: "sm" }))}>
+          Back to curriculum
+        </Link>
+      </div>
+    );
+  }
+
   if (isLoading || !lesson) {
     return (
       <div className="space-y-4">
@@ -64,6 +82,10 @@ export default function LessonPlayerPage({
       </div>
     );
   }
+
+  const hasStages = lesson.stage.practiceRequired || lesson.stage.quizRequired || lesson.stage.codingRequired;
+  const canOpenQuiz = !lesson.stage.practiceRequired || lesson.stage.practiceDone;
+  const canOpenCoding = lesson.stage.quizRequired ? lesson.stage.quizDone : canOpenQuiz;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -79,6 +101,11 @@ export default function LessonPlayerPage({
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-semibold text-foreground">{lesson.title}</h1>
           <Badge variant="outline">{DIFFICULTY_LABEL[lesson.difficulty] ?? lesson.difficulty}</Badge>
+          {lesson.lockState === "COMPLETED" && (
+            <Badge className="gap-1 bg-status-good/10 text-status-good hover:bg-status-good/10">
+              <CheckCircle2 className="h-3 w-3" /> Completed · revision
+            </Badge>
+          )}
         </div>
         {lesson.estimatedMinutes ? (
           <p className="mt-1 text-sm text-muted-foreground">⏱ {lesson.estimatedMinutes} minutes</p>
@@ -122,8 +149,9 @@ export default function LessonPlayerPage({
 
           {lesson.practice && (
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-base">Try it yourself</CardTitle>
+                {lesson.stage.practiceDone && <CheckCircle2 className="h-4 w-4 text-status-good" />}
               </CardHeader>
               <CardContent className="space-y-2">
                 <p className="text-sm">{lesson.practice.instructions}</p>
@@ -134,6 +162,15 @@ export default function LessonPlayerPage({
                 )}
                 {lesson.practice.hint && (
                   <p className="text-xs text-muted-foreground">Hint: {lesson.practice.hint}</p>
+                )}
+                {!lesson.stage.practiceDone && (
+                  <Button
+                    size="sm"
+                    onClick={() => markPracticeComplete.mutate()}
+                    disabled={markPracticeComplete.isPending}
+                  >
+                    {markPracticeComplete.isPending ? "Saving..." : "I've completed this practice"}
+                  </Button>
                 )}
               </CardContent>
             </Card>
@@ -193,36 +230,60 @@ export default function LessonPlayerPage({
             <CardTitle className="text-base">Quick Quiz</CardTitle>
           </CardHeader>
           <CardContent>
-            <LessonQuiz
-              lessonId={lessonId}
-              questions={lesson.quiz}
-              bestScore={lesson.quizBestScore}
-              onActiveChange={setQuizActive}
-            />
+            {canOpenQuiz ? (
+              <LessonQuiz
+                lessonId={lessonId}
+                questions={lesson.quiz}
+                bestScore={lesson.quizBestScore}
+                onActiveChange={setQuizActive}
+              />
+            ) : (
+              <LockedStage label="Complete the practice exercise above to unlock the quiz" />
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {lesson.codingQuestion && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Coding Challenge</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {canOpenCoding ? (
+              <CodingQuestion
+                lessonId={lessonId}
+                question={lesson.codingQuestion}
+                completed={lesson.codingCompleted}
+              />
+            ) : (
+              <LockedStage label="Pass the quiz above to unlock the coding challenge" />
+            )}
           </CardContent>
         </Card>
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-        <Button
-          variant={lesson.completed ? "outline" : "default"}
-          disabled={toggleComplete.isPending}
-          onClick={() =>
-            toggleComplete.mutate(
-              { lessonId, completed: lesson.completed },
-              {
-                onSuccess: () => {
-                  if (!lesson.completed && nextLesson) {
-                    router.push(`/student/courses/${courseId}/lessons/${nextLesson.lessonId}`);
-                  }
-                },
-              }
-            )
-          }
-        >
-          <CheckCircle2 className="h-4 w-4" />
-          {lesson.completed ? "Mark incomplete" : "Mark Complete"}
-        </Button>
+        {hasStages ? (
+          <p className="flex items-center gap-2 text-sm font-medium">
+            {lesson.completed ? (
+              <>
+                <CheckCircle2 className="h-4 w-4 text-status-good" /> Lesson completed
+              </>
+            ) : (
+              "Complete every step above to finish this lesson"
+            )}
+          </p>
+        ) : (
+          <Button
+            variant={lesson.completed ? "outline" : "default"}
+            disabled={toggleComplete.isPending}
+            onClick={() => toggleComplete.mutate({ lessonId, completed: lesson.completed })}
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            {lesson.completed ? "Mark incomplete" : "Mark Complete"}
+          </Button>
+        )}
 
         <div className="flex gap-2">
           {prevLesson && (
@@ -234,7 +295,7 @@ export default function LessonPlayerPage({
               Previous
             </Link>
           )}
-          {nextLesson && (
+          {nextLesson && nextLesson.state !== "LOCKED" && (
             <Link
               href={`/student/courses/${courseId}/lessons/${nextLesson.lessonId}`}
               className={cn(buttonVariants({ size: "sm" }))}
@@ -260,5 +321,14 @@ function Section({ title, children }: { title: string; children?: string }) {
         {children}
       </CardContent>
     </Card>
+  );
+}
+
+function LockedStage({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">
+      <Lock className="h-4 w-4 shrink-0" />
+      {label}
+    </div>
   );
 }

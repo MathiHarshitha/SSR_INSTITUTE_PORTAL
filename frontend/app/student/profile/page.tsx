@@ -184,7 +184,7 @@ export default function StudentProfilePage() {
               <button
                 type="button"
                 onClick={() => setEditOpen(true)}
-                className="flex items-center gap-1 rounded-lg bg-primary px-2.5 py-1 text-[11px] font-medium text-primary-foreground hover:bg-primary/85"
+                className="flex items-center gap-1 rounded-lg bg-secondary px-2.5 py-1 text-[11px] font-medium text-secondary-foreground hover:bg-secondary/90"
               >
                 <Pencil className="h-3 w-3" />
                 Edit Profile

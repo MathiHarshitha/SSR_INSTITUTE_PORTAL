@@ -61,6 +61,24 @@ export interface QuizQuestionAuthoring {
   explanation?: string;
 }
 
+export interface CodingTestCase {
+  args: unknown[];
+  expectedOutput: unknown;
+}
+
+export interface CodingQuestionAuthoring {
+  prompt: string;
+  starterCode: string;
+  functionName: string;
+  testCases: CodingTestCase[];
+}
+
+export interface StudentCodingQuestion {
+  prompt: string;
+  starterCode: string;
+  functionName: string;
+}
+
 export interface AdminLesson {
   _id: string;
   topic: string;
@@ -83,6 +101,7 @@ export interface AdminLesson {
   commonMistakes: CommonMistake[];
   practice: Practice | null;
   quiz: QuizQuestionAuthoring[];
+  codingQuestion: CodingQuestionAuthoring | null;
   rememberThis?: string;
   keyTakeaways: string[];
 
@@ -106,6 +125,7 @@ export interface LessonFormInput {
   commonMistakes?: CommonMistake[];
   practice?: Practice | null;
   quiz?: QuizQuestionAuthoring[];
+  codingQuestion?: CodingQuestionAuthoring | null;
   rememberThis?: string;
   keyTakeaways?: string[];
 }
@@ -136,12 +156,26 @@ export interface StudentLessonDetail {
   commonMistakes: CommonMistake[];
   practice: Practice | null;
   quiz: StudentQuizQuestion[];
+  codingQuestion: StudentCodingQuestion | null;
   rememberThis?: string;
   keyTakeaways: string[];
 
   completed: boolean;
+  practiceCompleted: boolean;
+  quizPassed: boolean;
+  codingCompleted: boolean;
   quizBestScore?: number;
   quizAttempts: number;
+  lockState: "LOCKED" | "UNLOCKED" | "IN_PROGRESS" | "COMPLETED";
+  stage: {
+    practiceRequired: boolean;
+    practiceDone: boolean;
+    quizRequired: boolean;
+    quizDone: boolean;
+    codingRequired: boolean;
+    codingDone: boolean;
+    nextStage: "PRACTICE" | "QUIZ" | "CODING" | null;
+  };
 }
 
 export interface QuizSubmitResultItem {
@@ -156,5 +190,39 @@ export interface QuizSubmitResultItem {
 export interface QuizSubmitResult {
   score: number;
   bestScore: number;
+  passed: boolean;
   results: QuizSubmitResultItem[];
+  lessonCompleted: boolean;
+}
+
+/** Server-side quiz session state — the client only ever sees the question at
+ * `currentIndex`, never a previous one, and never the answer key until SUBMITTED. */
+export interface QuizSessionState {
+  status: "NOT_STARTED" | "IN_PROGRESS" | "SUBMITTED" | "QUIT";
+  totalQuestions: number;
+  currentIndex?: number;
+  done?: boolean;
+  question?: StudentQuizQuestion | null;
+  score?: number;
+}
+
+export interface CodingTestResult {
+  passed: boolean;
+  args: unknown[];
+  expectedOutput: unknown;
+  actualOutput?: unknown;
+  error?: string;
+}
+
+export interface CodingSubmitResult {
+  passed: boolean;
+  testResults: CodingTestResult[];
+  lessonCompleted: boolean;
+}
+
+export interface CodingLastSubmission {
+  code: string;
+  passed: boolean;
+  testResults: CodingTestResult[];
+  createdAt: string;
 }

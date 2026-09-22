@@ -97,7 +97,7 @@ export default function StudentSchedulePage() {
                         href={c.meetingLink}
                         target="_blank"
                         rel="noreferrer"
-                        className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/85"
+                        className="shrink-0 rounded-lg bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground hover:bg-secondary/90"
                       >
                         Join
                       </a>

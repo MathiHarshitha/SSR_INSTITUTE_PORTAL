@@ -19,6 +19,7 @@ import {
   GraduationCap,
   Bell,
   Search,
+  FileSearch,
 } from "lucide-react";
 import { Role } from "@/types/auth";
 
@@ -63,6 +64,7 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
     { label: "Attendance", href: "/student/attendance", icon: ListChecks },
     { label: "Schedule", href: "/student/schedule", icon: CalendarClock },
     { label: "Mock Interviews", href: "/student/interviews", icon: Video },
+    { label: "Interview Resources", href: "/student/interview-resources", icon: FileSearch },
     { label: "Jobs", href: "/student/jobs", icon: Briefcase },
     { label: "Fees", href: "/student/fees", icon: Wallet },
     { label: "Certificates", href: "/student/certificates", icon: Award },

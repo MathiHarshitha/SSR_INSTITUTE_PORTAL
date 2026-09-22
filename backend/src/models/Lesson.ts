@@ -28,6 +28,18 @@ export interface IQuizQuestion {
   explanation?: string;
 }
 
+export interface ICodingTestCase {
+  args: unknown[];
+  expectedOutput: unknown;
+}
+
+export interface ICodingQuestion {
+  prompt: string;
+  starterCode: string;
+  functionName: string;
+  testCases: ICodingTestCase[];
+}
+
 export interface ILesson extends Document {
   _id: Types.ObjectId;
   topic: Types.ObjectId;
@@ -52,6 +64,7 @@ export interface ILesson extends Document {
   commonMistakes: ICommonMistake[];
   practice: IPractice | null;
   quiz: IQuizQuestion[];
+  codingQuestion: ICodingQuestion | null;
   rememberThis?: string;
   keyTakeaways: string[];
 
@@ -104,6 +117,31 @@ const quizQuestionSchema = new Schema<IQuizQuestion>(
   { _id: false }
 );
 
+const codingTestCaseSchema = new Schema<ICodingTestCase>(
+  {
+    args: { type: [Schema.Types.Mixed], default: [] },
+    expectedOutput: { type: Schema.Types.Mixed, required: true },
+  },
+  { _id: false }
+);
+
+const codingQuestionSchema = new Schema<ICodingQuestion>(
+  {
+    prompt: { type: String, required: true },
+    starterCode: { type: String, required: true },
+    functionName: { type: String, required: true, trim: true, maxlength: 100 },
+    testCases: {
+      type: [codingTestCaseSchema],
+      required: true,
+      validate: {
+        validator: (v: ICodingTestCase[]) => v.length >= 1,
+        message: "A coding question needs at least one test case",
+      },
+    },
+  },
+  { _id: false }
+);
+
 const lessonSchema = new Schema<ILesson>(
   {
     topic: { type: Schema.Types.ObjectId, ref: "Topic", required: true, index: true },
@@ -130,6 +168,7 @@ const lessonSchema = new Schema<ILesson>(
     commonMistakes: { type: [commonMistakeSchema], default: [] },
     practice: { type: practiceSchema, default: null },
     quiz: { type: [quizQuestionSchema], default: [] },
+    codingQuestion: { type: codingQuestionSchema, default: null },
     rememberThis: { type: String, trim: true, maxlength: 500 },
     keyTakeaways: { type: [String], default: [] },
   },

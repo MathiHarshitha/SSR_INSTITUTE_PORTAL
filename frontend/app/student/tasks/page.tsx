@@ -109,7 +109,7 @@ export default function StudentTasksPage() {
                 className={cn(
                   "rounded-full px-3 py-1.5 text-xs font-medium transition-colors",
                   filter === f.key
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-secondary text-secondary-foreground shadow-sm"
                     : "bg-muted text-muted-foreground hover:text-foreground"
                 )}
               >

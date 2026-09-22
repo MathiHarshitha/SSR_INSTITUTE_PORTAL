@@ -51,6 +51,23 @@ const quizQuestionSchema = z.object({
   explanation: z.string().trim().max(1000).optional(),
 });
 
+const codingTestCaseSchema = z.object({
+  args: z.array(z.unknown()).default([]),
+  expectedOutput: z.unknown(),
+});
+
+const codingQuestionSchema = z.object({
+  prompt: z.string().min(1),
+  starterCode: z.string().min(1),
+  functionName: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .regex(/^[A-Za-z_$][A-Za-z0-9_$]*$/, "Must be a valid JS identifier"),
+  testCases: z.array(codingTestCaseSchema).min(1),
+});
+
 // No `.default()` in this base — it's reused via `.partial()` for updates, and a
 // `.default()` fires even on an omitted key there, silently reintroducing/wiping
 // array fields the caller never sent (same gotcha documented in course.validator.ts).
@@ -71,6 +88,7 @@ const lessonFieldsBase = z.object({
   commonMistakes: z.array(commonMistakeSchema).optional(),
   practice: practiceSchema.nullable().optional(),
   quiz: z.array(quizQuestionSchema).optional(),
+  codingQuestion: codingQuestionSchema.nullable().optional(),
   rememberThis: z.string().trim().max(500).optional(),
   keyTakeaways: z.array(z.string().trim().min(1)).optional(),
 });
@@ -88,8 +106,19 @@ export const reorderLessonsSchema = z.object({
   orderedIds: z.array(OBJECT_ID).min(1),
 });
 
+/** @deprecated bulk-answers submission has been replaced by the session-based
+ * start/answer/submit/quit flow (spec §7 anti-cheat) — kept only so old type imports
+ * don't break; no route uses it any more. */
 export const submitQuizSchema = z.object({
   answers: z.array(z.coerce.number().int().min(0)),
+});
+
+export const answerQuizQuestionSchema = z.object({
+  selectedIndex: z.coerce.number().int().min(0),
+});
+
+export const submitCodingAnswerSchema = z.object({
+  code: z.string().min(1).max(20000),
 });
 
 export type CreateModuleInput = z.infer<typeof createModuleSchema>;

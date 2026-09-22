@@ -241,6 +241,20 @@
   }
 }
 
+@utility clay-pill {
+  border-radius: 9999px;
+  background-color: var(--card);
+  box-shadow:
+    -8px -8px 16px 0 color-mix(in oklch, white 85%, transparent),
+    10px 10px 24px -6px color-mix(in oklch, var(--foreground) 20%, transparent);
+}
+
+.dark .clay-pill {
+  box-shadow:
+    -6px -6px 14px 0 color-mix(in oklch, white 6%, transparent),
+    10px 10px 26px -6px color-mix(in oklch, black 65%, transparent);
+}
+
 @utility clay-inset {
   border-radius: 1.25rem;
   background-color: var(--muted);

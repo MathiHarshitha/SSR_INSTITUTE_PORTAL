@@ -6,7 +6,22 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { formatDistanceToNow } from "date-fns";
-import { Bell, ChevronDown, Menu, Moon, Search, Sun } from "lucide-react";
+import {
+  Award,
+  Bell,
+  Briefcase,
+  CheckCircle2,
+  ChevronDown,
+  ClipboardCheck,
+  ClipboardList,
+  Megaphone,
+  Menu,
+  Moon,
+  Search,
+  Sun,
+  Video,
+  XCircle,
+} from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -16,7 +31,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuLinkItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -30,7 +44,7 @@ import {
   useUnreadNotificationCount,
 } from "@/hooks/useNotifications";
 import { cn } from "cn";
-import { AppNotification } from "@/types/notification";
+import { AppNotification, NotificationType } from "@/types/notification";
 import { AuthUser } from "@/types/auth";
 
 interface TopbarProps {
@@ -48,6 +62,17 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
+const NOTIFICATION_ICON: Record<NotificationType, { icon: typeof Bell; chip: string }> = {
+  ACCOUNT_APPROVED: { icon: CheckCircle2, chip: "bg-status-good/10 text-status-good" },
+  ACCOUNT_REJECTED: { icon: XCircle, chip: "bg-destructive/10 text-destructive" },
+  TASK_PUBLISHED: { icon: ClipboardList, chip: "bg-secondary/10 text-secondary" },
+  SUBMISSION_EVALUATED: { icon: ClipboardCheck, chip: "bg-secondary/10 text-secondary" },
+  INTERVIEW_SCHEDULED: { icon: Video, chip: "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400" },
+  CERTIFICATE_ISSUED: { icon: Award, chip: "bg-secondary/10 text-secondary" },
+  APPLICATION_STATUS_CHANGED: { icon: Briefcase, chip: "bg-secondary/10 text-secondary" },
+  ANNOUNCEMENT: { icon: Megaphone, chip: "bg-secondary/10 text-secondary" },
+};
+
 function NotificationRow({
   notification,
   onRead,
@@ -55,18 +80,25 @@ function NotificationRow({
   notification: AppNotification;
   onRead: (id: string) => void;
 }) {
+  const { icon: Icon, chip } = NOTIFICATION_ICON[notification.type];
+
   const content = (
-    <div className="flex w-full flex-col gap-0.5 whitespace-normal py-0.5">
-      <div className="flex items-center gap-1.5">
-        {!notification.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />}
-        <p className={cn("text-sm", !notification.read ? "font-medium text-foreground" : "text-foreground")}>
-          {notification.title}
+    <div className="flex w-full items-start gap-2.5 whitespace-normal py-1">
+      <span className={cn("mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl", chip)}>
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex items-center gap-1.5">
+          <p className={cn("truncate text-sm", !notification.read ? "font-semibold text-foreground" : "text-foreground")}>
+            {notification.title}
+          </p>
+          {!notification.read && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-secondary" />}
+        </div>
+        <p className="line-clamp-2 text-xs text-muted-foreground">{notification.message}</p>
+        <p className="text-[11px] text-muted-foreground">
+          {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
         </p>
       </div>
-      <p className="text-xs text-muted-foreground">{notification.message}</p>
-      <p className="text-[11px] text-muted-foreground">
-        {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
-      </p>
     </div>
   );
 
@@ -74,6 +106,7 @@ function NotificationRow({
     return (
       <DropdownMenuLinkItem
         render={<Link href={notification.link} />}
+        className="items-start px-2 py-1.5"
         onClick={() => !notification.read && onRead(notification._id)}
       >
         {content}
@@ -82,7 +115,10 @@ function NotificationRow({
   }
 
   return (
-    <DropdownMenuItem onClick={() => !notification.read && onRead(notification._id)}>
+    <DropdownMenuItem
+      className="items-start px-2 py-1.5"
+      onClick={() => !notification.read && onRead(notification._id)}
+    >
       {content}
     </DropdownMenuItem>
   );
@@ -176,27 +212,27 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
               </Badge>
             )}
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
-            <div className="flex items-center justify-between px-1.5 py-1">
-              <DropdownMenuLabel className="p-0">Notifications</DropdownMenuLabel>
+          <DropdownMenuContent glass={false} align="end" className="w-80 p-2">
+            <div className="flex items-center justify-between px-1 py-1.5">
+              <p className="text-sm font-semibold text-foreground">Notifications</p>
               {unreadCount > 0 && (
                 <button
                   type="button"
                   onClick={() => markAllAsRead.mutate()}
-                  className="text-xs text-primary hover:underline"
+                  className="text-xs font-medium text-secondary hover:underline"
                 >
                   Mark all read
                 </button>
               )}
             </div>
-            <DropdownMenuSeparator />
+            <DropdownMenuSeparator className="-mx-2" />
             {notifications.length === 0 ? (
               <div className="px-2 py-6 text-center text-sm text-muted-foreground">
                 You&apos;re all caught up.
               </div>
             ) : (
               <ScrollArea className="h-80">
-                <div className="flex flex-col gap-0.5 pr-2">
+                <div className="flex flex-col gap-0.5 pr-2 pt-1">
                   {notifications.map((notification) => (
                     <NotificationRow
                       key={notification._id}

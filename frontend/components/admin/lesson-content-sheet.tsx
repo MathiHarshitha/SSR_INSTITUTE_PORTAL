@@ -36,10 +36,12 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import {
   arrayToLines,
+  fromCodingTestCase,
   fromQuizQuestion,
   lessonContentFormSchema,
   LessonContentFormValues,
   linesToArray,
+  toCodingTestCase,
   toQuizQuestion,
 } from "@/schemas/module.schema";
 import { AdminLesson, LessonFormInput } from "@/types/module";
@@ -70,6 +72,10 @@ const EMPTY: LessonContentFormValues = {
   practiceStarterCode: "",
   practiceHint: "",
   quiz: [],
+  codingPrompt: "",
+  codingStarterCode: "",
+  codingFunctionName: "",
+  codingTestCases: [],
   rememberThis: "",
   keyTakeawaysText: "",
 };
@@ -89,6 +95,7 @@ export function LessonContentSheet({
   const codeExamples = useFieldArray({ control: form.control, name: "codeExamples" });
   const commonMistakes = useFieldArray({ control: form.control, name: "commonMistakes" });
   const quiz = useFieldArray({ control: form.control, name: "quiz" });
+  const codingTestCases = useFieldArray({ control: form.control, name: "codingTestCases" });
 
   useEffect(() => {
     if (!open) return;
@@ -112,6 +119,10 @@ export function LessonContentSheet({
             practiceStarterCode: lesson.practice?.starterCode ?? "",
             practiceHint: lesson.practice?.hint ?? "",
             quiz: lesson.quiz.map(fromQuizQuestion),
+            codingPrompt: lesson.codingQuestion?.prompt ?? "",
+            codingStarterCode: lesson.codingQuestion?.starterCode ?? "",
+            codingFunctionName: lesson.codingQuestion?.functionName ?? "",
+            codingTestCases: lesson.codingQuestion?.testCases.map(fromCodingTestCase) ?? [],
             rememberThis: lesson.rememberThis ?? "",
             keyTakeawaysText: arrayToLines(lesson.keyTakeaways),
           }
@@ -151,6 +162,15 @@ export function LessonContentSheet({
           }
         : null,
       quiz: values.quiz.map(toQuizQuestion),
+      codingQuestion:
+        values.codingPrompt && values.codingStarterCode && values.codingFunctionName
+          ? {
+              prompt: values.codingPrompt,
+              starterCode: values.codingStarterCode,
+              functionName: values.codingFunctionName,
+              testCases: values.codingTestCases.map(toCodingTestCase),
+            }
+          : null,
       rememberThis: values.rememberThis || undefined,
       keyTakeaways: linesToArray(values.keyTakeawaysText),
     });
@@ -174,6 +194,7 @@ export function LessonContentSheet({
                 <TabsTrigger value="teach">Teach it</TabsTrigger>
                 <TabsTrigger value="code">Code &amp; practice</TabsTrigger>
                 <TabsTrigger value="quiz">Quiz</TabsTrigger>
+                <TabsTrigger value="coding">Coding</TabsTrigger>
                 <TabsTrigger value="wrapup">Wrap-up</TabsTrigger>
               </TabsList>
 
@@ -524,6 +545,117 @@ export function LessonContentSheet({
                             )}
                           />
                         </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+              </TabsContent>
+
+              <TabsContent value="coding" className="space-y-3 pt-4">
+                <p className="text-xs text-muted-foreground">
+                  Optional. If set, the student must clear the quiz above before this unlocks, and
+                  submissions are auto-graded server-side against the test cases below (never
+                  shown to students).
+                </p>
+                <FormField
+                  control={form.control}
+                  name="codingPrompt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Prompt</FormLabel>
+                      <FormControl>
+                        <Textarea rows={3} placeholder="Write a function that..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <FormField
+                    control={form.control}
+                    name="codingFunctionName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Function name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="sumArray" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="codingStarterCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">Starter code</FormLabel>
+                      <FormControl>
+                        <Textarea rows={3} className="font-mono text-xs" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+
+                <div className="flex items-center justify-between pt-2">
+                  <FormLabel>Test cases</FormLabel>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => codingTestCases.append({ argsText: "[]", expectedOutputText: "0" })}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Add test case
+                  </Button>
+                </div>
+                {codingTestCases.fields.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No test cases yet — required only if a prompt is set.
+                  </p>
+                ) : (
+                  codingTestCases.fields.map((row, index) => (
+                    <Card key={row.id}>
+                      <CardContent className="space-y-2 pt-4">
+                        <div className="grid grid-cols-2 gap-2">
+                          <FormField
+                            control={form.control}
+                            name={`codingTestCases.${index}.argsText`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Args (JSON array)</FormLabel>
+                                <FormControl>
+                                  <Input className="font-mono text-xs" placeholder="[1, 2]" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`codingTestCases.${index}.expectedOutputText`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs">Expected output (JSON)</FormLabel>
+                                <FormControl>
+                                  <Input className="font-mono text-xs" placeholder="3" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => codingTestCases.remove(index)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Remove
+                        </Button>
                       </CardContent>
                     </Card>
                   ))

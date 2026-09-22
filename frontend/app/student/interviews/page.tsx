@@ -6,9 +6,11 @@ import { Video, Star, CalendarClock, Award, ThumbsUp, Lightbulb } from "lucide-r
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "cn";
 import { useInterviews } from "@/hooks/useInterviews";
+import { useCareerResourcesStatus } from "@/hooks/useCareerResources";
 import { InterviewResult } from "@/types/interview";
 import { StatCard } from "@/components/shared/stat-card";
 import { PageHeader } from "@/components/shared/page-header";
+import { NoAccess } from "@/components/shared/no-access";
 
 type FilterKey = "all" | "upcoming" | "completed";
 
@@ -33,6 +35,7 @@ const TIPS = [
 
 export default function StudentInterviewsPage() {
   const { data: interviews, isLoading, isError } = useInterviews();
+  const { data: careerResourcesStatus } = useCareerResourcesStatus();
   const [filter, setFilter] = useState<FilterKey>("all");
 
   const all = interviews ?? [];
@@ -47,6 +50,21 @@ export default function StudentInterviewsPage() {
     if (filter === "completed") return completed;
     return all;
   }, [filter, all, upcoming, completed]);
+
+  // Interviews can be staff-scheduled regardless of course completion, so only take over the
+  // whole page with the locked state when there's genuinely nothing else to show — an
+  // already-scheduled interview must stay visible either way.
+  const isLocked = !!careerResourcesStatus && !careerResourcesStatus.anyUnlocked && all.length === 0;
+
+  if (isLocked) {
+    return (
+      <div className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
+        <div className="w-full max-w-lg">
+          <NoAccess message="You don't have access to Mock Interviews yet. Complete any one course to unlock it." />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -81,7 +99,7 @@ export default function StudentInterviewsPage() {
                 className={cn(
                   "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
                   filter === f.key
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-secondary text-secondary-foreground shadow-sm"
                     : "bg-muted text-muted-foreground hover:text-foreground"
                 )}
               >

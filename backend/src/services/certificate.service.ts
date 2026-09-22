@@ -6,6 +6,7 @@ import { Course } from "../models/Course";
 import { Enrollment } from "../models/Enrollment";
 import { User } from "../models/User";
 import { ApiError } from "../utils/ApiError";
+import { isCourseCompleted } from "../utils/lessonAccess";
 import { recordAudit } from "./auditLog.service";
 import { notifyUser } from "./notification.service";
 import { emailService } from "./email.service";
@@ -17,27 +18,18 @@ function generateCertificateNumber(): string {
   return `SSR-${year}-${random}`;
 }
 
-export async function issueCertificate(adminId: string, input: IssueCertificateInput) {
-  const batch = await Batch.findById(input.batch).lean();
-  if (!batch) throw ApiError.notFound("Batch not found");
-  if (batch.status !== "COMPLETED") {
-    throw ApiError.badRequest("Certificates can only be issued for completed batches");
-  }
-
-  const enrollment = await Enrollment.findOne({ student: input.student, batch: input.batch }).lean();
-  if (!enrollment) throw ApiError.badRequest("This student is not enrolled in the selected batch");
-
-  const existing = await Certificate.findOne({
-    student: input.student,
-    batch: input.batch,
-    status: "ISSUED",
-  }).lean();
-  if (existing) throw ApiError.conflict("An active certificate already exists for this student and batch");
-
-  const [student, course] = await Promise.all([
-    User.findById(input.student).select("name email").lean(),
-    Course.findById(batch.course).select("name").lean(),
+async function createCertificateRecord(params: {
+  studentId: string;
+  batchId: string;
+  courseId: string;
+  issuedBy?: string;
+}): Promise<ICertificate> {
+  const [batch, student, course] = await Promise.all([
+    Batch.findById(params.batchId).lean(),
+    User.findById(params.studentId).select("name email").lean(),
+    Course.findById(params.courseId).select("name").lean(),
   ]);
+  if (!batch) throw ApiError.notFound("Batch not found");
   if (!student) throw ApiError.notFound("Student not found");
 
   let certificate: ICertificate | null = null;
@@ -45,13 +37,13 @@ export async function issueCertificate(adminId: string, input: IssueCertificateI
     try {
       certificate = await Certificate.create({
         certificateNumber: generateCertificateNumber(),
-        student: input.student,
-        batch: input.batch,
-        course: batch.course,
+        student: params.studentId,
+        batch: params.batchId,
+        course: params.courseId,
         studentName: student.name,
         courseName: course?.name ?? "Unknown course",
         batchName: batch.name,
-        issuedBy: adminId,
+        ...(params.issuedBy ? { issuedBy: params.issuedBy } : {}),
       });
     } catch (err) {
       if ((err as { code?: number }).code !== 11000) throw err;
@@ -59,7 +51,7 @@ export async function issueCertificate(adminId: string, input: IssueCertificateI
   }
   if (!certificate) throw ApiError.internal("Could not generate a unique certificate number, try again");
 
-  await notifyUser(input.student, {
+  await notifyUser(params.studentId, {
     type: "CERTIFICATE_ISSUED",
     title: "Certificate issued",
     message: `Your certificate for ${certificate.courseName} is ready.`,
@@ -71,6 +63,38 @@ export async function issueCertificate(adminId: string, input: IssueCertificateI
     certificate.courseName,
     certificate.certificateNumber
   );
+
+  return certificate;
+}
+
+/** Admin-triggered issuance — backend-enforced gate on the STUDENT'S OWN course
+ * completion (spec §11), not just batch status: an admin cannot issue a certificate to a
+ * student who hasn't actually finished the curriculum, even if the batch itself has ended. */
+export async function issueCertificate(adminId: string, input: IssueCertificateInput) {
+  const batch = await Batch.findById(input.batch).lean();
+  if (!batch) throw ApiError.notFound("Batch not found");
+
+  const enrollment = await Enrollment.findOne({ student: input.student, batch: input.batch }).lean();
+  if (!enrollment) throw ApiError.badRequest("This student is not enrolled in the selected batch");
+
+  const completed = await isCourseCompleted(input.student, String(batch.course));
+  if (!completed) {
+    throw ApiError.badRequest("This student has not completed the course yet");
+  }
+
+  const existing = await Certificate.findOne({
+    student: input.student,
+    batch: input.batch,
+    status: "ISSUED",
+  }).lean();
+  if (existing) throw ApiError.conflict("An active certificate already exists for this student and batch");
+
+  const certificate = await createCertificateRecord({
+    studentId: input.student,
+    batchId: input.batch,
+    courseId: String(batch.course),
+    issuedBy: adminId,
+  });
 
   await recordAudit({
     userId: adminId,

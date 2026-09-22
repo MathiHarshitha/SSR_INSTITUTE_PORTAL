@@ -16,8 +16,10 @@ import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { cn } from "cn";
 import { useMyApplications, useStudentJobs, useWithdrawApplication } from "@/hooks/useStudentJobs";
 import { useMyEnrollments } from "@/hooks/useEnrollments";
+import { useCareerResourcesStatus } from "@/hooks/useCareerResources";
 import { useAuthStore } from "@/store/auth-store";
 import { ApplyJobDialog } from "@/components/student/apply-job-dialog";
+import { NoAccess } from "@/components/shared/no-access";
 import { ApplicationStatus, StudentApplication, StudentJob, WorkMode } from "@/types/job";
 import { StudentProfileData } from "@/types/profile";
 import { StatCard } from "@/components/shared/stat-card";
@@ -47,6 +49,7 @@ export default function StudentJobsPage() {
   const { data: jobs, isLoading, isError } = useStudentJobs();
   const { data: applications } = useMyApplications();
   const { data: enrollments } = useMyEnrollments();
+  const { data: careerResourcesStatus } = useCareerResourcesStatus();
   const [applyingJob, setApplyingJob] = useState<StudentJob | null>(null);
   const [withdrawing, setWithdrawing] = useState<StudentApplication | null>(null);
   const withdrawMutation = useWithdrawApplication();
@@ -69,12 +72,23 @@ export default function StudentJobsPage() {
   }, [allJobs, mode, search]);
 
   const checklist = [
-    { label: "Complete core courses", done: (enrollments ?? []).some((e) => e.overallProgress >= 100) },
+    { label: "Complete core courses", done: (enrollments ?? []).some((e) => e.courseCompleted) },
     { label: "Build your portfolio", done: !!(profile?.portfolioUrl || profile?.githubUrl) },
     { label: "Add your resume", done: !!profile?.resumeUrl },
     { label: "Apply to relevant jobs", done: allApplications.length > 0 },
   ];
   const careerProgress = Math.round((checklist.filter((c) => c.done).length / checklist.length) * 100);
+  const isLocked = !!careerResourcesStatus && !careerResourcesStatus.anyUnlocked;
+
+  if (isLocked) {
+    return (
+      <div className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
+        <div className="w-full max-w-lg">
+          <NoAccess message="You don't have access to Jobs & Placements yet. Complete any one course to unlock it." />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -111,7 +125,7 @@ export default function StudentJobsPage() {
                   className={cn(
                     "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
                     mode === f.key
-                      ? "bg-primary text-primary-foreground shadow-sm"
+                      ? "bg-secondary text-secondary-foreground shadow-sm"
                       : "bg-muted text-muted-foreground hover:text-foreground"
                   )}
                 >

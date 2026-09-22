@@ -14,4 +14,6 @@ export interface MyEnrollment {
   overallProgress: number;
   totalLessons: number;
   totalCompleted: number;
+  courseCompleted: boolean;
+  certificateUnlocked: boolean;
 }

@@ -17,6 +17,11 @@ export function createApp(): Application {
   const app = express();
 
   app.set("trust proxy", 1);
+  // This is a JSON API, not a static-asset server — Express's default weak ETag on every
+  // response just causes conditional-GET 304s that muddy the Network tab and add server-side
+  // hashing work for no benefit (the client never relies on HTTP caching; React Query already
+  // owns client-side caching).
+  app.set("etag", false);
 
   app.use(helmet());
   app.use(

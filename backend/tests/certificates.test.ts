@@ -2,10 +2,36 @@ import request from "supertest";
 import { createApp } from "../src/app";
 import { Course } from "../src/models/Course";
 import { Batch } from "../src/models/Batch";
+import { Module } from "../src/models/Module";
+import { Topic } from "../src/models/Topic";
+import { Lesson } from "../src/models/Lesson";
 import { Enrollment } from "../src/models/Enrollment";
 import { createUser, authHeader } from "./helpers";
 
 const app = createApp();
+
+/** Certificates are now gated on the STUDENT'S OWN course completion (spec §11), not just
+ * batch status — build the simplest possible "completed course" (one plain lesson, no
+ * practice/quiz/coding stages) and mark it done through the real API. */
+async function completeSimpleCourseForStudent(courseId: string, studentToken: string) {
+  const module = await Module.create({ course: courseId, name: "Module 1", order: 0 });
+  const topic = await Topic.create({ course: courseId, module: module._id, name: "Topic 1", order: 0 });
+  const lesson = await Lesson.create({
+    topic: topic._id,
+    module: module._id,
+    course: courseId,
+    title: "Lesson 1",
+    order: 0,
+    whatIsIt: "...",
+    whyItMatters: "...",
+    analogy: "...",
+    simpleExample: "...",
+  });
+  const res = await request(app)
+    .post(`/api/v1/progress/lessons/${lesson._id.toString()}/complete`)
+    .set(authHeader(studentToken));
+  expect(res.status).toBe(200);
+}
 
 async function createCourseAndBatch(status: "UPCOMING" | "COMPLETED") {
   const course = await Course.create({
@@ -60,9 +86,10 @@ describe("Certificates", () => {
 
   it("issues a certificate, rejects a duplicate, and revokes it", async () => {
     const { token: adminToken } = await createUser({ role: "ADMIN" });
-    const { user: student } = await createUser({ role: "STUDENT" });
+    const { user: student, token: studentToken } = await createUser({ role: "STUDENT" });
     const { batch, course } = await createCourseAndBatch("COMPLETED");
     await Enrollment.create({ student: student._id, batch: batch._id, course: course._id });
+    await completeSimpleCourseForStudent(course._id.toString(), studentToken);
 
     const issued = await request(app)
       .post("/api/v1/certificates")
@@ -110,6 +137,7 @@ describe("Certificates", () => {
     const { token: adminToken } = await createUser({ role: "ADMIN" });
     const { batch, course } = await createCourseAndBatch("COMPLETED");
     await Enrollment.create({ student: student._id, batch: batch._id, course: course._id });
+    await completeSimpleCourseForStudent(course._id.toString(), studentToken);
 
     const trainerAttempt = await request(app)
       .post("/api/v1/certificates")
@@ -117,10 +145,11 @@ describe("Certificates", () => {
       .send({ student: student._id.toString(), batch: batch._id.toString() });
     expect(trainerAttempt.status).toBe(403);
 
-    await request(app)
+    const adminIssue = await request(app)
       .post("/api/v1/certificates")
       .set(authHeader(adminToken))
       .send({ student: student._id.toString(), batch: batch._id.toString() });
+    expect(adminIssue.status).toBe(201);
 
     const ownList = await request(app).get("/api/v1/certificates/my").set(authHeader(studentToken));
     expect(ownList.status).toBe(200);

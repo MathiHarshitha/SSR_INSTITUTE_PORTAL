@@ -125,8 +125,7 @@ export const reorderLessons = asyncHandler(async (req: Request, res: Response) =
   sendSuccess(res, 200, "Lessons reordered");
 });
 
-export const submitLessonQuiz = asyncHandler(async (req: Request, res: Response) => {
-  const { answers } = req.body as { answers: number[] };
-  const result = await progressService.submitLessonQuiz(req.user!.id, req.params.id as string, answers);
-  sendSuccess(res, 200, "Quiz submitted", result);
+export const markPracticeComplete = asyncHandler(async (req: Request, res: Response) => {
+  const result = await progressService.markPracticeComplete(req.user!.id, req.params.id as string);
+  sendSuccess(res, 200, "Practice marked complete", result);
 });

@@ -169,10 +169,14 @@ describe("topic CRUD (Course -> Module -> Topic -> Lesson)", () => {
 
     const { user: student, token: studentToken } = await createUser({ role: "STUDENT" });
     await Enrollment.create({ student: student._id, batch: batch._id, course: course._id });
+    await request(app).post(`/api/v1/lessons/${lesson._id.toString()}/quiz/start`).set(authHeader(studentToken));
+    await request(app)
+      .post(`/api/v1/lessons/${lesson._id.toString()}/quiz/answer`)
+      .set(authHeader(studentToken))
+      .send({ selectedIndex: 1 });
     await request(app)
       .post(`/api/v1/lessons/${lesson._id.toString()}/quiz/submit`)
-      .set(authHeader(studentToken))
-      .send({ answers: [1] });
+      .set(authHeader(studentToken));
 
     const { token: adminToken } = await createUser({ role: "ADMIN" });
     const deleteRes = await request(app)
@@ -205,17 +209,25 @@ describe("student lesson content + quiz", () => {
 
     // Client sends the "wrong" answer — score must still come back 0%, never trusting a
     // client-computed score.
+    await request(app).post(`/api/v1/lessons/${lesson._id.toString()}/quiz/start`).set(authHeader(studentToken));
+    await request(app)
+      .post(`/api/v1/lessons/${lesson._id.toString()}/quiz/answer`)
+      .set(authHeader(studentToken))
+      .send({ selectedIndex: 0 });
     const wrongSubmit = await request(app)
       .post(`/api/v1/lessons/${lesson._id.toString()}/quiz/submit`)
-      .set(authHeader(studentToken))
-      .send({ answers: [0] });
+      .set(authHeader(studentToken));
     expect(wrongSubmit.status).toBe(200);
     expect(wrongSubmit.body.data.score).toBe(0);
 
+    await request(app).post(`/api/v1/lessons/${lesson._id.toString()}/quiz/start`).set(authHeader(studentToken));
+    await request(app)
+      .post(`/api/v1/lessons/${lesson._id.toString()}/quiz/answer`)
+      .set(authHeader(studentToken))
+      .send({ selectedIndex: 1 });
     const correctSubmit = await request(app)
       .post(`/api/v1/lessons/${lesson._id.toString()}/quiz/submit`)
-      .set(authHeader(studentToken))
-      .send({ answers: [1] });
+      .set(authHeader(studentToken));
     expect(correctSubmit.status).toBe(200);
     expect(correctSubmit.body.data.score).toBe(100);
   });

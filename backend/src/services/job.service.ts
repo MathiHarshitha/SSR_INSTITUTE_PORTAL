@@ -5,6 +5,7 @@ import { Enrollment } from "../models/Enrollment";
 import { Attendance } from "../models/Attendance";
 import { User } from "../models/User";
 import { ApiError } from "../utils/ApiError";
+import { assertAnyCourseCompleted } from "./careerResources.service";
 import { recordAudit } from "./auditLog.service";
 import { notifyUser } from "./notification.service";
 import { emailService } from "./email.service";
@@ -159,6 +160,26 @@ export async function listPublishedJobsForStudent(studentId: string) {
   });
 }
 
+/** Re-derives the same course/attendance eligibility shown to the student in
+ * listPublishedJobsForStudent, server-side, so a direct API call can't bypass the
+ * "Not eligible" UI gate (spec §12/§13: never trust a client-sent eligibility flag). */
+async function assertEligibleForJob(studentId: string, job: IJob): Promise<void> {
+  if (job.eligibleCourses.length > 0) {
+    const enrolledCourseIds = (
+      await Enrollment.find({ student: studentId }).select("course").lean()
+    ).map((e) => String(e.course));
+    const courseMatch = job.eligibleCourses.some((c) => enrolledCourseIds.includes(String(c)));
+    if (!courseMatch) throw ApiError.forbidden("You are not eligible for this job");
+  }
+
+  if (job.minAttendancePercent != null) {
+    const attendancePercent = await getStudentOverallAttendancePercent(studentId);
+    if (attendancePercent == null || attendancePercent < job.minAttendancePercent) {
+      throw ApiError.forbidden("You are not eligible for this job");
+    }
+  }
+}
+
 export async function applyToJob(studentId: string, jobId: string, resumeUrl?: string) {
   const job = await Job.findById(jobId).lean();
   if (!job) throw ApiError.notFound("Job not found");
@@ -166,6 +187,12 @@ export async function applyToJob(studentId: string, jobId: string, resumeUrl?: s
   if (job.applicationDeadline < new Date()) {
     throw ApiError.badRequest("The application deadline has passed");
   }
+
+  const careerResourcesUnlocked = await assertAnyCourseCompleted(studentId);
+  if (!careerResourcesUnlocked) {
+    throw ApiError.forbidden("Complete a course to unlock Career Resources");
+  }
+  await assertEligibleForJob(studentId, job as unknown as IJob);
 
   const existing = await JobApplication.findOne({ job: jobId, student: studentId }).lean();
   if (existing) throw ApiError.conflict("You have already applied to this job");
