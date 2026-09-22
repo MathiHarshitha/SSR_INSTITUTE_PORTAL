@@ -146,7 +146,7 @@ export default function StudentDashboardPage() {
               </div>
               <Link
                 href={continueCourseId ? `/student/courses/${continueCourseId}` : "/student/courses"}
-                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl bg-primary py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/85"
+                className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl bg-secondary py-1.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/90"
               >
                 Continue Learning
                 <ArrowRight className="h-3.5 w-3.5" />

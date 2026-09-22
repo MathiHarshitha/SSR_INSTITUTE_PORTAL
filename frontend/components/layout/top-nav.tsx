@@ -66,7 +66,7 @@ export function TopNav({ role, onNavigate, variant = "pills", className, activeL
             className={cn(
               "flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-all",
               isActive
-                ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                ? "bg-secondary text-secondary-foreground shadow-sm shadow-secondary/20"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >

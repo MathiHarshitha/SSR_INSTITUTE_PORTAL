@@ -7,6 +7,8 @@ import {
   CheckCircle2,
   TrendingUp,
   BookOpen,
+  Layers,
+  BarChart3,
   Search,
   Target,
   ArrowRight,
@@ -35,6 +37,8 @@ const CARD_ACCENTS = [
   "from-brand-500/15 to-brand-500/5 text-brand-600",
   "from-amber-500/15 to-amber-500/5 text-amber-600",
 ];
+
+const CARD_ICONS = [BookOpen, Layers, BarChart3];
 
 export default function StudentCoursesPage() {
   const user = useAuthStore((s) => s.user);
@@ -105,7 +109,7 @@ export default function StudentCoursesPage() {
               className={cn(
                 "clay-btn rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
                 filter === f.key
-                  ? "bg-emerald-600 text-white"
+                  ? "bg-secondary text-secondary-foreground"
                   : "bg-card text-muted-foreground hover:text-foreground"
               )}
             >
@@ -145,6 +149,7 @@ export default function StudentCoursesPage() {
                   ? "bg-brand-600 text-white"
                   : "bg-amber-500 text-white";
             const accent = CARD_ACCENTS[i % CARD_ACCENTS.length];
+            const CourseIcon = CARD_ICONS[i % CARD_ICONS.length];
             return (
               <div key={e.enrollmentId} className="clay clay-hover flex flex-col overflow-hidden">
                 <div className={cn("relative flex h-32 items-center justify-center bg-gradient-to-br", accent)}>
@@ -152,7 +157,7 @@ export default function StudentCoursesPage() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={e.course.thumbnailUrl} alt="" className="h-full w-full object-cover" />
                   ) : (
-                    <BookOpen className="h-10 w-10 opacity-70" />
+                    <CourseIcon className="h-10 w-10 opacity-70" />
                   )}
                   <span className={cn("clay-btn absolute left-2.5 top-2.5 px-2 py-0.5 text-[10px] font-semibold", statusClass)}>
                     {status}
@@ -173,7 +178,7 @@ export default function StudentCoursesPage() {
                   )}
                   <Link
                     href={`/student/courses/${e.course._id}`}
-                    className="clay-btn mt-auto flex items-center justify-center gap-1.5 rounded-full bg-emerald-600 py-2 text-xs font-medium text-white transition-colors hover:bg-emerald-500"
+                    className="clay-btn mt-auto flex items-center justify-center gap-1.5 rounded-full bg-secondary py-2 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/90"
                   >
                     Continue Learning
                     <ArrowRight className="h-3.5 w-3.5" />
