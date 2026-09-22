@@ -110,6 +110,7 @@ export default function StudentCertificatesPage() {
                         size="sm"
                         variant="outline"
                         className="flex-1"
+                        nativeButton={false}
                         render={<Link href={`/verify-certificate/${cert.certificateNumber}`} target="_blank" />}
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
@@ -119,6 +120,7 @@ export default function StudentCertificatesPage() {
                         size="sm"
                         variant="outline"
                         className="flex-1"
+                        nativeButton={false}
                         render={
                           <a
                             href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
