@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { cn } from "cn";
 import { NAV_ITEMS } from "@/constants/nav";
 import { Role } from "@/types/auth";
@@ -11,35 +12,43 @@ interface TopNavProps {
   onNavigate?: () => void;
   variant?: "pills" | "list";
   className?: string;
+  activeLayoutId?: string;
 }
 
-export function TopNav({ role, onNavigate, variant = "pills", className }: TopNavProps) {
+export function TopNav({ role, onNavigate, variant = "pills", className, activeLayoutId = "nav-active" }: TopNavProps) {
   const pathname = usePathname();
   const items = NAV_ITEMS[role];
 
   if (variant === "list") {
     return (
-      <nav className={cn("flex flex-col gap-0.5", className)}>
-        {items.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              className={cn(
-                "flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-[13px] font-medium transition-all",
-                isActive
-                  ? "bg-white/15 text-white shadow-sm shadow-black/20"
-                  : "text-white/60 hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <Icon className="h-4 w-4 shrink-0" />
-              <span className="truncate">{item.label}</span>
-            </Link>
-          );
-        })}
+      <nav className={cn("flex h-full flex-col justify-between gap-1", className)}>
+        {items
+          .filter((item) => item.label !== "Profile")
+          .map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                className={cn(
+                  "relative flex items-center gap-3 rounded-2xl px-3.5 py-2 text-[13.5px] font-medium transition-colors",
+                  isActive ? "text-white" : "text-white/65 hover:bg-white/5 hover:text-white"
+                )}
+              >
+                {isActive && (
+                  <motion.span
+                    layoutId={activeLayoutId}
+                    className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-r from-[#5865e0] to-[#7c6cf0] shadow-md shadow-black/20"
+                    transition={{ type: "spring", stiffness: 480, damping: 34 }}
+                  />
+                )}
+                <Icon className="h-5 w-5 shrink-0" strokeWidth={1.75} />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            );
+          })}
       </nav>
     );
   }
