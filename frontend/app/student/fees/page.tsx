@@ -59,7 +59,7 @@ export default function StudentFeesPage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <p className="mb-3 text-sm font-semibold text-foreground">Course Fee Overview</p>
             {isLoadingStatus ? (
               <Skeleton className="h-32 w-full rounded-2xl" />
@@ -102,7 +102,7 @@ export default function StudentFeesPage() {
             )}
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-semibold text-foreground">Payment History</p>
               {payments && payments.length > 0 && (
@@ -146,7 +146,7 @@ export default function StudentFeesPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
               <HeadphonesIcon className="h-4.5 w-4.5" />
             </span>
@@ -156,7 +156,7 @@ export default function StudentFeesPage() {
             </p>
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <p className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-foreground">
               <Info className="h-4 w-4 text-secondary" />
               Important Notes

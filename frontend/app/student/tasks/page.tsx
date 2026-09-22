@@ -118,7 +118,7 @@ export default function StudentTasksPage() {
             ))}
           </div>
 
-          <div className="rounded-3xl border border-border bg-card shadow-sm">
+          <div className="clay">
             {isError ? (
               <p className="py-12 text-center text-sm text-muted-foreground">Failed to load tasks.</p>
             ) : isLoading ? (
@@ -185,7 +185,7 @@ export default function StudentTasksPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <MiniCalendar
               marks={marks}
               legend={[
@@ -196,7 +196,7 @@ export default function StudentTasksPage() {
             />
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <p className="mb-2 text-sm font-semibold text-foreground">Upcoming Deadlines</p>
             {upcoming.length === 0 ? (
               <p className="text-xs text-muted-foreground">Nothing due — you&apos;re all caught up!</p>

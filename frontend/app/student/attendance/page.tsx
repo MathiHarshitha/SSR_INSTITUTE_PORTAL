@@ -62,7 +62,7 @@ export default function StudentAttendancePage() {
 
       {!batchId ? null : (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <div className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm">
+          <div className="flex items-center gap-3 clay p-3">
             <ProgressRing value={mySummary?.percentage ?? 0} size={52} strokeWidth={6}>
               <span className="text-xs font-bold text-foreground">{mySummary?.percentage ?? 0}%</span>
             </ProgressRing>
@@ -80,12 +80,12 @@ export default function StudentAttendancePage() {
       )}
 
       {!batchId ? (
-        <div className="rounded-2xl border border-border bg-card py-16 text-center text-sm text-muted-foreground">
+        <div className="clay py-16 text-center text-sm text-muted-foreground">
           You are not enrolled in a batch yet.
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-3">
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <MiniCalendar
               marks={marks}
               legend={[
@@ -97,7 +97,7 @@ export default function StudentAttendancePage() {
             />
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm lg:col-span-2">
+          <div className="clay p-4 lg:col-span-2">
             <p className="mb-3 text-sm font-semibold text-foreground">Recent Classes</p>
             {isLoading ? (
               <div className="space-y-2">

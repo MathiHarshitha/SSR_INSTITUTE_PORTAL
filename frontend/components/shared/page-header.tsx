@@ -20,7 +20,7 @@ export function PageHeader({
   illustration = "/illustrations/online-learning.svg",
 }: PageHeaderProps) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card to-muted/40 p-4 shadow-sm sm:p-5">
+    <div className="clay relative overflow-hidden bg-gradient-to-br from-card to-muted/40 p-4 sm:p-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="min-w-0">
           {eyebrow && (
@@ -41,7 +41,7 @@ export function PageHeader({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={illustration} alt="" className="h-full w-full object-contain" />
           </div>
-          <div className="flex max-w-[13rem] items-start gap-2 rounded-2xl border border-border bg-card px-3 py-2 shadow-sm">
+          <div className="clay flex max-w-[13rem] items-start gap-2 px-3 py-2">
             <Quote className="h-4 w-4 shrink-0 text-secondary" />
             <p className="text-xs font-medium italic leading-snug text-foreground">
               {quote}
