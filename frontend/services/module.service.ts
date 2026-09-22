@@ -4,8 +4,11 @@ import {
   AdminLesson,
   AdminModule,
   AdminTopic,
+  CodingLastSubmission,
+  CodingSubmitResult,
   LessonFormInput,
   ModuleFormInput,
+  QuizSessionState,
   QuizSubmitResult,
   StudentLessonDetail,
   TopicFormInput,
@@ -96,16 +99,67 @@ export const moduleService = {
     await apiClient.patch(`/topics/${topicId}/lessons/reorder`, { orderedIds });
   },
 
-  /** Student learner view — quiz answers stripped until submitted. */
+  /** Student learner view — gated by enrollment + sequential lock state; quiz answers and
+   * coding test cases stripped either way. */
   async getLessonForStudent(id: string) {
     const { data } = await apiClient.get<ApiSuccessResponse<StudentLessonDetail>>(`/lessons/${id}`);
     return data.data;
   },
 
-  async submitQuiz(lessonId: string, answers: number[]) {
+  async markPracticeComplete(lessonId: string) {
+    await apiClient.post(`/lessons/${lessonId}/practice/complete`);
+  },
+
+  // Quiz session — server-side state machine (spec §7): no back-nav, no reopening a
+  // submitted question, refresh/back-button-safe.
+  async getQuizState(lessonId: string) {
+    const { data } = await apiClient.get<ApiSuccessResponse<QuizSessionState>>(
+      `/lessons/${lessonId}/quiz/state`
+    );
+    return data.data;
+  },
+
+  async startQuiz(lessonId: string) {
+    const { data } = await apiClient.post<ApiSuccessResponse<QuizSessionState>>(
+      `/lessons/${lessonId}/quiz/start`
+    );
+    return data.data;
+  },
+
+  async answerQuiz(lessonId: string, selectedIndex: number) {
+    const { data } = await apiClient.post<ApiSuccessResponse<QuizSessionState>>(
+      `/lessons/${lessonId}/quiz/answer`,
+      { selectedIndex }
+    );
+    return data.data;
+  },
+
+  async submitQuiz(lessonId: string) {
     const { data } = await apiClient.post<ApiSuccessResponse<QuizSubmitResult>>(
-      `/lessons/${lessonId}/quiz/submit`,
-      { answers }
+      `/lessons/${lessonId}/quiz/submit`
+    );
+    return data.data;
+  },
+
+  async quitQuiz(lessonId: string) {
+    const { data } = await apiClient.post<ApiSuccessResponse<{ score: number; quit: boolean }>>(
+      `/lessons/${lessonId}/quiz/quit`
+    );
+    return data.data;
+  },
+
+  // Coding question — sandboxed auto-grading.
+  async getCodingState(lessonId: string) {
+    const { data } = await apiClient.get<
+      ApiSuccessResponse<{ lastSubmission: CodingLastSubmission | null }>
+    >(`/lessons/${lessonId}/coding/state`);
+    return data.data;
+  },
+
+  async submitCoding(lessonId: string, code: string) {
+    const { data } = await apiClient.post<ApiSuccessResponse<CodingSubmitResult>>(
+      `/lessons/${lessonId}/coding/submit`,
+      { code }
     );
     return data.data;
   },

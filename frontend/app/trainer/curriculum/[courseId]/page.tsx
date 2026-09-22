@@ -87,10 +87,18 @@ export default function TrainerCourseCurriculumPage({
               {course.category ? ` · ${course.category}` : ""}
             </p>
           </div>
-          <Button onClick={openAddModule}>
-            <Plus className="h-4 w-4" />
-            Add module
-          </Button>
+          <div className="flex gap-2">
+            <Link
+              href={`/trainer/curriculum/${courseId}/final-assessment`}
+              className={cn(buttonVariants({ variant: "outline" }))}
+            >
+              Final Assessment
+            </Link>
+            <Button onClick={openAddModule}>
+              <Plus className="h-4 w-4" />
+              Add module
+            </Button>
+          </div>
         </div>
       ) : (
         <p className="text-sm text-muted-foreground">Course not found.</p>

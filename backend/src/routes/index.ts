@@ -24,6 +24,9 @@ import reportRoutes from "./report.routes";
 import notificationRoutes from "./notification.routes";
 import enrollmentRoutes from "./enrollment.routes";
 import searchRoutes from "./search.routes";
+import finalAssessmentRoutes from "./finalAssessment.routes";
+import careerResourcesRoutes from "./careerResources.routes";
+import interviewResourceRoutes from "./interviewResource.routes";
 
 const router = Router();
 
@@ -52,5 +55,8 @@ router.use("/reports", reportRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/enrollments", enrollmentRoutes);
 router.use("/search", searchRoutes);
+router.use("/final-assessments", finalAssessmentRoutes);
+router.use("/career-resources", careerResourcesRoutes);
+router.use("/interview-resources", interviewResourceRoutes);
 
 export default router;

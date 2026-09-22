@@ -36,6 +36,21 @@ const quizQuestionFormSchema = z.object({
   explanation: z.string().trim().optional(),
 });
 
+function isValidJson(value: string): boolean {
+  if (!value.trim()) return false;
+  try {
+    JSON.parse(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const codingTestCaseFormSchema = z.object({
+  argsText: z.string().trim().refine(isValidJson, "Must be a valid JSON array, e.g. [1, 2]"),
+  expectedOutputText: z.string().trim().refine(isValidJson, "Must be valid JSON, e.g. 3 or \"text\""),
+});
+
 export const lessonContentFormSchema = z.object({
   title: z.string().trim().min(2, "Title is too short").max(150),
   description: z.string().trim().optional(),
@@ -55,6 +70,15 @@ export const lessonContentFormSchema = z.object({
   practiceStarterCode: z.string().optional(),
   practiceHint: z.string().trim().optional(),
   quiz: z.array(quizQuestionFormSchema),
+  codingPrompt: z.string().trim().optional(),
+  codingStarterCode: z.string().optional(),
+  codingFunctionName: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z_$][A-Za-z0-9_$]*$/, "Must be a valid function name")
+    .optional()
+    .or(z.literal("")),
+  codingTestCases: z.array(codingTestCaseFormSchema),
   rememberThis: z.string().trim().optional(),
   keyTakeawaysText: z.string().optional(),
 });
@@ -77,5 +101,19 @@ export function fromQuizQuestion(q: { question: string; options: string[]; corre
     optionsText: q.options.join("\n"),
     correctOptionNumber: q.correctIndex + 1,
     explanation: q.explanation ?? "",
+  };
+}
+
+export function toCodingTestCase(row: z.infer<typeof codingTestCaseFormSchema>) {
+  return {
+    args: JSON.parse(row.argsText) as unknown[],
+    expectedOutput: JSON.parse(row.expectedOutputText) as unknown,
+  };
+}
+
+export function fromCodingTestCase(tc: { args: unknown[]; expectedOutput: unknown }) {
+  return {
+    argsText: JSON.stringify(tc.args),
+    expectedOutputText: JSON.stringify(tc.expectedOutput),
   };
 }

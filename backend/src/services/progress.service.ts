@@ -1,36 +1,104 @@
-import { Lesson } from "../models/Lesson";
+import { Lesson, ILesson } from "../models/Lesson";
 import { Module } from "../models/Module";
 import { Topic } from "../models/Topic";
 import { LessonProgress } from "../models/LessonProgress";
 import { ApiError } from "../utils/ApiError";
 import { assertCourseContentAccess, assertStudentEnrolledInCourse } from "../utils/batchAccess";
+import {
+  assertLessonUnlocked,
+  isCourseCompleted,
+  loadCourseProgressTree,
+} from "../utils/lessonAccess";
+import { getLessonStageStatus, isLessonStagesComplete } from "../utils/progressState";
+import { FinalAssessment } from "../models/FinalAssessment";
 import { Role } from "../constants/enums";
 
-/** Full lesson content for a student, with quiz answers stripped so they can't be read before submitting. */
+/** Full lesson content for a student, gated by enrollment + sequential lock state (spec
+ * §2/§3/§8: not-enrolled or not-yet-reached lessons are rejected; completed lessons stay
+ * open for revision). Quiz answers and coding test cases are stripped either way. */
 export async function getLessonForStudent(studentId: string, lessonId: string) {
   const lesson = await Lesson.findById(lessonId).lean();
   if (!lesson || !lesson.published) throw ApiError.notFound("Lesson not found");
 
-  await assertStudentEnrolledInCourse(String(lesson.course), studentId);
+  const node = await assertLessonUnlocked(studentId, lesson as unknown as ILesson);
 
   const progress = await LessonProgress.findOne({ student: studentId, lesson: lessonId })
-    .select("completed quizBestScore quizAttempts")
+    .select("completed practiceCompleted quizPassed codingCompleted quizBestScore quizAttempts")
     .lean();
 
   return {
     ...lesson,
     quiz: lesson.quiz.map((q) => ({ question: q.question, options: q.options })),
+    codingQuestion: lesson.codingQuestion
+      ? {
+          prompt: lesson.codingQuestion.prompt,
+          starterCode: lesson.codingQuestion.starterCode,
+          functionName: lesson.codingQuestion.functionName,
+        }
+      : null,
     completed: progress?.completed ?? false,
+    practiceCompleted: progress?.practiceCompleted ?? false,
+    quizPassed: progress?.quizPassed ?? false,
+    codingCompleted: progress?.codingCompleted ?? false,
     quizBestScore: progress?.quizBestScore,
     quizAttempts: progress?.quizAttempts ?? 0,
+    lockState: node.state,
+    stage: node.stage,
   };
 }
 
+/** Marks the "practice" stage done. Never auto-triggered by viewing — requires the explicit
+ * student action of submitting/completing the practice exercise. */
+export async function markPracticeComplete(studentId: string, lessonId: string) {
+  const lesson = await Lesson.findById(lessonId).lean();
+  if (!lesson) throw ApiError.notFound("Lesson not found");
+  if (!lesson.practice) throw ApiError.badRequest("This lesson has no practice exercise");
+
+  await assertLessonUnlocked(studentId, lesson as unknown as ILesson);
+
+  await LessonProgress.findOneAndUpdate(
+    { student: studentId, lesson: lessonId },
+    {
+      $set: { practiceCompleted: true, practiceCompletedAt: new Date() },
+      $setOnInsert: { topic: lesson.topic, module: lesson.module, course: lesson.course },
+    },
+    { upsert: true }
+  );
+
+  return maybeCompleteLesson(studentId, lesson as unknown as ILesson);
+}
+
+/** A lesson auto-completes the instant every stage it actually has (practice/quiz/coding)
+ * is cleared — no separate "mark complete" click required once the last stage finishes. */
+export async function maybeCompleteLesson(studentId: string, lesson: ILesson | (ILesson & { _id: unknown })) {
+  const progress = await LessonProgress.findOne({ student: studentId, lesson: lesson._id }).lean();
+  const stage = getLessonStageStatus(lesson as never, progress ?? undefined);
+  const nowComplete = isLessonStagesComplete(stage);
+
+  if (nowComplete && !progress?.completed) {
+    await LessonProgress.findOneAndUpdate(
+      { student: studentId, lesson: lesson._id },
+      { $set: { completed: true, completedAt: new Date() } }
+    );
+  }
+
+  return { completed: nowComplete, stage };
+}
+
+/** Explicit completion for lessons with no practice/quiz/coding stage at all (plain
+ * reading lessons) — for staged lessons this just confirms what auto-completion already
+ * did once every stage cleared; it can never skip ahead of the stage gates. */
 export async function markLessonComplete(studentId: string, lessonId: string) {
   const lesson = await Lesson.findById(lessonId).lean();
   if (!lesson) throw ApiError.notFound("Lesson not found");
 
-  await assertStudentEnrolledInCourse(String(lesson.course), studentId);
+  await assertLessonUnlocked(studentId, lesson as unknown as ILesson);
+
+  const progress = await LessonProgress.findOne({ student: studentId, lesson: lessonId }).lean();
+  const stage = getLessonStageStatus(lesson as never, progress ?? undefined);
+  if (!isLessonStagesComplete(stage)) {
+    throw ApiError.badRequest("Complete the practice, quiz, and coding question first");
+  }
 
   await LessonProgress.findOneAndUpdate(
     { student: studentId, lesson: lessonId },
@@ -49,68 +117,21 @@ export async function unmarkLessonComplete(studentId: string, lessonId: string) 
   );
 }
 
-/** Grades a quiz attempt server-side and records the student's best score. Never trusts a client-sent score. */
-export async function submitLessonQuiz(studentId: string, lessonId: string, answers: number[]) {
-  const lesson = await Lesson.findById(lessonId).lean();
-  if (!lesson) throw ApiError.notFound("Lesson not found");
-  if (lesson.quiz.length === 0) throw ApiError.badRequest("This lesson has no quiz");
-
-  await assertStudentEnrolledInCourse(String(lesson.course), studentId);
-
-  const results = lesson.quiz.map((q, index) => {
-    const selected = answers[index];
-    const correct = selected === q.correctIndex;
-    return {
-      question: q.question,
-      options: q.options,
-      selectedIndex: selected ?? null,
-      correctIndex: q.correctIndex,
-      correct,
-      explanation: q.explanation,
-    };
-  });
-
-  const score = Math.round((results.filter((r) => r.correct).length / results.length) * 100);
-
-  const existing = await LessonProgress.findOne({ student: studentId, lesson: lessonId })
-    .select("quizBestScore")
-    .lean();
-  const bestScore = Math.max(existing?.quizBestScore ?? 0, score);
-
-  await LessonProgress.findOneAndUpdate(
-    { student: studentId, lesson: lessonId },
-    {
-      $set: { quizBestScore: bestScore, quizLastAttemptAt: new Date() },
-      $inc: { quizAttempts: 1 },
-      $setOnInsert: {
-        topic: lesson.topic,
-        module: lesson.module,
-        course: lesson.course,
-        completed: false,
-      },
-    },
-    { upsert: true }
-  );
-
-  return { score, bestScore, results };
-}
-
 export async function getCourseProgress(studentId: string, courseId: string) {
   await assertStudentEnrolledInCourse(courseId, studentId);
 
   const modules = await Module.find({ course: courseId }).sort({ order: 1 }).lean();
   const topics = await Topic.find({ course: courseId }).sort({ order: 1 }).lean();
   const lessons = await Lesson.find({ course: courseId })
-    .select("title topic module estimatedMinutes difficulty order")
+    .select("title topic module estimatedMinutes difficulty order practice quiz codingQuestion")
     .sort({ order: 1 })
     .lean();
   const progressRows = await LessonProgress.find({ student: studentId, course: courseId })
-    .select("lesson completed quizBestScore")
+    .select("lesson completed practiceCompleted quizPassed codingCompleted quizBestScore quizAttempts")
     .lean();
+
+  const tree = await loadCourseProgressTree(studentId, courseId);
   const progressByLesson = new Map(progressRows.map((p) => [String(p.lesson), p]));
-  const completedIds = new Set(
-    progressRows.filter((p) => p.completed).map((p) => String(p.lesson))
-  );
 
   const lessonsByTopic = new Map<string, typeof lessons>();
   for (const lesson of lessons) {
@@ -126,22 +147,30 @@ export async function getCourseProgress(studentId: string, courseId: string) {
     topicsByModule.get(key)!.push(topic);
   }
 
-  const toLessonProgress = (l: (typeof lessons)[number]) => ({
-    lessonId: l._id,
-    title: l.title,
-    estimatedMinutes: l.estimatedMinutes,
-    difficulty: l.difficulty,
-    order: l.order,
-    completed: completedIds.has(String(l._id)),
-    quizBestScore: progressByLesson.get(String(l._id))?.quizBestScore,
-  });
+  const toLessonProgress = (l: (typeof lessons)[number]) => {
+    const node = tree.lessons.get(String(l._id));
+    return {
+      lessonId: l._id,
+      title: l.title,
+      estimatedMinutes: l.estimatedMinutes,
+      difficulty: l.difficulty,
+      order: l.order,
+      state: node?.state ?? "LOCKED",
+      completed: node?.state === "COMPLETED",
+      quizBestScore: progressByLesson.get(String(l._id))?.quizBestScore,
+    };
+  };
 
-  const moduleProgress = modules.map((mod) => {
-    const moduleTopics = topicsByModule.get(String(mod._id)) ?? [];
+  const moduleProgress = Array.from(tree.modules.keys()).map((moduleId) => {
+    const mod = modules.find((m) => String(m._id) === moduleId)!;
+    const moduleTopics = topicsByModule.get(moduleId) ?? [];
 
     const topicProgress = moduleTopics.map((topic) => {
-      const topicLessons = lessonsByTopic.get(String(topic._id)) ?? [];
-      const completedCount = topicLessons.filter((l) => completedIds.has(String(l._id))).length;
+      const topicId = String(topic._id);
+      const topicLessons = lessonsByTopic.get(topicId) ?? [];
+      const completedCount = topicLessons.filter(
+        (l) => tree.lessons.get(String(l._id))?.state === "COMPLETED"
+      ).length;
       const progress =
         topicLessons.length > 0 ? Math.round((completedCount / topicLessons.length) * 100) : 0;
 
@@ -149,6 +178,7 @@ export async function getCourseProgress(studentId: string, courseId: string) {
         topicId: topic._id,
         name: topic.name,
         order: topic.order,
+        state: tree.topics.get(topicId)?.state ?? "LOCKED",
         totalLessons: topicLessons.length,
         completedLessons: completedCount,
         progress,
@@ -165,6 +195,7 @@ export async function getCourseProgress(studentId: string, courseId: string) {
       moduleId: mod._id,
       name: mod.name,
       order: mod.order,
+      state: tree.modules.get(moduleId)?.state ?? "LOCKED",
       totalLessons: moduleLessons.length,
       completedLessons: completedCount,
       progress,
@@ -172,11 +203,24 @@ export async function getCourseProgress(studentId: string, courseId: string) {
     };
   });
 
-  const totalLessons = lessons.length;
-  const totalCompleted = completedIds.size;
-  const overallProgress = totalLessons > 0 ? Math.round((totalCompleted / totalLessons) * 100) : 0;
+  const finalAssessment = await FinalAssessment.findOne({ course: courseId, published: true })
+    .select("_id passingScore")
+    .lean();
+  const courseCompleted = await isCourseCompleted(studentId, courseId);
 
-  return { courseId, overallProgress, totalLessons, totalCompleted, modules: moduleProgress };
+  return {
+    courseId,
+    overallProgress: tree.overallProgress,
+    totalLessons: tree.totalLessons,
+    totalCompleted: tree.completedLessons,
+    allModulesCompleted: tree.allModulesCompleted,
+    finalAssessmentUnlocked: tree.allModulesCompleted,
+    hasFinalAssessment: !!finalAssessment,
+    courseCompleted,
+    certificateUnlocked: courseCompleted,
+    careerResourcesUnlocked: courseCompleted,
+    modules: moduleProgress,
+  };
 }
 
 /** Admin/trainer view of one specific student's progress in a course (spec: admin/trainer can

@@ -120,11 +120,28 @@ describe("full student journey: enroll -> curriculum -> lesson -> practice -> qu
     expect(lessonRes.body.data.completed).toBe(false);
     expect(lessonRes.body.data.quizAttempts).toBe(0);
 
-    // Quiz: wrong answer -> 0%, no completion, attempt recorded.
+    // Quiz can't even be started until the practice stage is done (Lesson -> Practice ->
+    // Quiz -> Coding order).
+    const earlyQuizStart = await request(app)
+      .post(`/api/v1/lessons/${lesson1._id.toString()}/quiz/start`)
+      .set(authHeader(token));
+    expect(earlyQuizStart.status).toBe(403);
+
+    const practiceComplete = await request(app)
+      .post(`/api/v1/lessons/${lesson1._id.toString()}/practice/complete`)
+      .set(authHeader(token));
+    expect(practiceComplete.status).toBe(200);
+
+    // Quiz: wrong answer -> 0%, no completion, attempt recorded. Session-based: start ->
+    // answer -> submit, never a bulk client-supplied answers array.
+    await request(app).post(`/api/v1/lessons/${lesson1._id.toString()}/quiz/start`).set(authHeader(token));
+    await request(app)
+      .post(`/api/v1/lessons/${lesson1._id.toString()}/quiz/answer`)
+      .set(authHeader(token))
+      .send({ selectedIndex: 0 });
     const wrongSubmit = await request(app)
       .post(`/api/v1/lessons/${lesson1._id.toString()}/quiz/submit`)
-      .set(authHeader(token))
-      .send({ answers: [0] });
+      .set(authHeader(token));
     expect(wrongSubmit.status).toBe(200);
     expect(wrongSubmit.body.data.score).toBe(0);
     expect(wrongSubmit.body.data.results[0].correct).toBe(false);
@@ -132,13 +149,20 @@ describe("full student journey: enroll -> curriculum -> lesson -> practice -> qu
 
     // Quiz: correct answer -> 100%, best score updates, attempts accumulate (never trusting
     // a client-sent score — the server recomputes from the DB's answer key every time).
+    await request(app).post(`/api/v1/lessons/${lesson1._id.toString()}/quiz/start`).set(authHeader(token));
+    await request(app)
+      .post(`/api/v1/lessons/${lesson1._id.toString()}/quiz/answer`)
+      .set(authHeader(token))
+      .send({ selectedIndex: 1 });
     const correctSubmit = await request(app)
       .post(`/api/v1/lessons/${lesson1._id.toString()}/quiz/submit`)
-      .set(authHeader(token))
-      .send({ answers: [1] });
+      .set(authHeader(token));
     expect(correctSubmit.status).toBe(200);
     expect(correctSubmit.body.data.score).toBe(100);
     expect(correctSubmit.body.data.bestScore).toBe(100);
+    expect(correctSubmit.body.data.passed).toBe(true);
+    // Lesson had no coding question, so passing the quiz (its last required stage) auto-completes it.
+    expect(correctSubmit.body.data.lessonCompleted).toBe(true);
 
     const afterQuizLesson = await request(app)
       .get(`/api/v1/lessons/${lesson1._id.toString()}`)

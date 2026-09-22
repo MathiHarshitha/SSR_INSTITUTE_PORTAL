@@ -15,7 +15,7 @@ export interface ICertificate extends Document {
   status: CertificateStatus;
   revokedReason?: string;
   revokedAt?: Date;
-  issuedBy: Types.ObjectId;
+  issuedBy?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,7 +35,8 @@ const certificateSchema = new Schema<ICertificate>(
     status: { type: String, enum: ["ISSUED", "REVOKED"], default: "ISSUED", index: true },
     revokedReason: { type: String, trim: true },
     revokedAt: { type: Date },
-    issuedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    // Optional: auto-issued certificates (course completed without admin action) omit this.
+    issuedBy: { type: Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );

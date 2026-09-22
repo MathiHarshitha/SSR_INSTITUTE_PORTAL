@@ -4,14 +4,16 @@ import { useState } from "react";
 import Link from "next/link";
 import { Award, ExternalLink, CheckCircle2, Hourglass, Sparkles, Share2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "cn";
 import { useMyCertificates } from "@/hooks/useCertificates";
 import { useMyEnrollments } from "@/hooks/useEnrollments";
+import { useCareerResourcesStatus } from "@/hooks/useCareerResources";
 import { CertificateStatus } from "@/types/certificate";
 import { StatCard } from "@/components/shared/stat-card";
 import { PageHeader } from "@/components/shared/page-header";
+import { NoAccess } from "@/components/shared/no-access";
 
 function statusBadgeClassName(status: CertificateStatus): string {
   return status === "ISSUED" ? "bg-status-good/10 text-status-good" : "bg-status-critical/10 text-status-critical";
@@ -22,14 +24,36 @@ type FilterKey = "all" | "earned" | "in-progress" | "available";
 export default function StudentCertificatesPage() {
   const { data: certificates, isLoading, isError } = useMyCertificates();
   const { data: enrollments } = useMyEnrollments();
+  const { data: careerResourcesStatus } = useCareerResourcesStatus();
   const [filter, setFilter] = useState<FilterKey>("all");
 
   const earned = certificates ?? [];
   const earnedCourseNames = new Set(earned.map((c) => c.courseName));
-  const inProgress = (enrollments ?? []).filter((e) => e.overallProgress < 100 && !earnedCourseNames.has(e.course.name));
-  const availableToEarn = (enrollments ?? []).filter((e) => e.overallProgress >= 100 && !earnedCourseNames.has(e.course.name));
+  // Backend-computed completion (spec §11) — not a client-side overallProgress guess.
+  const inProgress = (enrollments ?? []).filter((e) => !e.courseCompleted && !earnedCourseNames.has(e.course.name));
+  const availableToEarn = (enrollments ?? []).filter((e) => e.courseCompleted && !earnedCourseNames.has(e.course.name));
 
   const shareUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+  // Same lock condition as Jobs/Mock Interviews/Interview Resources: nothing to show here
+  // until at least one course is completed (spec §11 — certificate stays locked until then).
+  // A REVOKED certificate doesn't count as "earned" for this purpose — it's no longer valid
+  // proof of anything, so it shouldn't keep the page unlocked on its own.
+  const activeEarned = earned.filter((c) => c.status === "ISSUED");
+  const isLocked = !!careerResourcesStatus && !careerResourcesStatus.anyUnlocked && activeEarned.length === 0;
+
+  if (isLocked) {
+    return (
+      <div className="flex min-h-[calc(100vh-9rem)] items-center justify-center">
+        <div className="w-full max-w-lg">
+          <NoAccess
+            title="No Certificate Yet"
+            message="You don't have access to Certificates yet. Complete any one course to unlock it."
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -106,32 +130,25 @@ export default function StudentCertificatesPage() {
                       </span>
                     </div>
                     <div className="flex gap-2 p-3 pt-0">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        render={<Link href={`/verify-certificate/${cert.certificateNumber}`} target="_blank" />}
+                      <Link
+                        href={`/verify-certificate/${cert.certificateNumber}`}
+                        target="_blank"
+                        className={cn(buttonVariants({ size: "sm", variant: "outline" }), "flex-1")}
                       >
                         <ExternalLink className="h-3.5 w-3.5" />
                         Verify
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex-1"
-                        render={
-                          <a
-                            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-                              `${shareUrl}/verify-certificate/${cert.certificateNumber}`
-                            )}`}
-                            target="_blank"
-                            rel="noreferrer"
-                          />
-                        }
+                      </Link>
+                      <a
+                        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+                          `${shareUrl}/verify-certificate/${cert.certificateNumber}`
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={cn(buttonVariants({ size: "sm", variant: "outline" }), "flex-1")}
                       >
                         <Share2 className="h-3.5 w-3.5" />
                         Share
-                      </Button>
+                      </a>
                     </div>
                   </div>
                 ))}

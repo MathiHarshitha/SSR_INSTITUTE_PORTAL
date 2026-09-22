@@ -26,6 +26,8 @@ export async function listMyEnrollments(studentId: string) {
         overallProgress: progress.overallProgress,
         totalLessons: progress.totalLessons,
         totalCompleted: progress.totalCompleted,
+        courseCompleted: progress.courseCompleted,
+        certificateUnlocked: progress.certificateUnlocked,
       };
     })
   );
