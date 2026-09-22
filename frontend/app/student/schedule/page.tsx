@@ -51,12 +51,12 @@ export default function StudentSchedulePage() {
       </div>
 
       {isError ? (
-        <div className="rounded-2xl border border-border bg-card py-16 text-center text-sm text-muted-foreground">
+        <div className="clay py-16 text-center text-sm text-muted-foreground">
           Failed to load schedule.
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-3">
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <MiniCalendar
               marks={marks}
               legend={[
@@ -66,7 +66,7 @@ export default function StudentSchedulePage() {
             />
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm lg:col-span-2">
+          <div className="clay p-4 lg:col-span-2">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm font-semibold text-foreground">Today&apos;s Schedule</p>
               <span className="text-xs text-muted-foreground">{format(now, "EEE, MMM d, yyyy")}</span>
@@ -111,7 +111,7 @@ export default function StudentSchedulePage() {
       )}
 
       {!isLoading && !isError && (
-        <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+        <div className="clay p-4">
           <p className="mb-3 text-sm font-semibold text-foreground">Upcoming This Week</p>
           {thisWeek.filter((c) => !isPast(new Date(c.date)) || isToday(new Date(c.date))).length === 0 ? (
             <p className="text-sm text-muted-foreground">No more classes scheduled this week.</p>

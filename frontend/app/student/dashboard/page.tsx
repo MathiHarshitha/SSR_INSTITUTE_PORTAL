@@ -28,13 +28,13 @@ import { useMyEnrollments } from "@/hooks/useEnrollments";
 import { StatCard, StatCardColor } from "@/components/shared/stat-card";
 
 const COURSE_ICONS = [
-  { icon: BookOpen, chip: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" },
+  { icon: BookOpen, chip: "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400" },
   { icon: Layers, chip: "bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400" },
   { icon: BarChart3, chip: "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400" },
 ];
 
 const QUICK_ACTIONS = [
-  { label: "Browse Materials", href: "/student/materials", icon: BookOpen, chip: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" },
+  { label: "Browse Materials", href: "/student/materials", icon: BookOpen, chip: "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400" },
   { label: "Submit Task", href: "/student/tasks", icon: ClipboardCheck, chip: "bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400" },
   { label: "View Fees", href: "/student/fees", icon: CreditCard, chip: "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400" },
   { label: "Certificates", href: "/student/certificates", icon: Award, chip: "bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400" },
@@ -85,7 +85,7 @@ export default function StudentDashboardPage() {
             Welcome back, {user?.name}!
           </h1>
         </div>
-        <div className="flex max-w-sm shrink-0 items-center gap-2.5 rounded-2xl border border-border bg-card px-3.5 py-2 shadow-sm">
+        <div className="flex max-w-sm shrink-0 items-center gap-2.5 clay px-3.5 py-2">
           <MountainSnow className="h-5 w-5 shrink-0 text-secondary" />
           <p className="text-xs font-medium italic leading-snug text-foreground">
             &ldquo;Discipline today creates opportunities tomorrow.&rdquo;
@@ -96,7 +96,7 @@ export default function StudentDashboardPage() {
 
       {/* Stat cards */}
       {isError ? (
-        <div className="rounded-2xl border border-border bg-card py-6 text-center text-sm text-muted-foreground">
+        <div className="clay py-6 text-center text-sm text-muted-foreground">
           Failed to load dashboard stats.
         </div>
       ) : (
@@ -109,7 +109,7 @@ export default function StudentDashboardPage() {
 
       {/* Hero banner + today's schedule */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-stretch">
-        <div className="relative flex flex-col overflow-hidden rounded-3xl bg-gradient-to-br from-[#3654d1] via-[#4c3fc9] to-[#7c3aed] p-4 text-white shadow-lg sm:p-5 lg:flex-[2]">
+        <div className="relative flex flex-col overflow-hidden rounded-3xl bg-gradient-to-br from-[#0092b5] via-[#047a97] to-[#065f74] p-4 text-white shadow-lg sm:p-5 lg:flex-[2]">
           <div className="bg-dot-grid pointer-events-none absolute inset-0 opacity-30" />
           <div className="relative flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
             <div className="min-w-0 shrink-0">
@@ -155,7 +155,7 @@ export default function StudentDashboardPage() {
           </div>
         </div>
 
-        <div className="flex flex-col rounded-3xl border border-border bg-card p-4 shadow-sm lg:w-72 lg:shrink-0">
+        <div className="flex flex-col clay p-4 lg:w-72 lg:shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4 text-secondary" />
@@ -200,7 +200,7 @@ export default function StudentDashboardPage() {
 
       {/* My courses + upcoming classes */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-stretch">
-        <div className="flex flex-col rounded-3xl border border-border bg-card p-4 shadow-sm lg:flex-[2]">
+        <div className="flex flex-col clay p-4 lg:flex-[2]">
           <div className="mb-2 flex items-center justify-between">
             <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
               <GraduationCap className="h-4 w-4 text-secondary" />
@@ -248,7 +248,7 @@ export default function StudentDashboardPage() {
           )}
         </div>
 
-        <div className="flex flex-col rounded-3xl border border-border bg-card p-4 shadow-sm lg:w-72 lg:shrink-0">
+        <div className="flex flex-col clay p-4 lg:w-72 lg:shrink-0">
           <h3 className="mb-2 flex items-center justify-between text-sm font-semibold text-foreground">
             <span>Upcoming Classes</span>
             <Link href="/student/schedule" className="flex items-center gap-1 text-xs font-medium text-secondary hover:underline">
@@ -286,7 +286,7 @@ export default function StudentDashboardPage() {
 
       {/* Quick actions + announcements + future banner */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-stretch">
-        <div className="flex flex-col rounded-3xl border border-border bg-card p-4 shadow-sm lg:flex-1">
+        <div className="flex flex-col clay p-4 lg:flex-1">
           <h3 className="mb-2 text-sm font-semibold text-foreground">Quick Actions</h3>
           <div className="grid flex-1 grid-cols-3 gap-2">
             {QUICK_ACTIONS.map((action) => (
@@ -304,7 +304,7 @@ export default function StudentDashboardPage() {
           </div>
         </div>
 
-        <div className="flex flex-col rounded-3xl border border-border bg-card p-4 shadow-sm lg:flex-1">
+        <div className="flex flex-col clay p-4 lg:flex-1">
           <h3 className="mb-2 flex items-center justify-between text-sm font-semibold text-foreground">
             <span className="flex items-center gap-1.5">
               <Megaphone className="h-4 w-4 text-secondary" />

@@ -46,6 +46,12 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-brand-50: color-mix(in oklch, #0092b5 8%, white);
+  --color-brand-100: color-mix(in oklch, #0092b5 16%, white);
+  --color-brand-400: color-mix(in oklch, #0092b5 62%, white);
+  --color-brand-500: color-mix(in oklch, #0092b5 90%, white);
+  --color-brand-600: #0092b5;
+  --color-brand-700: color-mix(in oklch, #0092b5 85%, black);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -65,7 +71,7 @@
   --popover-foreground: #0f172a;
   --primary: #0f172a;
   --primary-foreground: #ffffff;
-  --secondary: #2563eb;
+  --secondary: #0092b5;
   --secondary-foreground: #ffffff;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
@@ -74,14 +80,14 @@
   --destructive: #dc2626;
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #2563eb;
-  --chart-1: #2563eb;
+  --ring: #0092b5;
+  --chart-1: #0092b5;
   --chart-2: #059669;
   --chart-3: #d97706;
   --chart-4: #e11d48;
   --chart-5: #7c3aed;
   /* Chart series colors — validated for CVD-safe adjacent separation (dataviz skill) */
-  --series-student: #2563eb;
+  --series-student: #0092b5;
   --series-trainer: #d97706;
   /* Status colors — reserved for status chips (always paired with a text label), not chart series */
   --status-good: #16a34a;
@@ -97,7 +103,7 @@
   --sidebar-accent: #f1f5f9;
   --sidebar-accent-foreground: #0f172a;
   --sidebar-border: #e2e8f0;
-  --sidebar-ring: #2563eb;
+  --sidebar-ring: #0092b5;
 }
 
 .dark {
@@ -109,7 +115,7 @@
   --popover-foreground: #e2e8f0;
   --primary: #f1f5f9;
   --primary-foreground: #0f172a;
-  --secondary: #3b82f6;
+  --secondary: color-mix(in oklch, #0092b5 78%, white);
   --secondary-foreground: #ffffff;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
@@ -118,13 +124,13 @@
   --destructive: #f87171;
   --border: #1e293b;
   --input: #1e293b;
-  --ring: #3b82f6;
-  --chart-1: #3b82f6;
+  --ring: color-mix(in oklch, #0092b5 78%, white);
+  --chart-1: color-mix(in oklch, #0092b5 78%, white);
   --chart-2: #059669;
   --chart-3: #d97706;
   --chart-4: #e11d48;
   --chart-5: #7c3aed;
-  --series-student: #3b82f6;
+  --series-student: color-mix(in oklch, #0092b5 78%, white);
   --series-trainer: #d97706;
   --status-good: #22c55e;
   --status-warning: #d97706;
@@ -138,7 +144,7 @@
   --sidebar-accent: #1e293b;
   --sidebar-accent-foreground: #e2e8f0;
   --sidebar-border: #1e293b;
-  --sidebar-ring: #3b82f6;
+  --sidebar-ring: color-mix(in oklch, #0092b5 78%, white);
 }
 
 @utility glass {
@@ -186,6 +192,67 @@
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* Claymorphism: soft puffy surfaces — solid fills + dual light/shadow, never blur/transparency */
+@utility clay {
+  border-radius: 1.75rem;
+  background-color: var(--card);
+  box-shadow:
+    -8px -8px 16px 0 color-mix(in oklch, white 85%, transparent),
+    10px 10px 24px -6px color-mix(in oklch, var(--foreground) 20%, transparent);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.dark .clay {
+  box-shadow:
+    -6px -6px 14px 0 color-mix(in oklch, white 6%, transparent),
+    10px 10px 26px -6px color-mix(in oklch, black 65%, transparent);
+}
+
+@utility clay-hover {
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      -8px -8px 16px 0 color-mix(in oklch, white 85%, transparent),
+      14px 16px 30px -6px color-mix(in oklch, var(--foreground) 26%, transparent);
+  }
+}
+
+.dark .clay-hover:hover {
+  box-shadow:
+    -6px -6px 14px 0 color-mix(in oklch, white 6%, transparent),
+    14px 16px 32px -6px color-mix(in oklch, black 70%, transparent);
+}
+
+@utility clay-btn {
+  border-radius: 9999px;
+  box-shadow:
+    -4px -4px 10px 0 color-mix(in oklch, white 45%, transparent),
+    6px 8px 16px -4px color-mix(in oklch, black 35%, transparent);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  &:active {
+    transform: translateY(1px) scale(0.98);
+    box-shadow: inset 2px 2px 6px -1px color-mix(in oklch, black 35%, transparent);
+  }
+}
+
+@utility clay-inset {
+  border-radius: 1.25rem;
+  background-color: var(--muted);
+  box-shadow:
+    inset 3px 3px 8px 0 color-mix(in oklch, var(--foreground) 10%, transparent),
+    inset -3px -3px 8px 0 color-mix(in oklch, white 80%, transparent);
+}
+
+.dark .clay-inset {
+  box-shadow:
+    inset 3px 3px 8px 0 color-mix(in oklch, black 40%, transparent),
+    inset -3px -3px 8px 0 color-mix(in oklch, white 4%, transparent);
 }
 
 @layer base {

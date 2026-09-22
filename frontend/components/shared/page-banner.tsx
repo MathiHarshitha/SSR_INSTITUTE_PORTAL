@@ -25,8 +25,10 @@ export function PageBanner({
   return (
     <div
       className={cn(
-        "relative flex flex-col items-start justify-between gap-3 overflow-hidden rounded-3xl border p-4 shadow-sm sm:flex-row sm:items-center sm:p-5",
-        tone === "dark" ? "border-transparent bg-[#0f172a] text-white" : "border-border bg-gradient-to-br from-secondary/10 via-card to-accent/10"
+        "relative flex flex-col items-start justify-between gap-3 overflow-hidden p-4 sm:flex-row sm:items-center sm:p-5",
+        tone === "dark"
+          ? "rounded-3xl bg-[#0f172a] text-white shadow-lg"
+          : "clay bg-gradient-to-br from-secondary/10 via-card to-accent/10"
       )}
     >
       {illustration && (

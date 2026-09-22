@@ -139,7 +139,7 @@ export default function StudentProfilePage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+        <div className="clay p-4">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-sm font-semibold text-foreground">Current Course Progress</p>
             <Link href="/student/courses" className="flex items-center gap-1 text-xs font-medium text-secondary hover:underline">
@@ -149,7 +149,7 @@ export default function StudentProfilePage() {
           </div>
           {primaryEnrollment ? (
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400">
                 <BookOpen className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
@@ -171,7 +171,7 @@ export default function StudentProfilePage() {
 
       {/* Column B: info + bio + achievements */}
       <div className="flex flex-col gap-4 lg:w-[38%] lg:shrink-0">
-        <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+        <div className="clay p-4">
           <div className="mb-3 flex items-start justify-between gap-2">
             <div>
               <p className="text-lg font-bold text-foreground">{effectiveUser.name}</p>
@@ -214,7 +214,7 @@ export default function StudentProfilePage() {
           </dl>
         </div>
 
-        <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+        <div className="clay p-4">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-semibold text-foreground">Bio</p>
             <button type="button" onClick={() => setEditOpen(true)} className="text-secondary hover:text-secondary/80">
@@ -235,7 +235,7 @@ export default function StudentProfilePage() {
           )}
         </div>
 
-        <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+        <div className="clay p-4">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-sm font-semibold text-foreground">Achievements</p>
           </div>
@@ -272,7 +272,7 @@ export default function StudentProfilePage() {
           <StatCard label="Certificates Earned" value={certificates?.length ?? 0} icon={Award} color="accent" />
         </div>
 
-        <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+        <div className="clay p-4">
           <p className="mb-2 text-sm font-semibold text-foreground">Quick Actions</p>
           <ul className="space-y-0.5">
             {[

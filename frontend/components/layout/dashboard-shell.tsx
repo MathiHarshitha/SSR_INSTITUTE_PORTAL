@@ -21,9 +21,9 @@ function SidebarBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       {/* soft color-mesh glows */}
-      <div className="absolute -left-20 -top-24 h-72 w-72 rounded-full bg-[#7c6cf0] opacity-25 blur-[90px]" />
-      <div className="absolute -right-24 top-1/3 h-80 w-80 rounded-full bg-[#3b82f6] opacity-[0.18] blur-[110px]" />
-      <div className="absolute -left-24 bottom-10 h-72 w-72 rounded-full bg-[#4c3bd6] opacity-[0.22] blur-[100px]" />
+      <div className="absolute -left-20 -top-24 h-72 w-72 rounded-full bg-[#0092b5] opacity-25 blur-[90px]" />
+      <div className="absolute -right-24 top-1/3 h-80 w-80 rounded-full bg-[#00b8d4] opacity-[0.18] blur-[110px]" />
+      <div className="absolute -left-24 bottom-10 h-72 w-72 rounded-full bg-[#065f74] opacity-[0.25] blur-[100px]" />
 
       {/* horizontal wave bands for depth */}
       <svg
@@ -35,12 +35,12 @@ function SidebarBackdrop() {
       >
         <defs>
           <linearGradient id="sidebar-wave-a" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#4a52c4" />
-            <stop offset="100%" stopColor="#332f8a" />
+            <stop offset="0%" stopColor="#0e88a6" />
+            <stop offset="100%" stopColor="#0a5567" />
           </linearGradient>
           <linearGradient id="sidebar-wave-b" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#3d47ab" />
-            <stop offset="100%" stopColor="#282a72" />
+            <stop offset="0%" stopColor="#127991" />
+            <stop offset="100%" stopColor="#0c4f60" />
           </linearGradient>
         </defs>
         <path
@@ -55,12 +55,12 @@ function SidebarBackdrop() {
         />
         <path
           d="M-20,500 C55,430 125,570 190,500 C240,450 280,540 320,480 L320,940 L-20,940 Z"
-          fill="#262a68"
+          fill="#0d5163"
           opacity="0.3"
         />
         <path
           d="M-20,690 C55,630 125,750 190,690 C240,645 280,725 320,670 L320,940 L-20,940 Z"
-          fill="#0e1130"
+          fill="#041419"
           opacity="0.6"
         />
       </svg>
@@ -124,7 +124,7 @@ export function DashboardShell({ user, title, children }: DashboardShellProps) {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <aside className="relative hidden w-64 shrink-0 overflow-hidden bg-gradient-to-br from-[#2a2470] via-[#1b1f45] to-[#080a18] lg:block">
+      <aside className="relative hidden w-64 shrink-0 overflow-hidden bg-gradient-to-br from-[#0b5568] via-[#0a2b34] to-[#050809] lg:block">
         <SidebarBackdrop />
         <div className="relative z-10 flex h-screen w-64 flex-col">
           <SidebarLogo />
@@ -140,7 +140,7 @@ export function DashboardShell({ user, title, children }: DashboardShellProps) {
       <Sheet open={isMobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()}>
         <SheetContent
           side="left"
-          className="relative w-72 overflow-hidden border-0 bg-gradient-to-br from-[#2a2470] via-[#1b1f45] to-[#080a18] p-0 text-white"
+          className="relative w-72 overflow-hidden border-0 bg-gradient-to-br from-[#0b5568] via-[#0a2b34] to-[#050809] p-0 text-white"
         >
           <SidebarBackdrop />
           <SheetHeader className="relative z-10 px-5 py-4">

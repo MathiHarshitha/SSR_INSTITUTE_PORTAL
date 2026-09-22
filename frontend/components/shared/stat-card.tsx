@@ -5,9 +5,9 @@ export type StatCardColor = "primary" | "secondary" | "accent" | "violet" | "gre
 
 const COLOR_STYLES: Record<StatCardColor, { chip: string; icon: string; value: string }> = {
   primary: {
-    chip: "bg-blue-50 dark:bg-blue-500/10",
-    icon: "text-blue-600 dark:text-blue-400",
-    value: "text-blue-600 dark:text-blue-400",
+    chip: "bg-brand-50 dark:bg-brand-500/10",
+    icon: "text-brand-600 dark:text-brand-400",
+    value: "text-brand-600 dark:text-brand-400",
   },
   accent: {
     chip: "bg-orange-50 dark:bg-orange-500/10",
@@ -46,7 +46,7 @@ interface StatCardProps {
 export function StatCard({ label, value, icon: Icon, color = "primary" }: StatCardProps) {
   const styles = COLOR_STYLES[color];
   return (
-    <div className="flex items-center justify-between gap-2 rounded-2xl border border-border bg-card p-3 shadow-sm">
+    <div className="clay flex items-center justify-between gap-2 p-3">
       <div className="flex min-w-0 items-center gap-2.5">
         <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", styles.chip)}>
           <Icon className={cn("h-4 w-4", styles.icon)} />

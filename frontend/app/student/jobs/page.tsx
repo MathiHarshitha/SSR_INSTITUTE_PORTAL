@@ -131,7 +131,7 @@ export default function StudentJobsPage() {
           </div>
 
           {isError ? (
-            <div className="rounded-2xl border border-border bg-card py-16 text-center text-sm text-muted-foreground">
+            <div className="clay py-16 text-center text-sm text-muted-foreground">
               Failed to load jobs.
             </div>
           ) : isLoading ? (
@@ -140,13 +140,13 @@ export default function StudentJobsPage() {
               <Skeleton className="h-32 w-full rounded-2xl" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card py-16 text-center text-sm text-muted-foreground">
+            <div className="clay py-16 text-center text-sm text-muted-foreground">
               No open positions match your filters right now.
             </div>
           ) : (
             <div className="space-y-3">
               {filtered.map((job) => (
-                <div key={job._id} className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+                <div key={job._id} className="clay p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-3">
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-sm font-bold text-secondary">
@@ -197,7 +197,7 @@ export default function StudentJobsPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <div className="flex items-center gap-3">
               <ProgressRing value={careerProgress} size={64} strokeWidth={7}>
                 <span className="text-sm font-bold text-foreground">{careerProgress}%</span>
@@ -219,7 +219,7 @@ export default function StudentJobsPage() {
             </ul>
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <p className="mb-2 flex items-center justify-between text-sm font-semibold text-foreground">
               Recent Applications
             </p>

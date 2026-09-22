@@ -91,7 +91,7 @@ export default function StudentInterviewsPage() {
           </div>
 
           {isError ? (
-            <div className="rounded-2xl border border-border bg-card py-16 text-center text-sm text-muted-foreground">
+            <div className="clay py-16 text-center text-sm text-muted-foreground">
               Failed to load interviews.
             </div>
           ) : isLoading ? (
@@ -100,13 +100,13 @@ export default function StudentInterviewsPage() {
               <Skeleton className="h-24 w-full rounded-2xl" />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-card py-16 text-center text-sm text-muted-foreground">
+            <div className="clay py-16 text-center text-sm text-muted-foreground">
               No interviews in this view.
             </div>
           ) : (
             <div className="space-y-3">
               {filtered.map((iv) => (
-                <div key={iv._id} className="flex gap-3 rounded-2xl border border-border bg-card p-3.5 shadow-sm">
+                <div key={iv._id} className="flex gap-3 clay p-3.5">
                   <div className="flex w-14 shrink-0 flex-col items-center justify-center rounded-xl border border-border py-1.5 text-center">
                     <span className="text-[10px] font-medium uppercase text-muted-foreground">
                       {format(new Date(iv.date), "MMM")}
@@ -167,7 +167,7 @@ export default function StudentInterviewsPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-foreground">
               <Lightbulb className="h-4 w-4 text-secondary" />
               Prepare for Your Interview

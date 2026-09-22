@@ -40,7 +40,7 @@ export function TopNav({ role, onNavigate, variant = "pills", className, activeL
                 {isActive && (
                   <motion.span
                     layoutId={activeLayoutId}
-                    className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-r from-[#5865e0] to-[#7c6cf0] shadow-md shadow-black/20"
+                    className="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-r from-[#0092b5] to-[#00b8d4] shadow-md shadow-black/20"
                     transition={{ type: "spring", stiffness: 480, damping: 34 }}
                   />
                 )}

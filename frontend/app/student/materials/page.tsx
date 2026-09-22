@@ -22,7 +22,7 @@ import { PageHeader } from "@/components/shared/page-header";
 import { PageBanner } from "@/components/shared/page-banner";
 
 const TYPE_META: Record<MaterialType, { label: string; icon: typeof FileText; chip: string }> = {
-  DOCUMENT: { label: "Documents", icon: FileText, chip: "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400" },
+  DOCUMENT: { label: "Documents", icon: FileText, chip: "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400" },
   VIDEO: { label: "Videos", icon: Video, chip: "bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400" },
   IMAGE: { label: "Images", icon: ImageIcon, chip: "bg-teal-50 text-teal-600 dark:bg-teal-500/10 dark:text-teal-400" },
   LINK: { label: "Links", icon: Link2, chip: "bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400" },
@@ -88,7 +88,7 @@ export default function StudentMaterialsPage() {
         )}
       </div>
 
-      <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+      <div className="clay p-4">
         {isError ? (
           <p className="py-12 text-center text-sm text-muted-foreground">Failed to load materials.</p>
         ) : isLoading ? (

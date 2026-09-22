@@ -76,7 +76,7 @@ export default function StudentCertificatesPage() {
           </div>
 
           {isError ? (
-            <div className="rounded-2xl border border-border bg-card py-16 text-center text-sm text-muted-foreground">
+            <div className="clay py-16 text-center text-sm text-muted-foreground">
               Failed to load certificates.
             </div>
           ) : isLoading ? (
@@ -88,7 +88,7 @@ export default function StudentCertificatesPage() {
             <div className="grid gap-3 sm:grid-cols-2">
               {(filter === "all" || filter === "earned") &&
                 earned.map((cert) => (
-                  <div key={cert._id} className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                  <div key={cert._id} className="overflow-hidden clay">
                     <div className="relative m-3 rounded-xl border-2 border-dashed border-secondary/30 bg-gradient-to-br from-secondary/5 to-accent/5 p-4 text-center">
                       <Award className="mx-auto mb-1 h-7 w-7 text-secondary" />
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Certificate of Completion</p>
@@ -138,7 +138,7 @@ export default function StudentCertificatesPage() {
 
               {(filter === "all" || filter === "in-progress") &&
                 inProgress.map((e) => (
-                  <div key={e.enrollmentId} className="overflow-hidden rounded-2xl border border-border bg-card opacity-90 shadow-sm">
+                  <div key={e.enrollmentId} className="overflow-hidden clay opacity-90">
                     <div className="relative m-3 rounded-xl border-2 border-dashed border-border bg-muted/40 p-4 text-center">
                       <Hourglass className="mx-auto mb-1 h-7 w-7 text-muted-foreground" />
                       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Certificate In Progress</p>
@@ -166,7 +166,7 @@ export default function StudentCertificatesPage() {
                 ))}
 
               {filter === "all" && earned.length === 0 && inProgress.length === 0 && availableToEarn.length === 0 && (
-                <div className="col-span-2 rounded-2xl border border-border bg-card py-16 text-center text-sm text-muted-foreground">
+                <div className="col-span-2 clay py-16 text-center text-sm text-muted-foreground">
                   You are not enrolled in any course yet.
                 </div>
               )}
@@ -182,7 +182,7 @@ export default function StudentCertificatesPage() {
             </p>
           </div>
 
-          <div className="rounded-3xl border border-border bg-card p-4 shadow-sm">
+          <div className="clay p-4">
             <p className="mb-2 text-sm font-semibold text-foreground">Your Learning Milestones</p>
             <ul className="space-y-2 text-xs">
               <li className="flex items-center gap-2">
