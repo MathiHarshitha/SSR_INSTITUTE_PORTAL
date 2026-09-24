@@ -4,14 +4,18 @@
  * the only extra values are highlight/shadow shades mixed from those tokens.
  */
 
-.root {
+/* .panelStack also carries the tokens so the mascot works outside the login page (register) */
+.root,
+.panelStack {
   --clay-hi: color-mix(in oklch, white 88%, transparent);
   --clay-hi-soft: color-mix(in oklch, white 60%, transparent);
   --clay-lo: color-mix(in oklch, var(--foreground) 20%, transparent);
   --clay-lo-soft: color-mix(in oklch, var(--foreground) 9%, transparent);
   /* the visible "thickness" under a raised surface */
   --clay-side: color-mix(in oklch, var(--card) 86%, var(--foreground));
+}
 
+.root {
   position: relative;
   display: flex;
   flex: none; /* <body> is a flex column; don't let it grow the page past the viewport */
@@ -25,7 +29,8 @@
   overflow: hidden;
 }
 
-:global(.dark) .root {
+:global(.dark) .root,
+:global(.dark) .panelStack {
   --clay-hi: color-mix(in oklch, white 9%, transparent);
   --clay-hi-soft: color-mix(in oklch, white 4%, transparent);
   --clay-lo: color-mix(in oklch, black 62%, transparent);
