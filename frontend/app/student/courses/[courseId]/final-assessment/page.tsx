@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useState } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Award, CheckCircle2, ClipboardCheck, Lock, XCircle } from "lucide-react";
 import { cn } from "cn";
@@ -24,12 +24,13 @@ export default function FinalAssessmentPage({ params }: { params: Promise<{ cour
   const startAssessment = useStartFinalAssessment(courseId);
   const answerAssessment = useAnswerFinalAssessment(courseId);
   const submitAssessment = useSubmitFinalAssessment(courseId);
-  const [selected, setSelected] = useState<number | null>(null);
+  // The selection is tied to the question it was made on, so moving to a new question clears
+  // it automatically — no effect needed to reset it.
+  const [selection, setSelection] = useState<{ index: number | undefined; option: number } | null>(null);
+  const selected = selection && selection.index === state?.currentIndex ? selection.option : null;
+  const setSelected = (option: number | null) =>
+    setSelection(option === null ? null : { index: state?.currentIndex, option });
   const [result, setResult] = useState<FinalAssessmentSubmitResult | null>(null);
-
-  useEffect(() => {
-    setSelected(null);
-  }, [state?.currentIndex]);
 
   if (isError) {
     return (

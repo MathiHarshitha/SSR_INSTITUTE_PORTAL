@@ -87,7 +87,7 @@ export default function RegisterStudentPage() {
             <form
               onSubmit={form.handleSubmit(onSubmit)}
               onFocus={(e) => {
-                const name = (e.target as HTMLInputElement).name;
+                const name = e.target instanceof HTMLInputElement ? e.target.name : "";
                 setPasswordFocused(name === "password" || name === "confirmPassword");
               }}
               onBlur={() => setPasswordFocused(false)}
