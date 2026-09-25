@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { httpUrl } from "./common";
 import { GENDERS } from "../constants/enums";
 
 export const updateMeSchema = z.object({
@@ -8,7 +9,7 @@ export const updateMeSchema = z.object({
     .trim()
     .regex(/^[0-9+\-\s()]{7,20}$/, "Invalid phone number")
     .optional(),
-  avatarUrl: z.string().trim().url("Must be a valid URL").optional().or(z.literal("")),
+  avatarUrl: httpUrl("Must be a valid URL").optional().or(z.literal("")),
 });
 
 export const updateStudentProfileSchema = z.object({
@@ -21,10 +22,10 @@ export const updateStudentProfileSchema = z.object({
   percentageOrCgpa: z.string().trim().max(20).optional(),
   skills: z.array(z.string().trim().min(1)).optional(),
   experience: z.string().trim().max(500).optional(),
-  resumeUrl: z.string().trim().url().optional().or(z.literal("")),
-  portfolioUrl: z.string().trim().url().optional().or(z.literal("")),
-  linkedinUrl: z.string().trim().url().optional().or(z.literal("")),
-  githubUrl: z.string().trim().url().optional().or(z.literal("")),
+  resumeUrl: httpUrl().optional().or(z.literal("")),
+  portfolioUrl: httpUrl().optional().or(z.literal("")),
+  linkedinUrl: httpUrl().optional().or(z.literal("")),
+  githubUrl: httpUrl().optional().or(z.literal("")),
 });
 
 export const updateTrainerProfileSchema = z.object({
@@ -33,7 +34,7 @@ export const updateTrainerProfileSchema = z.object({
   experienceYears: z.coerce.number().min(0).max(60).optional(),
   bio: z.string().trim().max(1000).optional(),
   skills: z.array(z.string().trim().min(1)).optional(),
-  resumeUrl: z.string().trim().url().optional().or(z.literal("")),
+  resumeUrl: httpUrl().optional().or(z.literal("")),
 });
 
 export type UpdateMeInput = z.infer<typeof updateMeSchema>;

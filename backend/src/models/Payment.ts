@@ -14,6 +14,8 @@ export interface IPayment extends Document {
   receiptNumber: string;
   notes?: string;
   recordedBy: Types.ObjectId;
+  /** Set when this ledger entry came from an approved student screenshot submission. */
+  paymentRequest?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,8 +36,16 @@ const paymentSchema = new Schema<IPayment>(
     receiptNumber: { type: String, required: true, unique: true },
     notes: { type: String, trim: true },
     recordedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    paymentRequest: { type: Schema.Types.ObjectId, ref: "PaymentRequest" },
   },
   { timestamps: true }
 );
+
+// A request can back at most one ledger entry — guards against double-crediting an approval.
+paymentSchema.index(
+  { paymentRequest: 1 },
+  { unique: true, partialFilterExpression: { paymentRequest: { $exists: true } } }
+);
+paymentSchema.index({ student: 1, batch: 1 });
 
 export const Payment = model<IPayment>("Payment", paymentSchema);

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { httpUrl, searchText } from "./common";
 
 const OBJECT_ID = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id");
 const WORK_MODES = ["ONSITE", "REMOTE", "HYBRID"] as const;
@@ -25,7 +26,7 @@ const jobFields = z.object({
   educationRequirement: z.string().trim().max(150).optional(),
   applicationDeadline: z.coerce.date(),
   openings: z.coerce.number().int().min(1),
-  jobLink: z.string().trim().url("Must be a valid URL").optional().or(z.literal("")),
+  jobLink: httpUrl("Must be a valid URL").optional().or(z.literal("")),
   eligibleCourses: z.array(OBJECT_ID).optional(),
   minAttendancePercent: z.coerce.number().min(0).max(100).optional(),
 });
@@ -45,7 +46,7 @@ export const updateApplicationStatusSchema = z.object({
 export const listJobsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  search: z.string().trim().optional(),
+  search: searchText.optional(),
   status: z.enum(JOB_STATUSES).optional(),
   sortBy: z.enum(["createdAt", "applicationDeadline", "title"]).default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),

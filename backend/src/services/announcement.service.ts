@@ -4,6 +4,8 @@ import { Enrollment } from "../models/Enrollment";
 import { ApiError } from "../utils/ApiError";
 import { recordAudit } from "./auditLog.service";
 import { notifyUsers } from "./notification.service";
+import { Role } from "../constants/enums";
+import { listTrainerBatchIds, listTrainerCourseIds } from "../utils/batchAccess";
 import {
   CreateAnnouncementInput,
   ListAnnouncementsQuery,
@@ -60,8 +62,45 @@ export async function createAnnouncement(adminId: string, input: CreateAnnouncem
   return announcement;
 }
 
-export async function listAnnouncements(query: ListAnnouncementsQuery) {
-  const filter = query.audience ? { audience: query.audience } : {};
+/** Which announcements a non-admin may read: currently live (published, not expired) and
+ * addressed to them — everyone, their role, or a batch/course they belong to/teach. */
+export async function visibleAnnouncementFilter(requester: { id: string; role: Role }) {
+  const now = new Date();
+  const live = {
+    publishAt: { $lte: now },
+    $or: [{ expiresAt: { $exists: false } }, { expiresAt: null }, { expiresAt: { $gt: now } }],
+  };
+
+  let batchIds: string[];
+  let courseIds: string[];
+  if (requester.role === "TRAINER") {
+    batchIds = await listTrainerBatchIds(requester.id);
+    courseIds = await listTrainerCourseIds(requester.id);
+  } else {
+    const enrollments = await Enrollment.find({ student: requester.id }).select("batch course").lean();
+    batchIds = enrollments.map((e) => String(e.batch));
+    courseIds = enrollments.map((e) => String(e.course));
+  }
+
+  return {
+    $and: [
+      live,
+      {
+        $or: [
+          { audience: "EVERYONE" },
+          { audience: requester.role === "TRAINER" ? "TRAINERS" : "STUDENTS" },
+          { audience: "BATCH", batch: { $in: batchIds } },
+          { audience: "COURSE", course: { $in: courseIds } },
+        ],
+      },
+    ],
+  };
+}
+
+export async function listAnnouncements(query: ListAnnouncementsQuery, requester: { id: string; role: Role }) {
+  const filter: Record<string, unknown> =
+    requester.role === "ADMIN" ? {} : await visibleAnnouncementFilter(requester);
+  if (query.audience) filter.audience = query.audience;
   const skip = (query.page - 1) * query.limit;
 
   const [announcements, total] = await Promise.all([

@@ -3,6 +3,7 @@ import { verifyAccessToken } from "../utils/jwt";
 import { ApiError } from "../utils/ApiError";
 import { User } from "../models/User";
 import { Role, UserStatus } from "../constants/enums";
+import { isSessionActive } from "../services/session.service";
 
 export interface AuthUser {
   id: string;
@@ -19,18 +20,18 @@ declare global {
   }
 }
 
+/** Bearer header only. Deliberately no cookie fallback: an ambient cookie credential would make
+ * every state-changing route CSRF-able. */
 function extractToken(req: Request): string | null {
   const header = req.headers.authorization;
   if (header?.startsWith("Bearer ")) {
     return header.slice(7);
   }
-  if (req.cookies?.accessToken) {
-    return req.cookies.accessToken as string;
-  }
   return null;
 }
 
-/** Verifies the JWT and re-checks the user's live status on every request — a status change (block/suspend) takes effect immediately, not just on next login. */
+/** Verifies the JWT, then re-checks the session and the user's live role/status on every
+ * request — logout, password reset, block and suspend all take effect immediately. */
 export async function authenticate(req: Request, _res: Response, next: NextFunction): Promise<void> {
   try {
     const token = extractToken(req);
@@ -39,6 +40,9 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
     }
 
     const payload = verifyAccessToken(token);
+    if (!payload.sid || !(await isSessionActive(payload.sid, payload.sub))) {
+      throw ApiError.unauthorized("Session has ended. Please log in again.");
+    }
 
     const user = await User.findById(payload.sub).select("role status").lean();
     if (!user) {

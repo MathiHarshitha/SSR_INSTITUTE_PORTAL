@@ -2,6 +2,8 @@ import mongoose, { FilterQuery } from "mongoose";
 import { Attendance, IAttendance } from "../models/Attendance";
 import { assertBatchAccess, listStudentBatchIds, listTrainerBatchIds } from "../utils/batchAccess";
 import { recordAudit } from "./auditLog.service";
+import { Enrollment } from "../models/Enrollment";
+import { ApiError } from "../utils/ApiError";
 import { Role } from "../constants/enums";
 import { ListAttendanceQuery, MarkAttendanceInput } from "../validators/attendance.validator";
 
@@ -14,6 +16,14 @@ function toDayStart(date: Date): Date {
 export async function markAttendance(userId: string, role: Role, input: MarkAttendanceInput) {
   const batch = await assertBatchAccess(input.batch, userId, role);
   const day = toDayStart(input.date);
+
+  // Every record must be for a student actually enrolled in this batch — otherwise a trainer
+  // could write attendance for any student (it feeds the job-eligibility attendance %).
+  const studentIds = [...new Set(input.records.map((r) => r.student))];
+  const enrolledCount = await Enrollment.countDocuments({ batch: input.batch, student: { $in: studentIds } });
+  if (enrolledCount !== studentIds.length) {
+    throw ApiError.badRequest("Attendance can only be marked for students enrolled in this batch");
+  }
 
   const results = await Promise.all(
     input.records.map((record) =>

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { httpUrl } from "./common";
 
 const OBJECT_ID = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id");
 
@@ -10,7 +11,7 @@ export const createClassScheduleSchema = z.object({
   endTime: z.string().trim().min(1, "End time is required"),
   topic: z.string().trim().min(2, "Topic is too short").max(200),
   description: z.string().trim().max(1000).optional(),
-  meetingLink: z.string().trim().url("Must be a valid URL").optional().or(z.literal("")),
+  meetingLink: httpUrl("Must be a valid URL").optional().or(z.literal("")),
   location: z.string().trim().max(200).optional(),
 });
 
@@ -21,7 +22,7 @@ export const updateClassScheduleSchema = z.object({
   endTime: z.string().trim().min(1).optional(),
   topic: z.string().trim().min(2).max(200).optional(),
   description: z.string().trim().max(1000).optional(),
-  meetingLink: z.string().trim().url("Must be a valid URL").optional().or(z.literal("")),
+  meetingLink: httpUrl("Must be a valid URL").optional().or(z.literal("")),
   location: z.string().trim().max(200).optional(),
 });
 

@@ -3,8 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { sendSuccess } from "../utils/apiResponse";
 import { ApiError } from "../utils/ApiError";
 import { env } from "../config/env";
-import { verifyRefreshToken, signAccessToken } from "../utils/jwt";
-import { User } from "../models/User";
+import { refreshSession, revokeSessionByRefreshToken } from "../services/session.service";
 import * as authService from "../services/auth.service";
 import {
   ForgotPasswordInput,
@@ -22,13 +21,17 @@ import {
 
 const REFRESH_COOKIE_NAME = "refreshToken";
 
+const refreshCookieOptions = {
+  httpOnly: true,
+  secure: env.cookieSecure,
+  sameSite: env.cookieSameSite,
+  path: "/api/v1/auth",
+} as const;
+
 function setRefreshCookie(res: Response, token: string): void {
   res.cookie(REFRESH_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: env.isProduction,
-    sameSite: "lax",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-    path: "/api/v1/auth",
+    ...refreshCookieOptions,
+    maxAge: env.sessionTtlDays * 24 * 60 * 60 * 1000,
   });
 }
 
@@ -51,7 +54,7 @@ export const verifyOtp = asyncHandler(async (req: Request, res: Response) => {
 export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
   const { email } = req.body as { email: string };
   await authService.resendOtp(email);
-  sendSuccess(res, 200, "A new verification code has been sent.");
+  sendSuccess(res, 200, "If that email has a pending verification, a new code has been sent.");
 });
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
@@ -96,24 +99,21 @@ export const refreshAccessToken = asyncHandler(async (req: Request, res: Respons
     throw ApiError.unauthorized("Refresh token missing");
   }
 
-  let payload: { sub: string };
   try {
-    payload = verifyRefreshToken(token);
-  } catch {
-    throw ApiError.unauthorized("Invalid or expired refresh token");
+    const { accessToken, refreshToken } = await refreshSession(token);
+    if (refreshToken) setRefreshCookie(res, refreshToken);
+    sendSuccess(res, 200, "Token refreshed", { accessToken });
+  } catch (error) {
+    res.clearCookie(REFRESH_COOKIE_NAME, refreshCookieOptions);
+    throw error;
   }
-
-  const user = await User.findById(payload.sub).select("role status").lean();
-  if (!user || user.status !== "ACTIVE") {
-    throw ApiError.unauthorized("Account is not active");
-  }
-
-  const accessToken = signAccessToken({ sub: String(user._id), role: user.role, status: user.status });
-  sendSuccess(res, 200, "Token refreshed", { accessToken });
 });
 
-export const logout = asyncHandler(async (_req: Request, res: Response) => {
-  res.clearCookie(REFRESH_COOKIE_NAME, { path: "/api/v1/auth" });
+/** Ends this device's session server-side — the refresh token and every access token issued
+ * from it stop working immediately, not just when they expire. */
+export const logout = asyncHandler(async (req: Request, res: Response) => {
+  await revokeSessionByRefreshToken(req.cookies?.[REFRESH_COOKIE_NAME] as string | undefined);
+  res.clearCookie(REFRESH_COOKIE_NAME, refreshCookieOptions);
   sendSuccess(res, 200, "Logged out successfully");
 });
 

@@ -1,3 +1,4 @@
+import { searchRegex } from "../utils/searchRegex";
 import { FilterQuery } from "mongoose";
 import { Batch, IBatch } from "../models/Batch";
 import { Enrollment } from "../models/Enrollment";
@@ -49,7 +50,7 @@ export async function listBatchesAdmin(userId: string, role: Role, query: ListBa
   if (role === "TRAINER") filter.trainer = userId;
   if (query.status) filter.status = query.status;
   if (query.course) filter.course = query.course;
-  if (query.search) filter.name = new RegExp(query.search, "i");
+  if (query.search) filter.name = searchRegex(query.search);
 
   const skip = (query.page - 1) * query.limit;
   const sort: Record<string, 1 | -1> = { [query.sortBy]: query.sortOrder === "asc" ? 1 : -1 };

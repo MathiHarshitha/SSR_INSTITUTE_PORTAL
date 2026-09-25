@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CheckCircle2, Code2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,18 +15,16 @@ interface CodingQuestionProps {
   completed: boolean;
 }
 
-/** Code runs sandboxed server-side (Node `vm`, no I/O, hard timeout) against hidden test
- * cases — this panel never sees expected outputs, only pass/fail per case after submitting. */
+/** Code runs server-side in an isolated, locked-down process with a hard timeout, against
+ * hidden test cases — this panel never sees test inputs or expected outputs, only pass/fail
+ * per case after submitting. */
 export function CodingQuestion({ lessonId, question, completed }: CodingQuestionProps) {
   const { data: state, isLoading } = useCodingState(lessonId);
   const submitCoding = useSubmitCoding(lessonId);
-  const [code, setCode] = useState(question.starterCode);
+  // Until the student edits, the editor shows their last submission (or the starter code).
+  const [draft, setCode] = useState<string | null>(null);
+  const code = draft ?? state?.lastSubmission?.code ?? question.starterCode;
   const [result, setResult] = useState<CodingSubmitResult | null>(null);
-
-  useEffect(() => {
-    if (state?.lastSubmission) setCode(state.lastSubmission.code);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state?.lastSubmission?.code]);
 
   if (isLoading) return <Skeleton className="h-48 w-full" />;
 

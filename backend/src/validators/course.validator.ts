@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { httpUrl, searchText } from "./common";
 
 const COURSE_STATUSES = ["DRAFT", "PUBLISHED", "ARCHIVED"] as const;
 
@@ -12,7 +13,7 @@ const courseFieldsBase = z.object({
   category: z.string().trim().max(80).optional(),
   duration: z.string().trim().min(1, "Duration is required").max(60),
   fee: z.coerce.number().min(0, "Fee cannot be negative"),
-  thumbnailUrl: z.string().trim().url("Must be a valid URL").optional().or(z.literal("")),
+  thumbnailUrl: httpUrl("Must be a valid URL").optional().or(z.literal("")),
   requirements: z.array(z.string().trim().min(1)).optional(),
   learningOutcomes: z.array(z.string().trim().min(1)).optional(),
 });
@@ -31,7 +32,7 @@ export const updateCourseStatusSchema = z.object({
 export const listCoursesQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  search: z.string().trim().optional(),
+  search: searchText.optional(),
   status: z.enum(COURSE_STATUSES).optional(),
   sortBy: z.enum(["createdAt", "name", "fee"]).default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).default("desc"),

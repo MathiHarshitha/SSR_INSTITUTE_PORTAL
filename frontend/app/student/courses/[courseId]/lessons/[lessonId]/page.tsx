@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect, useMemo, useState } from "react";
+import { use, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, CheckCircle2, Lock } from "lucide-react";
 import { cn } from "cn";
@@ -39,11 +39,17 @@ export default function LessonPlayerPage({
   const toggleComplete = useToggleLessonComplete(courseId);
   const markPracticeComplete = useMarkPracticeComplete(lessonId);
   const updateLastVisited = useUpdateLastVisited();
-  const [quizActive, setQuizActive] = useState(false);
+  // "Quiz in progress" belongs to the lesson it was started on, so navigating to another lesson
+  // resets it automatically — no effect needed.
+  const [activeQuizLessonId, setActiveQuizLessonId] = useState<string | null>(null);
+  const quizActive = activeQuizLessonId === lessonId;
+  const setQuizActive = useCallback(
+    (active: boolean) => setActiveQuizLessonId(active ? lessonId : null),
+    [lessonId]
+  );
 
   useEffect(() => {
     updateLastVisited.mutate({ courseId, lessonId });
-    setQuizActive(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseId, lessonId]);
 

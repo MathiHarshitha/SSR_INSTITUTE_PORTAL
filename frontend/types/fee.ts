@@ -20,7 +20,8 @@ export interface FeeStatusRow {
 
 export interface PaymentRecord {
   _id: string;
-  student: NamedRef & { email: string };
+  /** `phone` (registered number) is only included by the admin payment list. */
+  student: NamedRef & { email: string; phone?: string };
   batch: NamedRef;
   course: NamedRef;
   amount: number;
@@ -56,4 +57,57 @@ export interface RecordPaymentInput {
   paymentMethod: PaymentMethod;
   transactionRef?: string;
   notes?: string;
+}
+
+/** Student-facing status including screenshot verification — computed by the backend. */
+export type FeeDisplayStatus = "PAID" | "PENDING" | "PAYMENT_UNDER_REVIEW" | "REJECTED";
+export type PaymentRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export interface MyFeeStatusRow extends FeeStatusRow {
+  paymentStatus: FeeDisplayStatus;
+  canPay: boolean;
+  pendingRequest: { _id: string; amount: number; submittedAt: string } | null;
+  lastRejection: { reason: string; rejectedAt?: string } | null;
+}
+
+export interface PaymentRequestRecord {
+  _id: string;
+  student: string | (NamedRef & { email: string; phone?: string });
+  studentName: string;
+  enrollment: string;
+  batch: string | NamedRef;
+  course: string;
+  courseName: string;
+  totalFee: number;
+  previousPaidAmount: number;
+  amountDueAtSubmission: number;
+  amount: number;
+  status: PaymentRequestStatus;
+  submittedAt: string;
+  reviewedBy?: string;
+  reviewedByName?: string;
+  reviewedAt?: string;
+  approvedAmount?: number;
+  paidAfterApproval?: number;
+  remainingAfterApproval?: number;
+  rejectionReason?: string;
+  hasScreenshot: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaymentRequestDetail extends PaymentRequestRecord {
+  currentBalance: { finalFee: number; amountPaid: number; amountDue: number } | null;
+  history: PaymentRequestRecord[];
+}
+
+export interface PaymentRequestListQuery {
+  page: number;
+  limit: number;
+  status?: PaymentRequestStatus;
+  search?: string;
+}
+
+export interface PaymentSettings {
+  qrCode: { available: boolean; updatedAt: string | null };
 }

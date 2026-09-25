@@ -4,26 +4,20 @@ import { Role } from "../constants/enums";
 
 export interface JwtPayload {
   sub: string;
+  /** Session id — the token is only honoured while this session is live (see authenticate). */
+  sid: string;
   role: Role;
   status: string;
 }
 
 export function signAccessToken(payload: JwtPayload): string {
   return jwt.sign(payload, env.jwtSecret as Secret, {
+    algorithm: "HS256",
     expiresIn: env.jwtExpiresIn,
   } as SignOptions);
 }
 
-export function signRefreshToken(payload: Pick<JwtPayload, "sub">): string {
-  return jwt.sign(payload, env.jwtRefreshSecret as Secret, {
-    expiresIn: env.jwtRefreshExpiresIn,
-  } as SignOptions);
-}
-
 export function verifyAccessToken(token: string): JwtPayload {
-  return jwt.verify(token, env.jwtSecret as Secret) as JwtPayload;
-}
-
-export function verifyRefreshToken(token: string): { sub: string } {
-  return jwt.verify(token, env.jwtRefreshSecret as Secret) as { sub: string };
+  // Pin the algorithm so a token can never pick its own verification method.
+  return jwt.verify(token, env.jwtSecret as Secret, { algorithms: ["HS256"] }) as JwtPayload;
 }

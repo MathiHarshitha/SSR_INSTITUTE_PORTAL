@@ -200,8 +200,12 @@ export function buildCourseProgressTree(
     moduleNodes.set(moduleId, { moduleId, state: rollUpState(moduleTopicStates), topicIds });
   }
 
+  // A course with no lessons can't be "completed" — empty modules/topics roll up as COMPLETED,
+  // which would otherwise unlock certificates/career resources for a course with no content.
   const allModulesCompleted =
-    moduleOrder.length > 0 && moduleOrder.every((id) => moduleNodes.get(id)!.state === "COMPLETED");
+    totalLessons > 0 &&
+    moduleOrder.length > 0 &&
+    moduleOrder.every((id) => moduleNodes.get(id)!.state === "COMPLETED");
 
   const overallProgress = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 

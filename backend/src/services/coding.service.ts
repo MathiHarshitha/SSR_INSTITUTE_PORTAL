@@ -6,6 +6,13 @@ import { assertLessonUnlocked } from "../utils/lessonAccess";
 import { getLessonStageStatus } from "../utils/progressState";
 import { runCodingSubmission } from "../utils/codingJudge";
 import { maybeCompleteLesson } from "./progress.service";
+import { ITestResult } from "../models/CodingSubmission";
+
+/** What a student may see about each test: pass/fail and the runtime error, never the test's
+ * inputs or expected output — otherwise hidden test cases can simply be hard-coded. */
+function toStudentTestResults(results: ITestResult[]) {
+  return results.map((r) => ({ passed: r.passed, ...(r.error ? { error: r.error } : {}) }));
+}
 
 export async function getCodingState(studentId: string, lessonId: string) {
   const lesson = await Lesson.findById(lessonId).select("codingQuestion").lean();
@@ -18,10 +25,14 @@ export async function getCodingState(studentId: string, lessonId: string) {
     .select("code passed testResults createdAt")
     .lean();
 
-  return { lastSubmission: lastSubmission ?? null };
+  return {
+    lastSubmission: lastSubmission
+      ? { ...lastSubmission, testResults: toStudentTestResults(lastSubmission.testResults) }
+      : null,
+  };
 }
 
-/** Grades server-side in a sandboxed VM (spec-driven choice: sandboxed auto-grading) —
+/** Grades server-side in an isolated process (see utils/codingJudge.ts) —
  * never trusts a client-reported pass/fail. Requires the quiz stage cleared first, matching
  * the Lesson → Practice → Quiz → Coding → Completed order. */
 export async function submitCodingAnswer(studentId: string, lessonId: string, code: string) {
@@ -40,7 +51,7 @@ export async function submitCodingAnswer(studentId: string, lessonId: string, co
     throw ApiError.forbidden("Pass the quiz before attempting the coding question");
   }
 
-  const { passed, testResults } = runCodingSubmission(lesson.codingQuestion, code);
+  const { passed, testResults } = await runCodingSubmission(lesson.codingQuestion, code);
 
   await CodingSubmission.create({ student: studentId, lesson: lessonId, code, passed, testResults });
 
@@ -57,5 +68,5 @@ export async function submitCodingAnswer(studentId: string, lessonId: string, co
 
   const completion = await maybeCompleteLesson(studentId, lesson as unknown as ILesson);
 
-  return { passed, testResults, lessonCompleted: completion.completed };
+  return { passed, testResults: toStudentTestResults(testResults), lessonCompleted: completion.completed };
 }

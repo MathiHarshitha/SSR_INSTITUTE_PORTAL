@@ -1,3 +1,4 @@
+import { searchRegex } from "../utils/searchRegex";
 import { FilterQuery } from "mongoose";
 import { Material, IMaterial } from "../models/Material";
 import { ApiError } from "../utils/ApiError";
@@ -47,7 +48,7 @@ export async function listMaterials(userId: string, role: Role, query: ListMater
   }
 
   if (query.module) filter.module = query.module;
-  if (query.search) filter.title = new RegExp(query.search, "i");
+  if (query.search) filter.title = searchRegex(query.search);
 
   const skip = (query.page - 1) * query.limit;
 

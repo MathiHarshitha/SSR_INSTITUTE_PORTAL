@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { searchText } from "./common";
 
 const OBJECT_ID = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id");
 const CERTIFICATE_STATUSES = ["ISSUED", "REVOKED"] as const;
@@ -15,7 +16,7 @@ export const revokeCertificateSchema = z.object({
 export const listCertificatesQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  search: z.string().trim().optional(),
+  search: searchText.optional(),
   status: z.enum(CERTIFICATE_STATUSES).optional(),
   batch: OBJECT_ID.optional(),
   sortBy: z.enum(["createdAt", "issueDate", "studentName"]).default("createdAt"),

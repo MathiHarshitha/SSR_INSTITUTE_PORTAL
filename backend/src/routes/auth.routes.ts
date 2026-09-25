@@ -3,7 +3,7 @@ import * as authController from "../controllers/auth.controller";
 import { validateBody } from "../middleware/validate";
 import { authenticate } from "../middleware/authenticate";
 import { authorize } from "../middleware/authorize";
-import { authLimiter, otpLimiter } from "../middleware/rateLimiters";
+import { authLimiter, otpLimiter, refreshLimiter } from "../middleware/rateLimiters";
 import {
   forgotPasswordSchema,
   loginSchema,
@@ -43,8 +43,8 @@ router.post(
 );
 
 router.post("/login", authLimiter, validateBody(loginSchema), authController.login);
-router.post("/refresh-token", authController.refreshAccessToken);
-router.post("/logout", authController.logout);
+router.post("/refresh-token", refreshLimiter, authController.refreshAccessToken);
+router.post("/logout", refreshLimiter, authController.logout);
 
 router.post(
   "/forgot-password",

@@ -21,6 +21,19 @@ export interface Requester {
   role: Role;
 }
 
+/** Curriculum is shared by every batch of a course, and deleting a lesson/topic/module cascades
+ * to every student's LessonProgress. A trainer is scoped to their own batches, so they may not
+ * delete content any student has already made progress in — only an admin can. */
+async function assertMayDeleteLessons(requester: Requester, lessonIds: unknown[]): Promise<void> {
+  if (requester.role === "ADMIN" || lessonIds.length === 0) return;
+  const hasProgress = await LessonProgress.exists({ lesson: { $in: lessonIds } });
+  if (hasProgress) {
+    throw ApiError.forbidden(
+      "Students have already made progress in this content — ask an admin to delete it"
+    );
+  }
+}
+
 async function assertCourseExists(courseId: string): Promise<void> {
   const course = await Course.findById(courseId).select("_id").lean();
   if (!course) throw ApiError.notFound("Course not found");
@@ -73,6 +86,7 @@ export async function deleteModule(requester: Requester, id: string) {
   await assertCourseContentAccess(String(module.course), requester);
 
   const lessonIds = await Lesson.find({ module: id }).distinct("_id");
+  await assertMayDeleteLessons(requester, lessonIds);
   await LessonProgress.deleteMany({ lesson: { $in: lessonIds } });
   await Lesson.deleteMany({ module: id });
   await Topic.deleteMany({ module: id });
@@ -153,6 +167,7 @@ export async function deleteTopic(requester: Requester, id: string) {
   await assertCourseContentAccess(String(topic.course), requester);
 
   const lessonIds = await Lesson.find({ topic: id }).distinct("_id");
+  await assertMayDeleteLessons(requester, lessonIds);
   await LessonProgress.deleteMany({ lesson: { $in: lessonIds } });
   await Lesson.deleteMany({ topic: id });
   await topic.deleteOne();
@@ -230,6 +245,7 @@ export async function deleteLesson(requester: Requester, id: string) {
   const lesson = await Lesson.findById(id);
   if (!lesson) throw ApiError.notFound("Lesson not found");
   await assertCourseContentAccess(String(lesson.course), requester);
+  await assertMayDeleteLessons(requester, [lesson._id]);
 
   await LessonProgress.deleteMany({ lesson: id });
   await lesson.deleteOne();

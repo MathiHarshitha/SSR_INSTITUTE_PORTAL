@@ -1,3 +1,4 @@
+import { searchRegex } from "../utils/searchRegex";
 import mongoose, { FilterQuery } from "mongoose";
 import { Job, IJob } from "../models/Job";
 import { JobApplication, IJobApplication } from "../models/JobApplication";
@@ -5,7 +6,22 @@ import { Enrollment } from "../models/Enrollment";
 import { Attendance } from "../models/Attendance";
 import { User } from "../models/User";
 import { ApiError } from "../utils/ApiError";
-import { assertAnyCourseCompleted } from "./careerResources.service";
+import { getCareerResourcesStatus } from "./careerResources.service";
+
+/** Courses this student has fully completed (the career-resources unlock condition). */
+async function listCompletedCourseIds(studentId: string): Promise<string[]> {
+  const status = await getCareerResourcesStatus(studentId);
+  return status.courses.filter((c) => c.completed).map((c) => c.courseId);
+}
+
+/** A job restricted to certain courses needs one of *those* courses completed; an
+ * unrestricted job needs any completed course. */
+function jobUnlockedBy(job: { eligibleCourses: unknown[] }, completedCourseIds: string[]): boolean {
+  if (job.eligibleCourses.length === 0) return completedCourseIds.length > 0;
+  return job.eligibleCourses.some((c) =>
+    completedCourseIds.includes(String((c as { _id?: unknown })?._id ?? c))
+  );
+}
 import { recordAudit } from "./auditLog.service";
 import { notifyUser } from "./notification.service";
 import { emailService } from "./email.service";
@@ -33,7 +49,7 @@ export async function listJobsAdmin(query: ListJobsQuery) {
   const filter: FilterQuery<IJob> = {};
   if (query.status) filter.status = query.status;
   if (query.search) {
-    const regex = new RegExp(query.search, "i");
+    const regex = searchRegex(query.search);
     filter.$or = [{ title: regex }, { company: regex }];
   }
 
@@ -128,6 +144,11 @@ async function getStudentOverallAttendancePercent(studentId: string): Promise<nu
 }
 
 export async function listPublishedJobsForStudent(studentId: string) {
+  // Career resources stay locked until a course is completed (spec §12) — enforced here, not
+  // only by the UI's lock screen.
+  const completedCourseIds = await listCompletedCourseIds(studentId);
+  if (completedCourseIds.length === 0) return [];
+
   const enrolledCourseIds = (await Enrollment.find({ student: studentId }).select("course").lean()).map(
     (e) => String(e.course)
   );
@@ -154,7 +175,7 @@ export async function listPublishedJobsForStudent(studentId: string) {
 
     return {
       ...job,
-      isEligible: courseMatch && attendanceMatch,
+      isEligible: courseMatch && attendanceMatch && jobUnlockedBy(job, completedCourseIds),
       applicationStatus: appliedMap.get(String(job._id)) ?? null,
     };
   });
@@ -188,9 +209,12 @@ export async function applyToJob(studentId: string, jobId: string, resumeUrl?: s
     throw ApiError.badRequest("The application deadline has passed");
   }
 
-  const careerResourcesUnlocked = await assertAnyCourseCompleted(studentId);
-  if (!careerResourcesUnlocked) {
+  const completedCourseIds = await listCompletedCourseIds(studentId);
+  if (completedCourseIds.length === 0) {
     throw ApiError.forbidden("Complete a course to unlock Career Resources");
+  }
+  if (!jobUnlockedBy(job, completedCourseIds)) {
+    throw ApiError.forbidden("Complete an eligible course to apply for this job");
   }
   await assertEligibleForJob(studentId, job as unknown as IJob);
 

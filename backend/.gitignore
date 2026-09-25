@@ -4,4 +4,4 @@ dist
 uploads/*
 !uploads/.gitkeep
 *.log
-# package-lock.json is intentionally committed to lock dependency versions on Render
+private-uploads

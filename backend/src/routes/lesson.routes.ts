@@ -5,6 +5,7 @@ import * as codingController from "../controllers/coding.controller";
 import { authenticate } from "../middleware/authenticate";
 import { authorize } from "../middleware/authorize";
 import { validateBody } from "../middleware/validate";
+import { codingSubmitLimiter } from "../middleware/rateLimiters";
 import {
   answerQuizQuestionSchema,
   submitCodingAnswerSchema,
@@ -40,6 +41,7 @@ router.get("/:id/coding/state", authorize("STUDENT"), codingController.getCoding
 router.post(
   "/:id/coding/submit",
   authorize("STUDENT"),
+  codingSubmitLimiter,
   validateBody(submitCodingAnswerSchema),
   codingController.submitCodingAnswer
 );

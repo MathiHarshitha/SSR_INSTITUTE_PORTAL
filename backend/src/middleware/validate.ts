@@ -44,3 +44,19 @@ export function validateQuery(schema: ZodType) {
     }
   };
 }
+
+/** Validates route params (e.g. that `:id` is a well-formed ObjectId) before the handler runs. */
+export function validateParams(schema: ZodType) {
+  return (req: Request, _res: Response, next: NextFunction): void => {
+    try {
+      schema.parse(req.params);
+      next();
+    } catch (error) {
+      if (error instanceof ZodError) {
+        next(ApiError.unprocessable("Invalid route parameters", error.issues));
+        return;
+      }
+      next(error);
+    }
+  };
+}

@@ -22,5 +22,7 @@ export interface FinalAssessmentResultItem {
 export interface FinalAssessmentSubmitResult {
   score: number;
   passed: boolean;
+  /** Empty unless `passed` — the answer key is withheld on failed attempts. */
   results: FinalAssessmentResultItem[];
+  reviewAvailable: boolean;
 }

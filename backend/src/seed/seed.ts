@@ -16,7 +16,24 @@ import { LessonProgress } from "../models/LessonProgress";
 import { curriculumDefs } from "./curriculum";
 
 const ADMIN_EMAIL = "admin@ssrinstitute.in";
-const SEED_PASSWORD = process.env.SEED_PASSWORD ?? "Passw0rd!";
+/** No committed fallback: a default password baked into the repo would give anyone who reads it
+ * the admin account of every database this script was ever run against. Resolved lazily so
+ * importing this module (e.g. for curriculum-only seeding in tests) doesn't require it. */
+function getSeedPassword(): string {
+  const value = process.env.SEED_PASSWORD;
+  if (
+    !value ||
+    value.length < 12 ||
+    !/[a-z]/.test(value) ||
+    !/[A-Z]/.test(value) ||
+    !/[0-9]/.test(value)
+  ) {
+    throw new Error(
+      "SEED_PASSWORD must be set to a strong password (12+ chars, upper, lower and a digit) before seeding accounts"
+    );
+  }
+  return value;
+}
 
 export async function seedCourses() {
   const courseDefs = [
@@ -45,7 +62,7 @@ async function seedAdmin() {
   const existing = await User.findOne({ email: ADMIN_EMAIL });
   if (existing) return existing;
 
-  const passwordHash = await hashPassword(SEED_PASSWORD);
+  const passwordHash = await hashPassword(getSeedPassword());
   return User.create({
     name: "SSR Admin",
     email: ADMIN_EMAIL,
@@ -64,7 +81,7 @@ async function seedTrainers() {
     { name: "Amit Verma", email: "amit.trainer@ssrinstitute.in", specialization: "Digital Marketing" },
   ];
 
-  const passwordHash = await hashPassword(SEED_PASSWORD);
+  const passwordHash = await hashPassword(getSeedPassword());
   const trainers = [];
   for (const def of defs) {
     let user = await User.findOne({ email: def.email });
@@ -92,7 +109,7 @@ async function seedTrainers() {
 }
 
 async function seedStudents(courseId: string) {
-  const passwordHash = await hashPassword(SEED_PASSWORD);
+  const passwordHash = await hashPassword(getSeedPassword());
   const students = [];
   for (let i = 1; i <= 10; i++) {
     const email = `student${i}@ssrinstitute.in`;
@@ -280,10 +297,10 @@ async function run() {
   await seedBatchesAndEnrollments(courses, trainers, students);
   await seedCurriculum(courses);
 
+  // Never log the password itself — logs are shipped/retained elsewhere.
   logger.info("Seed complete", {
     admin: ADMIN_EMAIL,
-    password: SEED_PASSWORD,
-    note: "Change this password immediately outside of development.",
+    note: "Accounts use the SEED_PASSWORD you provided. Change it immediately outside of development.",
   });
 
   await disconnectDB();

@@ -68,14 +68,15 @@ npm run dev             # http://localhost:5000
 Seed development data (creates the admin, 3 trainers, 10 students, and 4 courses):
 
 ```bash
-npm run seed
+SEED_PASSWORD='<a strong password you choose>' npm run seed
 ```
 
-Default seed credentials (change immediately outside of local development):
+Seeded accounts (change the password immediately outside of local development):
 
 - Admin: `admin@ssrinstitute.in`
 - Trainers/Students: `student1@ssrinstitute.in` … `student10@ssrinstitute.in`, etc.
-- Password for all seeded accounts: `Passw0rd!` (override with `SEED_PASSWORD` env var)
+- Password for all seeded accounts: the `SEED_PASSWORD` you provide (required — 12+ characters with
+  upper case, lower case and a digit; there is no built-in default).
 
 File uploads (Materials, Task submissions) need a free [Cloudinary](https://cloudinary.com) account —
 set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` in `backend/.env`

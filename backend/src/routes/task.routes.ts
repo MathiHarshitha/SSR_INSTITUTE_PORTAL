@@ -10,6 +10,7 @@ import {
   updateTaskStatusSchema,
 } from "../validators/task.validator";
 import { z } from "zod";
+import { httpUrl } from "../validators/common";
 
 const router = Router();
 
@@ -46,7 +47,7 @@ router.post(
   validateBody(
     z.object({
       content: z.string().trim().max(10000).optional(),
-      fileUrl: z.string().trim().url().optional(),
+      fileUrl: httpUrl().optional(),
       comments: z.string().trim().max(2000).optional(),
     })
   ),

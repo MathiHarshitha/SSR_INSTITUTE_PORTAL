@@ -27,7 +27,9 @@ interface RetriableConfig extends InternalAxiosRequestConfig {
 
 let refreshPromise: Promise<string | null> | null = null;
 
-async function refreshAccessToken(): Promise<string | null> {
+/** Exchanges the httpOnly refresh cookie for a new in-memory access token (deduplicated across
+ * concurrent callers). Returns null when there is no live session. */
+export async function refreshAccessToken(): Promise<string | null> {
   if (!refreshPromise) {
     refreshPromise = refreshClient
       .post<{ data: { accessToken: string } }>("/auth/refresh-token")

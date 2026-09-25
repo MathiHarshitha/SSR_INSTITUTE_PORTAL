@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { httpUrl } from "./common";
 import { GENDERS } from "../constants/enums";
 
 const passwordSchema = z
@@ -44,7 +45,7 @@ export const registerTrainerSchema = z
     skills: z.array(z.string().trim()).optional(),
     experienceYears: z.coerce.number().min(0).max(60).optional(),
     specialization: z.string().trim().max(200).optional(),
-    resumeUrl: z.string().trim().url().optional(),
+    resumeUrl: httpUrl().optional(),
   })
   .refine(
     (data) => data.confirmPassword === undefined || data.password === data.confirmPassword,

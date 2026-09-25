@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
 import { useCurrentUser, roleHomePath } from "@/hooks/useAuth";
+import { refreshAccessToken } from "@/lib/api-client";
 import { Role } from "@/types/auth";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -13,32 +14,49 @@ interface RequireAuthProps {
 }
 
 /**
- * Client-side gate for role-restricted layouts. Frontend + backend live on
- * different origins, so a Next.js edge middleware can't read the backend's
- * httpOnly refresh cookie — enforcement here plus the backend's `authorize()`
- * middleware together satisfy "never trust the frontend alone" (spec ยง40/41).
+ * Client-side gate for role-restricted layouts — UX only; the backend's `authenticate` +
+ * `authorize()` middleware is the actual enforcement. The access token lives only in memory,
+ * so after a reload we first try to restore the session from the httpOnly refresh cookie.
  */
 export function RequireAuth({ allowedRoles, children }: RequireAuthProps) {
   const router = useRouter();
   const isHydrated = useAuthStore((s) => s.isHydrated);
   const accessToken = useAuthStore((s) => s.accessToken);
   const storedUser = useAuthStore((s) => s.user);
+  const setAccessToken = useAuthStore((s) => s.setAccessToken);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+  const [restoreFailed, setRestoreFailed] = useState(false);
+  const restoring = useRef(false);
   const { data: user, isLoading, isError } = useCurrentUser();
 
   const effectiveUser = user ?? storedUser;
 
   useEffect(() => {
+    if (!isHydrated || accessToken || restoring.current || restoreFailed) return;
+    restoring.current = true;
+    refreshAccessToken().then((token) => {
+      restoring.current = false;
+      if (token) {
+        setAccessToken(token);
+      } else {
+        clearAuth();
+        setRestoreFailed(true);
+      }
+    });
+  }, [isHydrated, accessToken, restoreFailed, setAccessToken, clearAuth]);
+
+  useEffect(() => {
     if (!isHydrated) return;
 
-    if (!accessToken || isError) {
+    if (restoreFailed || isError) {
       router.replace("/login");
       return;
     }
 
-    if (effectiveUser && !allowedRoles.includes(effectiveUser.role)) {
+    if (accessToken && effectiveUser && !allowedRoles.includes(effectiveUser.role)) {
       router.replace(roleHomePath(effectiveUser.role));
     }
-  }, [isHydrated, accessToken, isError, effectiveUser, allowedRoles, router]);
+  }, [isHydrated, accessToken, restoreFailed, isError, effectiveUser, allowedRoles, router]);
 
   if (!isHydrated || !accessToken || isLoading || !effectiveUser) {
     return (
