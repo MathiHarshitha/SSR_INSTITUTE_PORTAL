@@ -1,6 +1,17 @@
 import { env } from "../config/env";
 import { logger } from "../utils/logger";
 
+/** User-controlled values (names, task/job titles, reasons) are escaped before being placed in
+ * email HTML, so they can't inject markup or links into messages sent from our domain. */
+function esc(value: unknown): string {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 interface EmailPayload {
   to: string;
   subject: string;
@@ -33,15 +44,15 @@ export const emailService = {
     send({
       to,
       subject: "Your SSR Portal account has been approved",
-      html: `<p>Hi ${name}, your account has been approved. You can now log in to SSR Portal.</p>`,
+      html: `<p>Hi ${esc(name)}, your account has been approved. You can now log in to SSR Portal.</p>`,
     }),
 
   sendAccountRejected: (to: string, name: string, reason?: string) =>
     send({
       to,
       subject: "Your SSR Portal registration was not approved",
-      html: `<p>Hi ${name}, unfortunately your registration was not approved.${
-        reason ? ` Reason: ${reason}` : ""
+      html: `<p>Hi ${esc(name)}, unfortunately your registration was not approved.${
+        reason ? ` Reason: ${esc(reason)}` : ""
       }</p>`,
     }),
 
@@ -49,34 +60,34 @@ export const emailService = {
     send({
       to,
       subject: "Reset your SSR Portal password",
-      html: `<p>Click the link below to reset your password. This link expires in ${env.resetTokenExpiresMinutes} minutes.</p><p><a href="${resetUrl}">${resetUrl}</a></p>`,
+      html: `<p>Click the link below to reset your password. This link expires in ${env.resetTokenExpiresMinutes} minutes.</p><p><a href="${esc(resetUrl)}">${esc(resetUrl)}</a></p>`,
     }),
 
   sendSubmissionEvaluated: (to: string, name: string, taskTitle: string, marks: number, maxMarks: number) =>
     send({
       to,
       subject: `Your submission for "${taskTitle}" has been evaluated`,
-      html: `<p>Hi ${name}, your submission for <strong>${taskTitle}</strong> has been evaluated: ${marks}/${maxMarks}.</p>`,
+      html: `<p>Hi ${esc(name)}, your submission for <strong>${esc(taskTitle)}</strong> has been evaluated: ${marks}/${maxMarks}.</p>`,
     }),
 
   sendInterviewScheduled: (to: string, name: string, date: string, time: string) =>
     send({
       to,
       subject: "A mock interview has been scheduled for you",
-      html: `<p>Hi ${name}, a mock interview has been scheduled on ${date} at ${time}.</p>`,
+      html: `<p>Hi ${esc(name)}, a mock interview has been scheduled on ${esc(date)} at ${esc(time)}.</p>`,
     }),
 
   sendCertificateIssued: (to: string, name: string, courseName: string, certificateNumber: string) =>
     send({
       to,
       subject: "Your certificate is ready",
-      html: `<p>Hi ${name}, your certificate for <strong>${courseName}</strong> has been issued. Certificate number: ${certificateNumber}.</p>`,
+      html: `<p>Hi ${esc(name)}, your certificate for <strong>${esc(courseName)}</strong> has been issued. Certificate number: ${esc(certificateNumber)}.</p>`,
     }),
 
   sendApplicationStatusChanged: (to: string, name: string, jobTitle: string, company: string, status: string) =>
     send({
       to,
       subject: `Update on your application to ${company}`,
-      html: `<p>Hi ${name}, your application for <strong>${jobTitle}</strong> at ${company} is now <strong>${status}</strong>.</p>`,
+      html: `<p>Hi ${esc(name)}, your application for <strong>${esc(jobTitle)}</strong> at ${esc(company)} is now <strong>${esc(status)}</strong>.</p>`,
     }),
 };

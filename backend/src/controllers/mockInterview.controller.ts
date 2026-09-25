@@ -12,6 +12,7 @@ import {
 export const scheduleInterview = asyncHandler(async (req: Request, res: Response) => {
   const interview = await mockInterviewService.scheduleInterview(
     req.user!.id,
+    req.user!.role,
     req.body as ScheduleInterviewInput
   );
   sendSuccess(res, 201, "Interview scheduled", interview);

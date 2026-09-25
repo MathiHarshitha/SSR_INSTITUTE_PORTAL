@@ -1,3 +1,4 @@
+import { searchRegex } from "../utils/searchRegex";
 import { FilterQuery } from "mongoose";
 import { Course, ICourse } from "../models/Course";
 import { ApiError } from "../utils/ApiError";
@@ -18,7 +19,7 @@ export async function listCoursesAdmin(query: ListCoursesQuery) {
   const filter: FilterQuery<ICourse> = {};
   if (query.status) filter.status = query.status;
   if (query.search) {
-    const regex = new RegExp(query.search, "i");
+    const regex = searchRegex(query.search);
     filter.$or = [{ name: regex }, { category: regex }];
   }
 

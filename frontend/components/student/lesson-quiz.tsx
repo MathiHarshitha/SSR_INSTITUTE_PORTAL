@@ -154,6 +154,12 @@ export function LessonQuiz({ lessonId, questions, bestScore, onActiveChange }: L
           );
         })}
 
+        {!result.passed && (
+          <p className="text-xs text-muted-foreground">
+            Correct answers are shown once you pass the quiz.
+          </p>
+        )}
+
         <div className="flex items-center justify-between rounded-md border border-border bg-muted/50 p-3">
           <p className="text-sm font-medium">
             You scored {result.score}% (best: {result.bestScore}%)

@@ -17,7 +17,7 @@ export const createAnnouncement = asyncHandler(async (req: Request, res: Respons
 
 export const listAnnouncements = asyncHandler(async (req: Request, res: Response) => {
   const query = req.query as unknown as ListAnnouncementsQuery;
-  const { announcements, total } = await announcementService.listAnnouncements(query);
+  const { announcements, total } = await announcementService.listAnnouncements(query, req.user!);
   sendSuccess(
     res,
     200,

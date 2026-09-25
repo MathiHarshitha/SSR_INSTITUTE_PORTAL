@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { httpUrl } from "./common";
 
 const OBJECT_ID = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id");
 const TASK_STATUSES = ["DRAFT", "PUBLISHED", "CLOSED"] as const;
@@ -27,7 +28,7 @@ export const createTaskSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("ASSIGNMENT"),
     ...baseTaskFields,
-    attachmentUrls: z.array(z.string().trim().url()).optional(),
+    attachmentUrls: z.array(httpUrl()).optional(),
   }),
   z.object({
     type: z.literal("QUIZ"),
@@ -50,7 +51,7 @@ export const updateTaskSchema = z.object({
   module: OBJECT_ID.optional(),
   dueDate: z.coerce.date().optional(),
   maxMarks: z.coerce.number().min(0).optional(),
-  attachmentUrls: z.array(z.string().trim().url()).optional(),
+  attachmentUrls: z.array(httpUrl()).optional(),
   questions: z.array(quizQuestionSchema).optional(),
   timeLimitMinutes: z.coerce.number().min(1).optional(),
   attemptsAllowed: z.coerce.number().min(1).optional(),

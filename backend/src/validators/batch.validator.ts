@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { searchText } from "./common";
 
 const OBJECT_ID = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id");
 const BATCH_MODES = ["ONLINE", "OFFLINE", "HYBRID"] as const;
@@ -40,7 +41,7 @@ export const enrollStudentSchema = z.object({
 export const listBatchesQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  search: z.string().trim().optional(),
+  search: searchText.optional(),
   status: z.enum(BATCH_STATUSES).optional(),
   course: OBJECT_ID.optional(),
   sortBy: z.enum(["createdAt", "startDate", "name"]).default("startDate"),

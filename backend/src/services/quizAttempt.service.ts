@@ -98,6 +98,9 @@ export async function answerQuizQuestion(studentId: string, lessonId: string, se
   if (attempt.currentIndex >= lesson.quiz.length) {
     throw ApiError.badRequest("All questions have already been answered — submit the quiz");
   }
+  if (selectedIndex >= lesson.quiz[attempt.currentIndex].options.length) {
+    throw ApiError.badRequest("Selected option does not exist");
+  }
 
   attempt.answers[attempt.currentIndex] = selectedIndex;
   attempt.currentIndex += 1;
@@ -159,7 +162,16 @@ export async function submitQuiz(studentId: string, lessonId: string) {
 
   const completion = await maybeCompleteLesson(studentId, lesson as unknown as ILesson);
 
-  return { score, bestScore, passed, results, lessonCompleted: completion.completed };
+  // The answer key (and per-question right/wrong) is only revealed once the quiz is passed —
+  // revealing it on a failed attempt makes the immediate retake a guaranteed pass.
+  return {
+    score,
+    bestScore,
+    passed,
+    results: passed ? results : [],
+    reviewAvailable: passed,
+    lessonCompleted: completion.completed,
+  };
 }
 
 export async function quitQuiz(studentId: string, lessonId: string) {

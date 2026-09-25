@@ -1,3 +1,4 @@
+import { searchRegex } from "../utils/searchRegex";
 import crypto from "crypto";
 import { FilterQuery } from "mongoose";
 import { Certificate, ICertificate } from "../models/Certificate";
@@ -14,7 +15,8 @@ import { IssueCertificateInput, ListCertificatesQuery } from "../validators/cert
 
 function generateCertificateNumber(): string {
   const year = new Date().getFullYear();
-  const random = crypto.randomBytes(4).toString("hex").toUpperCase();
+  // 64 bits: the public /verify endpoint must not be enumerable by guessing numbers.
+  const random = crypto.randomBytes(8).toString("hex").toUpperCase();
   return `SSR-${year}-${random}`;
 }
 
@@ -112,7 +114,7 @@ export async function listCertificatesAdmin(query: ListCertificatesQuery) {
   if (query.status) filter.status = query.status;
   if (query.batch) filter.batch = query.batch;
   if (query.search) {
-    const regex = new RegExp(query.search, "i");
+    const regex = searchRegex(query.search);
     filter.$or = [{ studentName: regex }, { certificateNumber: regex }];
   }
 

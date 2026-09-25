@@ -1,3 +1,4 @@
+import { searchRegex } from "../utils/searchRegex";
 import { FilterQuery } from "mongoose";
 import { User, IUser } from "../models/User";
 import { StudentProfile } from "../models/StudentProfile";
@@ -7,6 +8,7 @@ import { ApiError } from "../utils/ApiError";
 import { emailService } from "./email.service";
 import { recordAudit } from "./auditLog.service";
 import { notifyUser } from "./notification.service";
+import { revokeAllSessions } from "./session.service";
 import { ListUsersQuery } from "../validators/user.validator";
 import { UserStatus } from "../constants/enums";
 
@@ -44,7 +46,7 @@ export async function listUsers(query: ListUsersQuery) {
   if (query.role) filter.role = query.role;
   if (query.status) filter.status = query.status;
   if (query.search) {
-    const regex = new RegExp(query.search, "i");
+    const regex = searchRegex(query.search);
     filter.$or = [{ name: regex }, { email: regex }, { phone: regex }];
   }
 
@@ -134,6 +136,8 @@ async function setStatus(
   user.status = status;
   if (reason !== undefined) user.rejectionReason = reason;
   await user.save();
+  // Blocked/suspended users are signed out everywhere; unblocking later requires a fresh login.
+  if (status !== "ACTIVE") await revokeAllSessions(user._id);
 
   await recordAudit({ userId: adminId, action, entity: "User", entityId: user._id, metadata: { reason } });
   return user;

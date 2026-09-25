@@ -15,6 +15,18 @@ import {
   UpdateTaskInput,
 } from "../validators/task.validator";
 
+/** Students must never receive a quiz task's answer key (`options[].isCorrect`). */
+function toStudentTask<T extends { questions?: { options?: { isCorrect?: boolean }[] }[] }>(task: T): T {
+  if (!task.questions?.length) return task;
+  return {
+    ...task,
+    questions: task.questions.map((q) => ({
+      ...q,
+      options: (q.options ?? []).map(({ isCorrect: _isCorrect, ...option }) => option),
+    })),
+  };
+}
+
 export async function createTask(userId: string, role: Role, input: CreateTaskInput) {
   const batch = await assertBatchAccess(input.batch, userId, role);
 
@@ -55,7 +67,7 @@ export async function listTasks(userId: string, role: Role, query: ListTasksQuer
       .select("task status marks")
       .lean();
     const subMap = new Map(mySubmissions.map((s) => [String(s.task), s]));
-    return tasks.map((t) => ({ ...t, mySubmission: subMap.get(String(t._id)) ?? null }));
+    return tasks.map((t) => ({ ...toStudentTask(t), mySubmission: subMap.get(String(t._id)) ?? null }));
   }
 
   const submissionCounts = await Submission.aggregate<{ _id: unknown; count: number }>([
@@ -71,6 +83,10 @@ export async function getTaskById(userId: string, role: Role, id: string) {
   const task = await Task.findById(id).lean();
   if (!task) throw ApiError.notFound("Task not found");
   await assertBatchAccess(String(task.batch), userId, role);
+  if (role === "STUDENT") {
+    if (task.status === "DRAFT") throw ApiError.notFound("Task not found");
+    return toStudentTask(task);
+  }
   return task;
 }
 
@@ -121,11 +137,12 @@ export async function updateTaskStatus(userId: string, role: Role, id: string, s
 export async function deleteTask(userId: string, role: Role, id: string) {
   const task = await Task.findById(id);
   if (!task) throw ApiError.notFound("Task not found");
+
+  await assertBatchAccess(String(task.batch), userId, role);
+
   if (task.status !== "DRAFT") {
     throw ApiError.badRequest("Only draft tasks can be deleted — close published tasks instead");
   }
-
-  await assertBatchAccess(String(task.batch), userId, role);
 
   await task.deleteOne();
   await recordAudit({ userId, action: "TASK_DELETED", entity: "Task", entityId: id });

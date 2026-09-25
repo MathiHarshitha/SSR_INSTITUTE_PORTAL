@@ -1,3 +1,4 @@
+import { searchRegex } from "../utils/searchRegex";
 import { ClientSession, FilterQuery, Types } from "mongoose";
 import { Payment, IPayment } from "../models/Payment";
 import { Enrollment, IEnrollment } from "../models/Enrollment";
@@ -119,7 +120,7 @@ export async function listPayments(query: ListPaymentsQuery) {
   if (query.search) {
     // Search touches populated fields (student name / receipt number), so filter after populate.
     const all = await paymentsQuery.lean();
-    const regex = new RegExp(query.search, "i");
+    const regex = searchRegex(query.search);
     const filtered = all.filter(
       (p) =>
         regex.test(p.receiptNumber) ||
@@ -240,7 +241,7 @@ export async function listFeeStatus(query: ListFeeStatusQuery, studentId?: strin
     rows = rows.filter((r) => r.status === query.status);
   }
   if (query.search) {
-    const regex = new RegExp(query.search, "i");
+    const regex = searchRegex(query.search);
     rows = rows.filter((r) => regex.test((r.student as unknown as { name: string }).name ?? ""));
   }
 

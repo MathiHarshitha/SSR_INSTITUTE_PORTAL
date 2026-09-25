@@ -4,6 +4,7 @@ import { ClassSchedule } from "../models/ClassSchedule";
 import { Submission } from "../models/Submission";
 import { MockInterview } from "../models/MockInterview";
 import { Announcement } from "../models/Announcement";
+import { visibleAnnouncementFilter } from "./announcement.service";
 import { listTrainerBatchIds } from "../utils/batchAccess";
 
 function dayRange(date: Date): { start: Date; end: Date } {
@@ -34,7 +35,7 @@ export async function getTrainerDashboard(trainerId: string) {
       .lean(),
     Submission.countDocuments({ batch: { $in: batchIds }, status: { $in: ["SUBMITTED", "LATE"] } }),
     MockInterview.countDocuments({ interviewer: trainerId, date: { $gte: new Date() } }),
-    Announcement.find({ audience: { $in: ["EVERYONE", "TRAINERS"] } })
+    Announcement.find(await visibleAnnouncementFilter({ id: trainerId, role: "TRAINER" }))
       .sort({ publishAt: -1 })
       .limit(5)
       .lean(),

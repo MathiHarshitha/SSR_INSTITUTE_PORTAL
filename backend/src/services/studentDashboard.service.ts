@@ -4,6 +4,7 @@ import { Task } from "../models/Task";
 import { Submission } from "../models/Submission";
 import { MockInterview } from "../models/MockInterview";
 import { Announcement } from "../models/Announcement";
+import { visibleAnnouncementFilter } from "./announcement.service";
 import { getCourseProgress } from "./progress.service";
 import { getAttendanceSummary } from "./attendance.service";
 import { listFeeStatus } from "./fee.service";
@@ -46,7 +47,7 @@ export async function getStudentDashboard(studentId: string) {
     Submission.countDocuments({ student: studentId, task: { $in: publishedTaskIds } }),
     MockInterview.countDocuments({ student: studentId, date: { $gte: new Date() } }),
     listFeeStatus({ page: 1, limit: 100 }, studentId),
-    Announcement.find({ audience: { $in: ["EVERYONE", "STUDENTS"] } })
+    Announcement.find(await visibleAnnouncementFilter({ id: studentId, role: "STUDENT" }))
       .sort({ publishAt: -1 })
       .limit(5)
       .lean(),

@@ -3,6 +3,10 @@ import { createApp } from "../src/app";
 import { Course } from "../src/models/Course";
 import { Batch } from "../src/models/Batch";
 import { Enrollment } from "../src/models/Enrollment";
+import { Module } from "../src/models/Module";
+import { Topic } from "../src/models/Topic";
+import { Lesson } from "../src/models/Lesson";
+import { LessonProgress } from "../src/models/LessonProgress";
 import { createUser, authHeader } from "./helpers";
 
 const app = createApp();
@@ -94,10 +98,34 @@ describe("Notifications", () => {
       status: "COMPLETED",
     });
     await Enrollment.create({ student: owner._id, batch: batch._id, course: course._id });
-    await request(app)
+
+    // Certificates are only issued for a completed course, so give the course real content and
+    // record the student as having completed it (a plain reading lesson with no practice/quiz/
+    // coding stages — the same LessonProgress row the "mark complete" flow writes).
+    const module = await Module.create({ course: course._id, name: "Module 1", order: 0 });
+    const topic = await Topic.create({ course: course._id, module: module._id, name: "Topic 1", order: 0 });
+    const lesson = await Lesson.create({
+      course: course._id,
+      module: module._id,
+      topic: topic._id,
+      title: "Lesson 1",
+      order: 0,
+    });
+    await LessonProgress.create({
+      student: owner._id,
+      lesson: lesson._id,
+      topic: topic._id,
+      module: module._id,
+      course: course._id,
+      completed: true,
+      completedAt: new Date(),
+    });
+
+    const issued = await request(app)
       .post("/api/v1/certificates")
       .set(authHeader(adminToken))
       .send({ student: owner._id.toString(), batch: batch._id.toString() });
+    expect(issued.status).toBe(201);
 
     const list = await request(app).get("/api/v1/notifications").set(authHeader(ownerToken));
     expect(list.body.data).toHaveLength(1);

@@ -6,6 +6,8 @@ import { recordAudit } from "./auditLog.service";
 import { notifyUser } from "./notification.service";
 import { emailService } from "./email.service";
 import { Role } from "../constants/enums";
+import { Enrollment } from "../models/Enrollment";
+import { assertBatchAccess, listTrainerBatchIds } from "../utils/batchAccess";
 import {
   ListInterviewsQuery,
   RecordFeedbackInput,
@@ -19,11 +21,31 @@ async function assertStudentValid(studentId: string) {
   return student;
 }
 
+/** A trainer may only schedule interviews for students in their own batches; any batch
+ * attached to the interview must be one the requester can access and the student is in. */
+async function assertMayScheduleFor(interviewerId: string, role: Role, input: ScheduleInterviewInput) {
+  if (input.batch) {
+    await assertBatchAccess(input.batch, interviewerId, role);
+    const enrolled = await Enrollment.exists({ student: input.student, batch: input.batch });
+    if (!enrolled) throw ApiError.badRequest("This student is not enrolled in the selected batch");
+    return;
+  }
+  if (role === "TRAINER") {
+    const enrolled = await Enrollment.exists({
+      student: input.student,
+      batch: { $in: await listTrainerBatchIds(interviewerId) },
+    });
+    if (!enrolled) throw ApiError.forbidden("This student is not in one of your batches");
+  }
+}
+
 export async function scheduleInterview(
   interviewerId: string,
+  role: Role,
   input: ScheduleInterviewInput
 ) {
   const student = await assertStudentValid(input.student);
+  await assertMayScheduleFor(interviewerId, role, input);
 
   const interview = await MockInterview.create({
     ...input,

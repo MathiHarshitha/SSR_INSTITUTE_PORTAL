@@ -1,6 +1,6 @@
 import { User } from "../src/models/User";
 import { hashPassword } from "../src/utils/password";
-import { signAccessToken } from "../src/utils/jwt";
+import { createSession } from "../src/services/session.service";
 import { Role, UserStatus } from "../src/constants/enums";
 
 interface CreateUserOptions {
@@ -15,7 +15,8 @@ interface CreateUserOptions {
 let counter = 0;
 
 /** Creates a user directly in the DB (bypassing registration/OTP) with a ready-to-use access
- * token — for tests that only care about what a given role/status is authorized to do. */
+ * token backed by a real session — for tests that only care about what a given role/status is
+ * authorized to do. */
 export async function createUser(opts: CreateUserOptions) {
   counter += 1;
   const email = opts.email ?? `user${counter}.${Date.now()}@test.local`;
@@ -32,8 +33,8 @@ export async function createUser(opts: CreateUserOptions) {
     isEmailVerified: opts.isEmailVerified ?? true,
   });
 
-  const token = signAccessToken({ sub: user._id.toString(), role: user.role, status: user.status });
-  return { user, password, token };
+  const { accessToken: token, refreshToken } = await createSession(user);
+  return { user, password, token, refreshToken };
 }
 
 export function authHeader(token: string): { Authorization: string } {

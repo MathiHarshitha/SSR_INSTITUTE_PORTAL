@@ -191,7 +191,9 @@ export interface QuizSubmitResult {
   score: number;
   bestScore: number;
   passed: boolean;
+  /** Empty unless `passed` — the answer key is withheld on failed attempts. */
   results: QuizSubmitResultItem[];
+  reviewAvailable: boolean;
   lessonCompleted: boolean;
 }
 
@@ -206,11 +208,10 @@ export interface QuizSessionState {
   score?: number;
 }
 
+/** Students only receive pass/fail and the runtime error — test inputs and expected outputs
+ * stay server-side so hidden test cases can't be hard-coded. */
 export interface CodingTestResult {
   passed: boolean;
-  args: unknown[];
-  expectedOutput: unknown;
-  actualOutput?: unknown;
   error?: string;
 }
 

@@ -7,7 +7,15 @@ import { OTPVerification } from "../models/OTPVerification";
 import { PasswordResetToken } from "../models/PasswordResetToken";
 import { hashPassword, comparePassword } from "../utils/password";
 import { generateOtp, generateSecureToken, hashToken } from "../utils/tokens";
-import { signAccessToken, signRefreshToken } from "../utils/jwt";
+import { createSession, revokeAllSessions } from "./session.service";
+
+/** Compared against when the email doesn't exist, so login takes the same time either way
+ * (no user enumeration by response timing). */
+let dummyPasswordHash: Promise<string> | null = null;
+function getDummyPasswordHash(): Promise<string> {
+  dummyPasswordHash ??= hashPassword(generateSecureToken(16).raw);
+  return dummyPasswordHash;
+}
 import { ApiError } from "../utils/ApiError";
 import { emailService } from "./email.service";
 import { env } from "../config/env";
@@ -23,6 +31,8 @@ async function createOtpForUser(userId: mongoose.Types.ObjectId, email: string):
   const otpHash = hashToken(otp);
   const expiresAt = new Date(Date.now() + env.otpExpiresMinutes * 60 * 1000);
 
+  // Only the newest code is ever valid — older outstanding codes are retired.
+  await OTPVerification.deleteMany({ user: userId, purpose: "EMAIL_VERIFICATION", verified: false });
   await OTPVerification.create({
     user: userId,
     otpHash,
@@ -138,13 +148,14 @@ export async function registerTrainer(input: RegisterTrainerInput) {
   }
 }
 
+/** Same response whether the email is unknown, already verified, or has no pending code — the
+ * OTP endpoints must not reveal which emails have accounts. */
+const INVALID_OTP_MESSAGE = "Invalid or expired verification code. Please request a new code.";
+
 export async function verifyOtp(email: string, otp: string) {
   const user = await User.findOne({ email });
-  if (!user) {
-    throw ApiError.notFound("Account not found");
-  }
-  if (user.isEmailVerified) {
-    throw ApiError.badRequest("Email is already verified");
+  if (!user || user.isEmailVerified) {
+    throw ApiError.badRequest(INVALID_OTP_MESSAGE);
   }
 
   const record = await OTPVerification.findOne({
@@ -153,11 +164,8 @@ export async function verifyOtp(email: string, otp: string) {
     verified: false,
   }).sort({ createdAt: -1 });
 
-  if (!record) {
-    throw ApiError.badRequest("No pending verification found. Please request a new code.");
-  }
-  if (record.expiresAt < new Date()) {
-    throw ApiError.badRequest("Verification code has expired. Please request a new one.");
+  if (!record || record.expiresAt < new Date()) {
+    throw ApiError.badRequest(INVALID_OTP_MESSAGE);
   }
   if (record.attempts >= 5) {
     throw ApiError.tooMany("Too many incorrect attempts. Please request a new code.");
@@ -178,14 +186,11 @@ export async function verifyOtp(email: string, otp: string) {
   return { status: user.status };
 }
 
+/** Always "succeeds" from the caller's point of view; a code is only sent when there's an
+ * unverified account for this email (no account enumeration). */
 export async function resendOtp(email: string) {
   const user = await User.findOne({ email });
-  if (!user) {
-    throw ApiError.notFound("Account not found");
-  }
-  if (user.isEmailVerified) {
-    throw ApiError.badRequest("Email is already verified");
-  }
+  if (!user || user.isEmailVerified) return;
   await createOtpForUser(user._id, user.email);
 }
 
@@ -204,6 +209,7 @@ interface LoginResult {
 export async function login(email: string, password: string): Promise<LoginResult> {
   const user = await User.findOne({ email }).select("+passwordHash");
   if (!user) {
+    await comparePassword(password, await getDummyPasswordHash());
     throw ApiError.unauthorized("Invalid email or password");
   }
 
@@ -232,8 +238,7 @@ export async function login(email: string, password: string): Promise<LoginResul
   user.lastLoginAt = new Date();
   await user.save();
 
-  const accessToken = signAccessToken({ sub: user._id.toString(), role: user.role, status: user.status });
-  const refreshToken = signRefreshToken({ sub: user._id.toString() });
+  const { accessToken, refreshToken } = await createSession(user);
 
   return {
     accessToken,
@@ -349,6 +354,9 @@ export async function resetPassword(rawToken: string, newPassword: string): Prom
 
   user.passwordHash = await hashPassword(newPassword);
   await user.save();
+
+  // Whoever knew the old password (or holds a stolen session) is signed out everywhere.
+  await revokeAllSessions(user._id);
 
   record.used = true;
   await record.save();

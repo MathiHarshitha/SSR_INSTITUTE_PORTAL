@@ -9,7 +9,7 @@ import {
 
 export const createInterviewResource = asyncHandler(async (req: Request, res: Response) => {
   const resource = await interviewResourceService.createInterviewResource(
-    req.user!.id,
+    req.user!,
     req.body as CreateInterviewResourceInput
   );
   sendSuccess(res, 201, "Interview resource created", resource);
@@ -17,6 +17,7 @@ export const createInterviewResource = asyncHandler(async (req: Request, res: Re
 
 export const updateInterviewResource = asyncHandler(async (req: Request, res: Response) => {
   const resource = await interviewResourceService.updateInterviewResource(
+    req.user!,
     req.params.id as string,
     req.body as UpdateInterviewResourceInput
   );
@@ -24,12 +25,12 @@ export const updateInterviewResource = asyncHandler(async (req: Request, res: Re
 });
 
 export const deleteInterviewResource = asyncHandler(async (req: Request, res: Response) => {
-  await interviewResourceService.deleteInterviewResource(req.params.id as string);
+  await interviewResourceService.deleteInterviewResource(req.user!, req.params.id as string);
   sendSuccess(res, 200, "Interview resource deleted");
 });
 
 export const listInterviewResourcesAdmin = asyncHandler(async (req: Request, res: Response) => {
-  const resources = await interviewResourceService.listInterviewResourcesAdmin();
+  const resources = await interviewResourceService.listInterviewResourcesAdmin(req.user!);
   sendSuccess(res, 200, "Interview resources fetched", resources);
 });
 

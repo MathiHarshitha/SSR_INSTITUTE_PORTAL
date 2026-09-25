@@ -112,7 +112,18 @@ export default function FinalAssessmentPage({ params }: { params: Promise<{ cour
               You already completed this assessment — scored {state?.score}%
               {state?.passed ? " (passed)" : ""}.
             </p>
-            <p className="text-xs text-muted-foreground">Your course completion has been recorded.</p>
+            {state?.passed ? (
+              <p className="text-xs text-muted-foreground">Your course completion has been recorded.</p>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  You need to pass the final assessment to complete the course.
+                </p>
+                <Button onClick={handleStart} disabled={startAssessment.isPending}>
+                  Retake Final Assessment
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
@@ -168,7 +179,9 @@ export default function FinalAssessmentPage({ params }: { params: Promise<{ cour
               {result.passed ? "You passed the final assessment." : "You did not reach the passing score."}
             </p>
             <p className="text-xs text-muted-foreground">
-              Your course completion has been recorded — check your certificate and career resources.
+              {result.passed
+                ? "Your course completion has been recorded — check your certificate and career resources."
+                : "You need to pass the final assessment to complete the course. You can retake it."}
             </p>
             <Link
               href={`/student/courses/${courseId}`}

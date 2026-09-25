@@ -3,7 +3,12 @@ import { Module } from "../models/Module";
 import { Topic } from "../models/Topic";
 import { LessonProgress } from "../models/LessonProgress";
 import { ApiError } from "../utils/ApiError";
-import { assertCourseContentAccess, assertStudentEnrolledInCourse } from "../utils/batchAccess";
+import {
+  assertCourseContentAccess,
+  assertStudentEnrolledInCourse,
+  listTrainerBatchIds,
+} from "../utils/batchAccess";
+import { Enrollment } from "../models/Enrollment";
 import {
   assertLessonUnlocked,
   isCourseCompleted,
@@ -122,7 +127,7 @@ export async function getCourseProgress(studentId: string, courseId: string) {
 
   const modules = await Module.find({ course: courseId }).sort({ order: 1 }).lean();
   const topics = await Topic.find({ course: courseId }).sort({ order: 1 }).lean();
-  const lessons = await Lesson.find({ course: courseId })
+  const lessons = await Lesson.find({ course: courseId, published: { $ne: false } })
     .select("title topic module estimatedMinutes difficulty order practice quiz codingQuestion")
     .sort({ order: 1 })
     .lean();
@@ -232,5 +237,15 @@ export async function getCourseProgressForStaff(
   courseId: string
 ) {
   await assertCourseContentAccess(courseId, requester);
+  // Teaching the course isn't enough: a trainer may only see students in their own batches.
+  if (requester.role === "TRAINER") {
+    const trainerBatchIds = await listTrainerBatchIds(requester.id);
+    const shared = await Enrollment.exists({
+      student: studentId,
+      course: courseId,
+      batch: { $in: trainerBatchIds },
+    });
+    if (!shared) throw ApiError.forbidden("This student is not in one of your batches");
+  }
   return getCourseProgress(studentId, courseId);
 }

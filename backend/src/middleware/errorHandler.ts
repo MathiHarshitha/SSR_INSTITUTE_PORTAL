@@ -53,7 +53,9 @@ export function errorHandler(
     statusCode = 400;
     message = err.message;
   } else if (err instanceof Error) {
-    message = env.isProduction ? message : err.message;
+    // Internal error text only in explicit local development/test — never because NODE_ENV
+    // happened to be unset or misspelled on a server.
+    message = env.isLocalDev ? err.message : message;
   }
 
   if (statusCode >= 500) {

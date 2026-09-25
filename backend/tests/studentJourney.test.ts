@@ -6,7 +6,7 @@ import { Module } from "../src/models/Module";
 import { Topic } from "../src/models/Topic";
 import { Lesson } from "../src/models/Lesson";
 import { Enrollment } from "../src/models/Enrollment";
-import { signAccessToken } from "../src/utils/jwt";
+import { createSession } from "../src/services/session.service";
 import { createUser, authHeader } from "./helpers";
 
 const app = createApp();
@@ -144,8 +144,11 @@ describe("full student journey: enroll -> curriculum -> lesson -> practice -> qu
       .set(authHeader(token));
     expect(wrongSubmit.status).toBe(200);
     expect(wrongSubmit.body.data.score).toBe(0);
-    expect(wrongSubmit.body.data.results[0].correct).toBe(false);
-    expect(wrongSubmit.body.data.results[0].explanation).toBe("Basic arithmetic.");
+    // A failed attempt must not reveal the answer key, or the retake is a guaranteed pass.
+    expect(wrongSubmit.body.data.passed).toBe(false);
+    expect(wrongSubmit.body.data.results).toEqual([]);
+    expect(wrongSubmit.body.data.reviewAvailable).toBe(false);
+    expect(JSON.stringify(wrongSubmit.body)).not.toContain("correctIndex");
 
     // Quiz: correct answer -> 100%, best score updates, attempts accumulate (never trusting
     // a client-sent score — the server recomputes from the DB's answer key every time).
@@ -161,6 +164,9 @@ describe("full student journey: enroll -> curriculum -> lesson -> practice -> qu
     expect(correctSubmit.body.data.score).toBe(100);
     expect(correctSubmit.body.data.bestScore).toBe(100);
     expect(correctSubmit.body.data.passed).toBe(true);
+    // Once passed, the full review (answer key + explanations) is shown.
+    expect(correctSubmit.body.data.reviewAvailable).toBe(true);
+    expect(correctSubmit.body.data.results[0].explanation).toBe("Basic arithmetic.");
     // Lesson had no coding question, so passing the quiz (its last required stage) auto-completes it.
     expect(correctSubmit.body.data.lessonCompleted).toBe(true);
 
@@ -193,7 +199,7 @@ describe("full student journey: enroll -> curriculum -> lesson -> practice -> qu
     // "Continue learning" survives a simulated logout/login: re-fetching /enrollments/me
     // with a freshly issued token (as a new login would produce) still reports the same
     // last-visited lesson and the updated progress — nothing was cached to the old session.
-    const freshToken = signAccessToken({ sub: student._id.toString(), role: "STUDENT", status: "ACTIVE" });
+    const { accessToken: freshToken } = await createSession(student);
     const dashboardAfterRelogin = await request(app)
       .get("/api/v1/enrollments/me")
       .set(authHeader(freshToken));

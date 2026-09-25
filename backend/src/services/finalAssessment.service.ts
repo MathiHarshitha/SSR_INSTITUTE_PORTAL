@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError";
 import { assertCourseContentAccess, assertStudentEnrolledInCourse } from "../utils/batchAccess";
 import { loadCourseProgressTree } from "../utils/lessonAccess";
 import { Role } from "../constants/enums";
+import { recordAudit } from "./auditLog.service";
 import {
   CreateFinalAssessmentInput,
   UpdateFinalAssessmentInput,
@@ -23,6 +24,13 @@ export async function upsertFinalAssessment(
     { $set: { ...input, course: courseId }, $setOnInsert: { createdBy: requester.id } },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
+  await recordAudit({
+    userId: requester.id,
+    action: "FINAL_ASSESSMENT_SAVED",
+    entity: "FinalAssessment",
+    entityId: assessment._id,
+    metadata: { course: courseId, passingScore: assessment.passingScore, published: assessment.published },
+  });
   return assessment;
 }
 
@@ -37,6 +45,13 @@ export async function updateFinalAssessment(
 
   Object.assign(assessment, input);
   await assessment.save();
+  await recordAudit({
+    userId: requester.id,
+    action: "FINAL_ASSESSMENT_UPDATED",
+    entity: "FinalAssessment",
+    entityId: assessment._id,
+    metadata: { course: courseId, passingScore: assessment.passingScore, published: assessment.published },
+  });
   return assessment;
 }
 
@@ -144,6 +159,9 @@ export async function answerFinalAssessmentQuestion(
   if (attempt.currentIndex >= assessment.questions.length) {
     throw ApiError.badRequest("All questions have already been answered — submit the assessment");
   }
+  if (selectedIndex >= assessment.questions[attempt.currentIndex].options.length) {
+    throw ApiError.badRequest("Selected option does not exist");
+  }
 
   attempt.answers[attempt.currentIndex] = selectedIndex;
   attempt.currentIndex += 1;
@@ -183,5 +201,6 @@ export async function submitFinalAssessment(studentId: string, courseId: string)
   attempt.submittedAt = new Date();
   await attempt.save();
 
-  return { score, passed, results };
+  // Same rule as lesson quizzes: no answer key on a failed attempt, or the retake is trivial.
+  return { score, passed, results: passed ? results : [], reviewAvailable: passed };
 }

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { searchText } from "./common";
 
 const OBJECT_ID = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id");
 const PAYMENT_METHODS = ["CASH", "CARD", "UPI", "BANK_TRANSFER", "OTHER"] as const;
@@ -21,7 +22,7 @@ export const updateDiscountSchema = z.object({
 export const listPaymentsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  search: z.string().trim().optional(),
+  search: searchText.optional(),
   batch: OBJECT_ID.optional(),
   paymentMethod: z.enum(PAYMENT_METHODS).optional(),
   sortBy: z.enum(["createdAt", "paymentDate", "amount"]).default("paymentDate"),
@@ -31,7 +32,7 @@ export const listPaymentsQuerySchema = z.object({
 export const listFeeStatusQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
-  search: z.string().trim().optional(),
+  search: searchText.optional(),
   batch: OBJECT_ID.optional(),
   status: z.enum(PAYMENT_STATUSES).optional(),
 });

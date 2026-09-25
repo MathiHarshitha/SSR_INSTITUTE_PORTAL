@@ -12,6 +12,7 @@ import {
   updateJobStatusSchema,
 } from "../validators/job.validator";
 import { z } from "zod";
+import { httpUrl } from "../validators/common";
 
 const router = Router();
 
@@ -29,7 +30,7 @@ router.post(
 router.post(
   "/:id/apply",
   authorize("STUDENT"),
-  validateBody(z.object({ resumeUrl: z.string().trim().url().optional() })),
+  validateBody(z.object({ resumeUrl: httpUrl().optional() })),
   jobController.applyToJob
 );
 
