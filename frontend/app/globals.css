@@ -277,6 +277,27 @@
     @apply font-sans;
     background-color: var(--background);
   }
+  /* Brand-colored scrollbars across the whole LMS (thumb = --secondary teal) */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--secondary) 70%, transparent) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklch, var(--secondary) 70%, transparent);
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--secondary);
+  }
   body {
     @apply text-foreground;
     position: relative;

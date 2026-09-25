@@ -20,6 +20,7 @@ import {
   Search,
   Sun,
   Video,
+  Wallet,
   XCircle,
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -71,6 +72,9 @@ const NOTIFICATION_ICON: Record<NotificationType, { icon: typeof Bell; chip: str
   CERTIFICATE_ISSUED: { icon: Award, chip: "bg-secondary/10 text-secondary" },
   APPLICATION_STATUS_CHANGED: { icon: Briefcase, chip: "bg-secondary/10 text-secondary" },
   ANNOUNCEMENT: { icon: Megaphone, chip: "bg-secondary/10 text-secondary" },
+  PAYMENT_SUBMITTED: { icon: Wallet, chip: "bg-secondary/10 text-secondary" },
+  PAYMENT_APPROVED: { icon: Wallet, chip: "bg-status-good/10 text-status-good" },
+  PAYMENT_REJECTED: { icon: Wallet, chip: "bg-destructive/10 text-destructive" },
 };
 
 function NotificationRow({

@@ -6,7 +6,10 @@ export type NotificationType =
   | "INTERVIEW_SCHEDULED"
   | "CERTIFICATE_ISSUED"
   | "APPLICATION_STATUS_CHANGED"
-  | "ANNOUNCEMENT";
+  | "ANNOUNCEMENT"
+  | "PAYMENT_SUBMITTED"
+  | "PAYMENT_APPROVED"
+  | "PAYMENT_REJECTED";
 
 export interface AppNotification {
   _id: string;

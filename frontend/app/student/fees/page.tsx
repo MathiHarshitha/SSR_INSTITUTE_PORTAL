@@ -1,28 +1,60 @@
 "use client";
 
-import { Wallet, CheckCircle2, Clock3, TrendingUp, HeadphonesIcon, Info, Download } from "lucide-react";
+import { useState } from "react";
+import {
+  Wallet,
+  CheckCircle2,
+  Clock3,
+  TrendingUp,
+  HeadphonesIcon,
+  Info,
+  QrCode,
+  Hourglass,
+  AlertCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "cn";
-import { useMyFeeStatus, useMyPayments } from "@/hooks/useFees";
-import { FeeStatus } from "@/types/fee";
+import { useMyFeeStatus, useMyPaymentRequests, useMyPayments } from "@/hooks/useFees";
+import { MyFeeStatusRow } from "@/types/fee";
 import { StatCard } from "@/components/shared/stat-card";
 import { PageHeader } from "@/components/shared/page-header";
+import { PaymentStatusBadge } from "@/components/shared/payment-status-badge";
+import { PayFeeDialog } from "@/components/student/pay-fee-dialog";
+import { ReceiptDownloadButton } from "@/components/shared/receipt-download-button";
 
-function statusBadgeClassName(status: FeeStatus): string {
-  switch (status) {
-    case "PAID":
-      return "bg-status-good/10 text-status-good";
-    case "PARTIALLY_PAID":
-      return "bg-status-serious/15 text-status-serious";
-    case "PENDING":
-      return "bg-status-critical/10 text-status-critical";
+/** What to show in place of Pay Now — driven entirely by backend-computed status. */
+function FeeAction({ row, onPay }: { row: MyFeeStatusRow; onPay: () => void }) {
+  if (row.paymentStatus === "PAID") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-status-good">
+        <CheckCircle2 className="h-4 w-4" />
+        PAID
+      </span>
+    );
   }
+  if (row.paymentStatus === "PAYMENT_UNDER_REVIEW") {
+    return (
+      <Button size="sm" variant="outline" disabled className="text-secondary">
+        <Hourglass />
+        Payment Under Review
+      </Button>
+    );
+  }
+  if (!row.canPay) return null;
+  return (
+    <Button size="sm" onClick={onPay}>
+      <QrCode />
+      {row.paymentStatus === "REJECTED" ? "Pay Again" : "Pay Now"}
+    </Button>
+  );
 }
 
 export default function StudentFeesPage() {
-  const { data: statusRows, isLoading: isLoadingStatus } = useMyFeeStatus();
+  const { data: statusRows, isLoading: isLoadingStatus, isError: isStatusError } = useMyFeeStatus();
   const { data: payments, isLoading: isLoadingPayments } = useMyPayments();
+  const { data: paymentRequests, isLoading: isLoadingRequests } = useMyPaymentRequests();
+  const [payingEnrollmentId, setPayingEnrollmentId] = useState<string | null>(null);
 
   const rows = statusRows ?? [];
   const totalPaid = rows.reduce((s, r) => s + r.amountPaid, 0);
@@ -30,6 +62,8 @@ export default function StudentFeesPage() {
   const totalFee = rows.reduce((s, r) => s + r.finalFee, 0);
   const overallPct = totalFee ? Math.round((totalPaid / totalFee) * 100) : 0;
   const pendingCount = rows.filter((r) => r.status !== "PAID").length;
+  // Look the row up from fresh server data each render, so the modal never works off stale figures.
+  const payingRow = rows.find((r) => r.enrollmentId === payingEnrollmentId && r.canPay) ?? null;
 
   return (
     <div className="space-y-5">
@@ -63,8 +97,14 @@ export default function StudentFeesPage() {
             <p className="mb-3 text-sm font-semibold text-foreground">Course Fee Overview</p>
             {isLoadingStatus ? (
               <Skeleton className="h-32 w-full rounded-2xl" />
+            ) : isStatusError ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Couldn&apos;t load your fee details. Please check your connection and refresh.
+              </p>
             ) : rows.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">No fee record found.</p>
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                You aren&apos;t enrolled in any course yet.
+              </p>
             ) : (
               <div className="space-y-3">
                 {rows.map((row) => {
@@ -76,9 +116,7 @@ export default function StudentFeesPage() {
                           <p className="text-sm font-semibold text-foreground">{row.course.name}</p>
                           <p className="text-xs text-muted-foreground">{row.batch.name}</p>
                         </div>
-                        <span className={cn("rounded-full px-2.5 py-1 text-[11px] font-semibold", statusBadgeClassName(row.status))}>
-                          {row.status.replace("_", " ")}
-                        </span>
+                        <PaymentStatusBadge status={row.paymentStatus} />
                       </div>
                       <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                         <span>Total Fee: ₹{row.finalFee.toLocaleString("en-IN")}</span>
@@ -94,6 +132,25 @@ export default function StudentFeesPage() {
                           <p className="text-xs font-bold text-accent">₹{row.amountDue.toLocaleString("en-IN")}</p>
                           <p className="text-[10px] text-muted-foreground">Remaining</p>
                         </div>
+                      </div>
+                      {row.paymentStatus === "REJECTED" && row.lastRejection && (
+                        <div className="mt-3 flex items-start gap-2 rounded-xl bg-destructive/5 px-3 py-2 text-xs text-destructive">
+                          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                          <span>
+                            Your last payment could not be verified. Reason: {row.lastRejection.reason}. Please
+                            submit a valid payment screenshot again.
+                          </span>
+                        </div>
+                      )}
+                      {row.paymentStatus === "PAYMENT_UNDER_REVIEW" && row.pendingRequest && (
+                        <p className="mt-3 text-xs text-muted-foreground">
+                          ₹{row.pendingRequest.amount.toLocaleString("en-IN")} submitted on{" "}
+                          {new Date(row.pendingRequest.submittedAt).toLocaleDateString()} — waiting for Admin
+                          verification.
+                        </p>
+                      )}
+                      <div className="mt-3 flex justify-end">
+                        <FeeAction row={row} onPay={() => setPayingEnrollmentId(row.enrollmentId)} />
                       </div>
                     </div>
                   );
@@ -131,10 +188,53 @@ export default function StudentFeesPage() {
                         <td className="py-2 font-medium text-foreground">₹{p.amount.toLocaleString("en-IN")}</td>
                         <td className="py-2 text-muted-foreground">{p.paymentMethod.replace("_", " ")}</td>
                         <td className="py-2">
-                          <span className="inline-flex items-center gap-1 font-mono text-muted-foreground">
-                            <Download className="h-3 w-3" />
-                            {p.receiptNumber}
-                          </span>
+                          <ReceiptDownloadButton payment={p} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div className="clay p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-semibold text-foreground">Payment Submissions</p>
+              {paymentRequests && paymentRequests.length > 0 && (
+                <span className="text-xs text-muted-foreground">{paymentRequests.length} submitted</span>
+              )}
+            </div>
+            {isLoadingRequests ? (
+              <Skeleton className="h-24 w-full" />
+            ) : !paymentRequests || paymentRequests.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                No payment screenshots submitted yet.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-border text-muted-foreground">
+                      <th className="py-2 font-medium">Submitted</th>
+                      <th className="py-2 font-medium">Course</th>
+                      <th className="py-2 font-medium">Amount</th>
+                      <th className="py-2 font-medium">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paymentRequests.map((r) => (
+                      <tr key={r._id} className="border-b border-border align-top last:border-0">
+                        <td className="py-2 text-muted-foreground">{new Date(r.submittedAt).toLocaleDateString()}</td>
+                        <td className="py-2 text-foreground">{r.courseName}</td>
+                        <td className="py-2 font-medium text-foreground">
+                          ₹{(r.approvedAmount ?? r.amount).toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-2">
+                          <PaymentStatusBadge status={r.status} variant="request" />
+                          {r.status === "REJECTED" && r.rejectionReason && (
+                            <p className="mt-1 max-w-56 text-[11px] text-muted-foreground">{r.rejectionReason}</p>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -169,6 +269,8 @@ export default function StudentFeesPage() {
           </div>
         </div>
       </div>
+
+      <PayFeeDialog row={payingRow} onOpenChange={(open) => !open && setPayingEnrollmentId(null)} />
     </div>
   );
 }

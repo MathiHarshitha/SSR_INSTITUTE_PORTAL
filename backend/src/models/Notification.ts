@@ -8,7 +8,10 @@ export type NotificationType =
   | "INTERVIEW_SCHEDULED"
   | "CERTIFICATE_ISSUED"
   | "APPLICATION_STATUS_CHANGED"
-  | "ANNOUNCEMENT";
+  | "ANNOUNCEMENT"
+  | "PAYMENT_SUBMITTED"
+  | "PAYMENT_APPROVED"
+  | "PAYMENT_REJECTED";
 
 export interface INotification extends Document {
   _id: Types.ObjectId;
@@ -37,6 +40,9 @@ const notificationSchema = new Schema<INotification>(
         "CERTIFICATE_ISSUED",
         "APPLICATION_STATUS_CHANGED",
         "ANNOUNCEMENT",
+        "PAYMENT_SUBMITTED",
+        "PAYMENT_APPROVED",
+        "PAYMENT_REJECTED",
       ],
       required: true,
     },
