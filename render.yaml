@@ -11,6 +11,8 @@ services:
         value: production
       - key: NPM_CONFIG_PRODUCTION
         value: "false"
+      - key: COOKIE_SAMESITE
+        value: none
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
