@@ -6,6 +6,7 @@ import { Enrollment } from "../src/models/Enrollment";
 import { Payment } from "../src/models/Payment";
 import { PaymentRequest } from "../src/models/PaymentRequest";
 import { Notification } from "../src/models/Notification";
+import { emailService } from "../src/services/email.service";
 import { createUser, authHeader } from "./helpers";
 
 // Private storage is swapped for an in-memory map so tests don't touch disk/Cloudinary; the
@@ -296,6 +297,57 @@ describe("Fee payment verification workflow", () => {
 
     const note = await Notification.findOne({ user: student.user._id, title: "Course Fee Fully Paid" });
     expect(note).not.toBeNull();
+  });
+
+  it("approval automatically emails the student's registered address; rejection doesn't; a mail failure never blocks approval", async () => {
+    const { student, admin, enrollment, batch } = await setup();
+    const eid = enrollment._id.toString();
+    const spy = jest.spyOn(emailService, "sendPaymentApproved").mockResolvedValue(true);
+    try {
+      const first = await submit(student.token, { enrollmentId: eid, amount: 4000 });
+      const approved = await request(app)
+        .patch(`/api/v1/fees/payment-requests/${first.body.data._id}/approve`)
+        .set(authHeader(admin.token))
+        .send({ amount: 3500 });
+      expect(approved.status).toBe(200);
+      expect(approved.body.data.studentEmailSent).toBe(true);
+
+      const receipt = await Payment.findOne({ paymentRequest: first.body.data._id });
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledWith(
+        student.user.email,
+        expect.objectContaining({
+          name: "Asha Student",
+          courseName: "MERN Full Stack",
+          batchName: batch.name,
+          amount: 3500,
+          paidAfterApproval: 3500,
+          remainingAfterApproval: 6500,
+          receiptNumber: receipt?.receiptNumber,
+        })
+      );
+
+      // Rejections never send the approval email.
+      const second = await submit(student.token, { enrollmentId: eid, amount: 1000 });
+      await request(app)
+        .patch(`/api/v1/fees/payment-requests/${second.body.data._id}/reject`)
+        .set(authHeader(admin.token))
+        .send({ reason: "Screenshot is unreadable." });
+      expect(spy).toHaveBeenCalledTimes(1);
+
+      // SMTP down / not configured: still approved, admin is told the email didn't go out.
+      spy.mockRejectedValueOnce(new Error("SMTP unreachable"));
+      const third = await submit(student.token, { enrollmentId: eid, amount: 1000 });
+      const res = await request(app)
+        .patch(`/api/v1/fees/payment-requests/${third.body.data._id}/approve`)
+        .set(authHeader(admin.token))
+        .send({});
+      expect(res.status).toBe(200);
+      expect(res.body.data).toMatchObject({ status: "APPROVED", studentEmailSent: false });
+      expect(await Payment.countDocuments({ paymentRequest: third.body.data._id })).toBe(1);
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it("rejection requires a reason, notifies the student, and allows resubmission", async () => {

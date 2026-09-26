@@ -92,6 +92,8 @@ export interface PaymentRequestRecord {
   remainingAfterApproval?: number;
   rejectionReason?: string;
   hasScreenshot: boolean;
+  /** Only on the approve response: whether the confirmation email reached the SMTP server. */
+  studentEmailSent?: boolean;
   createdAt: string;
   updatedAt: string;
 }

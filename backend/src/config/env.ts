@@ -45,7 +45,7 @@ export const env = {
 
   clientUrl: process.env.CLIENT_URL ?? "http://localhost:3000",
 
-  emailFrom: process.env.EMAIL_FROM ?? "no-reply@ssrinstitute.in",
+  emailFrom: process.env.EMAIL_FROM || "SSR Institute <smartskillsrecruitment@gmail.com>",
   smtp: {
     host: process.env.SMTP_HOST ?? "",
     port: Number(process.env.SMTP_PORT ?? 587),

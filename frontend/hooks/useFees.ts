@@ -163,7 +163,16 @@ export function useApprovePaymentRequest() {
   return useMutation({
     mutationFn: ({ id, amount }: { id: string; amount?: number }) =>
       feeService.approvePaymentRequest(id, amount),
-    onSuccess: () => toast.success("Payment approved"),
+    onSuccess: (request) => {
+      if (request.studentEmailSent) {
+        toast.success("Payment approved", { description: "A confirmation email was sent to the student." });
+      } else {
+        toast.success("Payment approved");
+        toast.warning("The confirmation email could not be sent.", {
+          description: "The payment is still approved. Check the server's SMTP settings, or notify the student by WhatsApp.",
+        });
+      }
+    },
     onError: (error) => toast.error(extractErrorMessage(error)),
     onSettled: () => queryClient.invalidateQueries({ queryKey: [FEES_KEY] }),
   });

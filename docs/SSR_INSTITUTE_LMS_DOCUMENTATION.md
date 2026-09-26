@@ -21,7 +21,7 @@
 
 | Check | Result | How it was established |
 |---|---|---|
-| Backend tests | **83 / 83 passing** (13 suites) | Re-run for this document on Node v20.20.2 (`npx jest`, ≈ 7 min with in-memory MongoDB) |
+| Backend tests | **88 tests, all passing** (14 suites) | 88 tests in 14 suites after the payment-approved email change (83 from the security audit + 5 email tests). Every test passed; in the last two full runs on a heavily loaded machine, one suite (a different one each time) timed out starting the in-memory MongoDB and passed when re-run on its own. Node v20.20.2. The original 83 passed 83/83 in a clean full run. |
 | Security tests (`securityRegression` 21 + `codingJudge` 6) | **27 / 27 passing** | Same run. These are the two security-specific suites. |
 | Backend TypeScript (`tsc --noEmit`) | **Passing** (exit 0) | Re-run for this document |
 | Backend lint (`npm run lint`) | **0 errors, 0 warnings** | Re-run for this document |
@@ -150,7 +150,7 @@ flowchart TD
     SVC --> DB[("MongoDB Atlas<br/>replica set")]
     SVC --> CLD[("Cloudinary<br/>public uploads + authenticated private images")]
     SVC --> JUDGE["Coding judge<br/>isolated child Node process per submission"]
-    SVC -. "stub — logs only, nothing sent" .-> MAIL["email.service"]
+    SVC -. "SMTP via nodemailer (best-effort)" .-> MAIL["email.service → SMTP server"]
 ```
 
 ### 2.2 Responsibilities per layer
@@ -285,7 +285,7 @@ flowchart TD
 | Step | What actually happens (backend) |
 |---|---|
 | **Registration** | Creates `User` (`STUDENT`, `PENDING`, unverified) and `StudentProfile` in **one transaction**. The chosen course must be `PUBLISHED`. It is stored as `StudentProfile.interestedCourse`. **Registration does not enroll the student.** A 6-digit OTP is generated and handed to the email service. |
-| **Email verification** | Newest OTP only, 10-minute expiry, 5 wrong attempts max. Responses don't reveal whether an email exists. **See the email limitation in §27: the email service is a stub, so OTPs are not actually delivered.** |
+| **Email verification** | Newest OTP only, 10-minute expiry, 5 wrong attempts max. Responses don't reveal whether an email exists. OTPs are emailed through SMTP, so `SMTP_*` must be configured (§22). Without `SMTP_HOST` emails are only logged, and the OTP value itself is never logged. |
 | **Approval** | Admin approves a `PENDING` user → `ACTIVE`, plus an in-app `ACCOUNT_APPROVED` notification. |
 | **Login** | Requires correct password, verified email and `ACTIVE` status. |
 | **Enrollment** | Admin-only. Student must be `ACTIVE`, not already in the batch, and the batch must be under capacity. Enrollment copies the batch's course. |
@@ -653,7 +653,7 @@ NODE_ENV=production
 | `tests/securityRegression.test.ts` | 21 | 21 passed |
 | `tests/codingJudge.test.ts` | 6 | 6 passed |
 | **Security total** | **27** | **27 passed** |
-| **All backend suites (13 files)** | **83** | **83 passed** |
+| **All backend suites (14 files)** | **88** | **88 passed** (see verification note) |
 
 ### 9.3 Remaining recommendations (not implemented)
 
@@ -664,7 +664,7 @@ These are **infrastructure or hardening recommendations**, not existing controls
 | R1 | **Block outbound network access for the coding grader** (dedicated judge container, `--network none` or egress firewall). | Node's permission model doesn't restrict network access (§7.5). |
 | R2 | Move rate-limit and grader-queue state to a shared store (e.g. Redis) if more than one API instance runs. | Current counters are in-memory per process and reset on restart. |
 | R3 | Add a full Content-Security-Policy (`script-src` with nonces) to the frontend. | Only `frame-ancestors`/`base-uri`/`object-src` are set today. The code comment defers script CSP. |
-| R4 | Wire a real email transport. | OTP, reset, approval and other emails are not delivered (§27). |
+| R4 | Configure SMTP in production and monitor send failures. | Email is best-effort with no retry queue: failures are logged and never fail the request (§13.5). |
 | R5 | Consider making all write schemas `.strict()`. | Only payment schemas reject unknown fields. Others strip them silently. |
 | R6 | Populate `AuditLog.ipAddress`. | The field exists but no caller passes it. |
 | R7 | Remove the `express.static("/uploads")` mount if unused. | No current code writes there. Anything placed in `backend/uploads/` would be publicly served. |
@@ -675,7 +675,7 @@ These are **infrastructure or hardening recommendations**, not existing controls
 
 ## 10. Payment and fees system
 
-Source: `services/fee.service.ts`, `services/paymentRequest.service.ts`, `services/paymentSettings.service.ts`, `routes/fee.routes.ts`, `validators/fee.validator.ts`, frontend `app/student/fees`, `app/admin/fees`, `components/student/pay-fee-dialog.tsx`, `components/admin/payment-request-dialog.tsx`, test `tests/feePaymentVerification.test.ts` (12 tests).
+Source: `services/fee.service.ts`, `services/paymentRequest.service.ts`, `services/paymentSettings.service.ts`, `routes/fee.routes.ts`, `validators/fee.validator.ts`, frontend `app/student/fees`, `app/admin/fees`, `components/student/pay-fee-dialog.tsx`, `components/admin/payment-request-dialog.tsx`, tests `tests/feePaymentVerification.test.ts` (13 tests) and `tests/emailService.test.ts` (4 tests).
 
 ### 10.1 Fee model — how a balance is calculated
 
@@ -724,6 +724,7 @@ sequenceDiagram
         FE->>API: PATCH /fees/payment-requests/:id/approve {amount?}
         API->>DB: transaction: re-check PENDING + current balance → status APPROVED + Payment ledger row
         API->>DB: Notification PAYMENT_APPROVED → student
+        API-->>S: Automatic payment-approved email to the registered address (§13.5)
         A->>A: Optional: "Send WhatsApp" (wa.me link, §12)
         S->>FE: Payment History → download PDF receipt (§11)
     else Reject (reason 5–500 chars)
@@ -863,7 +864,7 @@ URL: `https://wa.me/<number>?text=<URL-encoded message>`, opened with `window.op
 
 ### 12.5 After payment approval
 
-1. Backend: request → `APPROVED`, `Payment` row created, in-app `PAYMENT_APPROVED` notification to the student.
+1. Backend: request → `APPROVED`, `Payment` row created, in-app `PAYMENT_APPROVED` notification to the student, and an **automatic payment-approved email** to the student's registered address (§13.5). Unlike WhatsApp, the email needs no admin action.
 2. Admin (optional, manual): clicks **Send WhatsApp** → WhatsApp opens → admin presses Send.
 3. Student: logs in and downloads the receipt from Payment History.
 
@@ -886,7 +887,7 @@ Source: `services/notification.service.ts`, model `Notification`, `routes/notifi
 
 - Notifications are **in-app records** in the `Notification` collection, created server-side by services at the moment of the triggering event (`notifyUser` / `notifyUsers`).
 - **Delivery is by polling:** the frontend fetches the list and polls `GET /notifications/unread-count` **every 30 seconds**. There are no WebSockets, push notifications or SMS.
-- Some events also call the email service. That service is currently a **stub** and doesn't send anything (§27).
+- Some events also send an **email** through SMTP (§13.5). Emails are best-effort and are only logged when SMTP isn't configured.
 
 ### 13.2 Notification catalogue
 
@@ -921,6 +922,30 @@ There is no delete endpoint and no expiry. Notifications accumulate.
 
 Any authenticated role can use the notification endpoints, always scoped to `req.user.id`. Notifications can only be created by backend services. There is no API to create one directly.
 
+### 13.5 Email
+
+Source: `backend/src/services/email.service.ts` (nodemailer over SMTP), test `tests/emailService.test.ts`.
+
+| Email | Trigger | Recipient |
+|---|---|---|
+| Verification OTP | Registration, `POST /auth/resend-otp` | The registering user |
+| Password reset link | `POST /auth/forgot-password` | Account owner |
+| Account approved / rejected | Admin approves or rejects a pending user | That user |
+| Submission evaluated | Trainer/admin evaluates a submission | The student |
+| Mock interview scheduled | Interview scheduled | The student |
+| Certificate issued | Admin issues a certificate | The student |
+| Application status changed | Admin changes a job application's status | The student |
+| **Payment approved** | **Admin clicks Approve on a payment request — sent automatically** | **The student's registered email (`User.email`)** |
+
+**Payment-approved email.** The email is sent after the approval transaction has committed. Subject: `Payment approved — ₹{amount} for {course}`, or `Course fee fully paid — {course}` when nothing remains. It lists the course, batch, amount approved, total paid, remaining fee, payment date and receipt number, and links to `CLIENT_URL/student/fees` to download the receipt. All values come from the committed approval and ledger row. User-supplied text (names) is HTML-escaped. The approve response includes `studentEmailSent: true | false`. The admin sees "A confirmation email was sent to the student", or a warning that it couldn't be sent (the payment stays approved). Rejections do not send this email.
+
+**Delivery rules**
+
+- Transport: SMTP via nodemailer, configured by `SMTP_HOST`, `SMTP_PORT` (465 = implicit TLS, otherwise STARTTLS), `SMTP_USER`, `SMTP_PASSWORD` and `EMAIL_FROM`. The connection is created on first use.
+- Without `SMTP_HOST` emails are only logged (recipient and subject, never the body or OTP).
+- **Best-effort:** `send()` never throws. An SMTP failure is logged and returns `false`, so it can't turn a committed action into an error. There is **no queue or retry**, so a failed email is not re-sent.
+- The test suite forces `SMTP_HOST=""` (`tests/setupEnv.ts`), so tests never send real email even if a developer's `.env` configures SMTP.
+
 ---
 
 ## 14. Certificates
@@ -944,7 +969,7 @@ Source: `services/certificate.service.ts`, model `Certificate`, `routes/certific
 
 - **Issued manually by an admin** (`POST /certificates` `{ student, batch }`). There is **no automatic issuance** on course completion, even though the model comment mentions it (`issuedBy` is optional for that reason).
 - "Generation" means creating the **certificate record**. There is **no PDF or image certificate rendering** in the codebase. Students see certificate cards with a verification link and a LinkedIn share link.
-- On issue: an in-app `CERTIFICATE_ISSUED` notification and a certificate email (stub) are sent, and a `CERTIFICATE_ISSUED` audit log is written.
+- On issue: an in-app `CERTIFICATE_ISSUED` notification and a certificate email are sent, and a `CERTIFICATE_ISSUED` audit log is written.
 
 ### 14.3 Certificate number
 
@@ -981,7 +1006,7 @@ Source: `services/job.service.ts`, `services/careerResources.service.ts`, models
 
 | Aspect | Behaviour |
 |---|---|
-| **Admin management** | Create, edit, set status (`DRAFT`/`PUBLISHED`/`CLOSED`), list with application counts, view applications, change application status (`APPLIED` → `UNDER_REVIEW` → `SHORTLISTED` → `INTERVIEW_SCHEDULED` → `SELECTED`/`REJECTED`). Status changes notify the student (in-app + email stub). Jobs are never deleted. |
+| **Admin management** | Create, edit, set status (`DRAFT`/`PUBLISHED`/`CLOSED`), list with application counts, view applications, change application status (`APPLIED` → `UNDER_REVIEW` → `SHORTLISTED` → `INTERVIEW_SCHEDULED` → `SELECTED`/`REJECTED`). Status changes notify the student (in-app + email). Jobs are never deleted. |
 | **Trainer access** | **None.** All job routes are `ADMIN` or `STUDENT`. |
 | **Course-completion requirement** | `GET /jobs/public` returns an **empty list** unless the student has completed at least one course (tested M11). |
 | **Listing** | `PUBLISHED` jobs with a deadline not yet passed, each with `isEligible` and the student's `applicationStatus`. |
@@ -1011,7 +1036,7 @@ Source: `services/mockInterview.service.ts`, model `MockInterview`.
 | Trainer | Schedule only for students in their own batches (and, if a batch is given, it must be theirs and the student enrolled; tested M8). Sees, updates, records feedback on and deletes only interviews where they are the interviewer. |
 | Student | Lists **own** interviews only. Cannot modify. |
 
-Feedback fields: `rating` (1–5), `strengths`, `weaknesses`, `feedback`, `recommendation`, `result` (`PENDING`/`RECOMMENDED`/`NOT_RECOMMENDED`). Scheduling notifies the student (in-app + email stub).
+Feedback fields: `rating` (1–5), `strengths`, `weaknesses`, `feedback`, `recommendation`, `result` (`PENDING`/`RECOMMENDED`/`NOT_RECOMMENDED`). Scheduling notifies the student (in-app + email).
 
 > **Mock interviews are not gated by course completion** in the backend. A student can see their scheduled interviews at any time. Only jobs and interview resources are completion-gated.
 
@@ -1677,11 +1702,11 @@ flowchart TD
 | `CLIENT_URL` | Allowed CORS origin **and** base URL for password-reset links. No trailing slash. | **Required outside dev** | `http://localhost:3000` | `https://YOUR_FRONTEND_DOMAIN_HERE` |
 | `RESET_TOKEN_EXPIRES_MINUTES` | Password-reset link lifetime | Optional | `30` | `30` |
 | `OTP_EXPIRES_MINUTES` | Email OTP lifetime | Optional | `10` | `10` |
-| `EMAIL_FROM` | Sender address (for a future email transport) | Optional | `no-reply@ssrinstitute.in` | `no-reply@YOUR_DOMAIN_HERE` |
-| `SMTP_HOST` | If empty: emails are logged as "dev mode, not sent". If set: still **not sent** (transport not implemented, §27). | Optional | `""` | `smtp.YOUR_PROVIDER_HERE` |
-| `SMTP_PORT` | SMTP port (unused by current code) | Optional | `587` | `587` |
-| `SMTP_USER` | SMTP username (unused by current code) | Optional | `""` | `YOUR_SMTP_USER_HERE` |
-| `SMTP_PASSWORD` | SMTP password (unused by current code) | Optional | `""` | `YOUR_SMTP_PASSWORD_HERE` |
+| `EMAIL_FROM` | Sender address for all outgoing email | Optional | `no-reply@ssrinstitute.in` | `no-reply@YOUR_DOMAIN_HERE` |
+| `SMTP_HOST` | SMTP server. If empty, emails are only logged ("SMTP not configured, not sent"). | **Required in production** (OTP, password reset, payment-approved emails) | `""` | `smtp.YOUR_PROVIDER_HERE` |
+| `SMTP_PORT` | SMTP port. `465` = implicit TLS; anything else (e.g. `587`) = STARTTLS. | Optional | `587` | `587` |
+| `SMTP_USER` | SMTP username (authentication is skipped if empty) | Optional | `""` | `YOUR_SMTP_USER_HERE` |
+| `SMTP_PASSWORD` | SMTP password (e.g. a Gmail App Password) | Optional | `""` | `YOUR_SMTP_PASSWORD_HERE` |
 | `CLOUDINARY_CLOUD_NAME` | Cloudinary account | **Required in production** for any upload; private uploads refuse to fall back to disk in production | `""` | `YOUR_CLOUD_NAME_HERE` |
 | `CLOUDINARY_API_KEY` | Cloudinary API key | As above | `""` | `YOUR_CLOUDINARY_API_KEY_HERE` |
 | `CLOUDINARY_API_SECRET` | Cloudinary API secret | As above | `""` | `YOUR_CLOUDINARY_API_SECRET_HERE` |
@@ -1709,7 +1734,7 @@ Test-only variables (set automatically by `tests/setupEnv.ts`, not needed in `.e
 | `COOKIE_SAMESITE` | `lax` (same site: localhost:3000 ↔ localhost:5000) | `none` for `*.vercel.app` + `*.up.railway.app`; `lax` if both are subdomains of one domain (§24.4) |
 | `CLIENT_URL` | `http://localhost:3000` | `https://<frontend domain>` (exact origin, no trailing slash) |
 | Cloudinary | Optional (private images fall back to `backend/private-uploads/`; general uploads fail) | **Required** |
-| `SMTP_*` | Empty (emails logged) | Irrelevant until a transport is implemented |
+| `SMTP_*` | Empty (emails only logged) or a sandbox SMTP server | **Required** — a real SMTP provider |
 | `NEXT_PUBLIC_API_URL` | `http://localhost:5000/api/v1` | `https://<api domain>/api/v1` |
 
 **Production template (placeholders only):**
@@ -1787,7 +1812,7 @@ SEED_PASSWORD='YOUR_STRONG_SEED_PASSWORD_HERE' npm run seed            # bash / 
 # PowerShell:  $env:SEED_PASSWORD='YOUR_STRONG_SEED_PASSWORD_HERE'; npm run seed
 ```
 
-The seeded admin is `admin@ssrinstitute.in`. All seeded accounts are email-verified and use `SEED_PASSWORD`. **Because emails are not delivered (§27), seeded accounts are the practical way to log in locally.** Newly self-registered users need their `isEmailVerified` set manually in the database.
+The seeded admin is `admin@ssrinstitute.in`. All seeded accounts are email-verified and use `SEED_PASSWORD`. Without `SMTP_*` configured locally, OTP emails are only logged (never the code itself), so seeded accounts are the practical way to log in. To test real emails locally, point `SMTP_*` at a real or sandbox SMTP server.
 
 ### 5. Start the backend
 
@@ -1959,7 +1984,7 @@ The finding IDs (H = high, M = medium, L = low) are the ones referenced in `back
 | **M11** | Career resources (jobs) were reachable before course completion | Job list empty and applications refused until a course is completed | `securityRegression` M11 |
 | **L3** | `javascript:` and other non-http URLs accepted in user-supplied links (stored XSS) | `httpUrl()` validator on every URL field | `securityRegression` L3 |
 | **L1** | OTP endpoints revealed which emails have accounts | Uniform responses for unknown, verified and no-code cases | `securityRegression` L1 |
-| — (payments) | Fee payment workflow risks: tampered payloads, over-payment, duplicate submissions, double approval, IDOR on screenshots, exposed storage keys | Strict schemas, DB-derived balances, partial unique indexes, transactional conditional approval, 404 on foreign ids, private Cloudinary assets, `select:false` keys | `feePaymentVerification` (12 tests) |
+| — (payments) | Fee payment workflow risks: tampered payloads, over-payment, duplicate submissions, double approval, IDOR on screenshots, exposed storage keys | Strict schemas, DB-derived balances, partial unique indexes, transactional conditional approval, 404 on foreign ids, private Cloudinary assets, `select:false` keys | `feePaymentVerification` (13 tests) |
 | — (hardening in code) | Algorithm confusion, weak secrets, user enumeration by timing, ReDoS in search, certificate-number guessing, HTML injection in emails, verbose production errors | HS256 pinned; boot refuses weak `JWT_SECRET`/missing `CLIENT_URL`; dummy-hash compare; escaped search regex + length caps; 64-bit certificate numbers; HTML escaping; strict `NODE_ENV` handling | Code review (see §9.1) |
 
 ### 25.3 Remaining security considerations
@@ -1967,7 +1992,7 @@ The finding IDs (H = high, M = medium, L = low) are the ones referenced in `back
 | Priority | Item | Status |
 |---|---|---|
 | **High** | **Coding grader outbound network access is not blocked.** Node's permission model doesn't cover network access. | **Open — infrastructure action required** (§7.5) |
-| High | Email transport not implemented, so OTP and reset emails are not delivered | Open (functional + security-relevant: account recovery) |
+| Medium | Email is best-effort SMTP with no queue or retry. A failed send is logged (and reported to the admin for payment approvals) but not re-sent. | Configure and monitor SMTP |
 | Medium | Rate limiting and grader queue are in-memory (per instance, reset on restart) | Open if scaling horizontally |
 | Medium | Frontend has no script-level CSP (only framing/base/object directives) | Open |
 | Medium | Cross-site refresh cookie (`SameSite=None`) may be blocked by third-party-cookie policies | Deployment decision (§24.4) |
@@ -1999,11 +2024,12 @@ Jest 30 + ts-jest, Supertest against the real Express app (`createApp()`), and *
 | `searchScoping.test.ts` | 1 | API / authorization | Search limited to enrolled courses |
 | `notifications.test.ts` | 2 | API | Task-publish notifications only to the batch, mark-read ownership |
 | `certificates.test.ts` | 5 | API | Issuance refusals, issue → duplicate → revoke, unknown verify → 404, admin-only issue, `/my` ownership |
-| `feePaymentVerification.test.ts` | 12 | API / payment / security | Full payment workflow (see §10), incl. concurrency, tampering, file validation, ownership, partial/full approval, rejection + resubmission, admin race, re-validation, QR settings, admin-only phone exposure |
+| `feePaymentVerification.test.ts` | 13 | API / payment / security | Full payment workflow (see §10), incl. concurrency, tampering, file validation, ownership, partial/full approval, rejection + resubmission, admin race, re-validation, QR settings, admin-only phone exposure, automatic payment-approved email (sent on approval, not on rejection, failure never blocks approval) |
+| `emailService.test.ts` | 4 | Unit (SMTP mocked) | Logs-only without `SMTP_HOST`, payment-approved email content and escaping, TLS/port selection, fully-paid subject, SMTP failure reported as not sent |
 | `securityRegression.test.ts` | 21 | API / security | Audit findings H1/H2, H5, L1, L3, L6/M9, M1–M5, M7, M8, M10, M11 (§25.2) |
 | `codingJudge.test.ts` | 6 | Unit / security | Correct vs wrong grading, secret isolation, fs/child_process blocked after realm escape, escape fails for the right reason, infinite and microtask loops killed, forged verdicts rejected |
 | `seedCurriculum.test.ts` | 3 | Integration | Curriculum seeding wiring, lossless upsert, idempotency |
-| **Total** | **83** | | **83 passed** (13 suites) |
+| **Total** | **88** | | **88 passed** (14 suites) |
 
 ### 26.3 Coverage by concern
 
@@ -2020,8 +2046,11 @@ Jest 30 + ts-jest, Supertest against the real Express app (`createApp()`), and *
 ### 26.4 Current verified results (2026-09-26, Node v20.20.2)
 
 ```
+Original 83 tests (clean full run):
 Test Suites: 13 passed, 13 total
 Tests:       83 passed, 83 total
+
+After the email change: 88 tests, 14 suites. Every suite passes; see the verification note in the header.
 ```
 
 Backend `tsc --noEmit`: exit 0 · Backend lint: 0 problems · Frontend `tsc --noEmit`: exit 0 · Frontend lint: 0 errors, 10 warnings · `next build`: success, 43 routes.
@@ -2041,7 +2070,7 @@ Every item below is confirmed in the current source code.
 | # | Limitation | Evidence | Impact |
 |---|---|---|---|
 | 1 | **Coding grader has no network isolation** | `utils/codingJudge.ts` security comment | Submitted code can make outbound connections until egress is blocked at the infrastructure level |
-| 2 | **Email is a placeholder: nothing is ever sent.** `send()` only logs `to`/`subject`, even when `SMTP_HOST` is set (a `TODO` marks where a transport goes). The OTP value isn't logged either. | `services/email.service.ts` | Self-registration can't complete email verification and password reset links never arrive until a transport is implemented. Approval, evaluation, interview, certificate and application emails also aren't delivered (in-app notifications still work). |
+| 2 | **Email is best-effort, with no queue or retry.** Sent via nodemailer/SMTP. A failure is logged and swallowed so it never fails the triggering request. Without `SMTP_HOST`, emails are only logged. | `services/email.service.ts` | A transient SMTP outage means that email is lost (for payment approvals the admin is warned in the UI). Registration and password reset depend on SMTP being configured. |
 | 3 | **In-memory rate limiting and grader queue** | `express-rate-limit` default store, module-level counters in `codingJudge.ts` | Limits are per instance and reset on restart/redeploy |
 | 4 | **Frontend CSP is partial** (no `script-src`/`style-src`) | `frontend/next.config.ts` comment | Less defence-in-depth against XSS |
 | 5 | **Receipts are browser-generated**, unsigned, not stored, not verifiable online, use "Rs." instead of ₹, and show live names | `frontend/lib/receipt.ts` | See §11.4 |
@@ -2149,20 +2178,20 @@ Status legend: ✅ verified for this document · ⬜ must be done or confirmed b
 | 6 | [ ] MongoDB configured | ⬜ | Atlas replica set, least-privilege user, network access, backups |
 | 7 | [ ] Cloudinary configured | ⬜ | Required in production; test a private screenshot round-trip |
 | 8 | [ ] Authentication tested | ✅ automated / ⬜ live | Test login, refresh on reload, logout, reset on real domains |
-| 9 | [ ] Authorization tested | ✅ automated | 13 suites incl. trainer matrix |
+| 9 | [ ] Authorization tested | ✅ automated | 14 suites incl. trainer matrix |
 | 10 | [ ] Payment flow tested | ✅ automated / ⬜ live | Submit → approve/reject with real Cloudinary |
 | 11 | [ ] Receipt tested | ⬜ | Browser-generated. Check PDF in target browsers (not tested). |
 | 12 | [ ] Notifications tested | ✅ automated (partial) / ⬜ live | Unread badge polling in UI |
 | 13 | [ ] Coding grader tested | ✅ automated / ⚠️ | **Egress blocking required** (§7.5) |
 | 14 | [ ] Security tests passed | ✅ | 27 / 27 |
-| 15 | [ ] Backend tests passed | ✅ | 83 / 83 |
+| 15 | [ ] Backend tests passed | ✅ | 88 tests (see verification note) |
 | 16 | [ ] TypeScript passed | ✅ | Backend + frontend `tsc --noEmit` |
 | 17 | [ ] Lint passed | ✅ | 0 errors (frontend: 10 warnings) |
 | 18 | [ ] Production build passed | ✅ | `next build` (43 routes); backend `tsc` build config verified via `--noEmit` |
 | 19 | [ ] Browser smoke testing completed | ⬜ | **Not performed** |
 | 20 | [ ] No sensitive credentials committed | ✅ (tracked files) | Only `backend/.env.example` (placeholders) is tracked |
 | 21 | [ ] Git history checked | ✅ (partial) | No `.env` file other than `.env.example` was ever added. A full secret-scan of all file contents in history (e.g. gitleaks) was **not** performed. |
-| 22 | [ ] Email transport implemented | ⚠️ | Required for OTP verification and password reset (§27 #2) |
+| 22 | [ ] SMTP configured and a test email received | ⬜ | Required for OTP, password reset and payment-approved emails (§13.5, §22) |
 | 23 | [ ] Admin account created and seed password rotated | ⬜ | Admins exist only via `npm run seed`. Change the seeded password immediately. |
 
 ---
@@ -2187,7 +2216,7 @@ Authentication and sessions · Users and approvals · Courses, batches and enrol
 
 ### 30.5 Security summary
 
-Bearer-only short-lived JWT (15m) + server-side revocable sessions with rotating hashed refresh tokens. Live role/status check on every request. Role guards plus service-level ownership and scope checks (404 on foreign ids). Zod validation (strict on payments). NoSQL sanitization. Content-signature upload validation. Private Cloudinary assets for payment images. Answer keys and hidden tests never sent to students. Transactional, race-safe payment approval. Sandboxed coding judge. Helmet and frontend security headers. Tiered rate limiting. **27/27 security tests pass.** **Open:** grader network isolation (infrastructure), email transport, shared rate-limit store, full frontend CSP.
+Bearer-only short-lived JWT (15m) + server-side revocable sessions with rotating hashed refresh tokens. Live role/status check on every request. Role guards plus service-level ownership and scope checks (404 on foreign ids). Zod validation (strict on payments). NoSQL sanitization. Content-signature upload validation. Private Cloudinary assets for payment images. Answer keys and hidden tests never sent to students. Transactional, race-safe payment approval. Sandboxed coding judge. Helmet and frontend security headers. Tiered rate limiting. **27/27 security tests pass.** **Open:** grader network isolation (infrastructure), shared rate-limit store, full frontend CSP.
 
 ### 30.6 API summary
 
@@ -2203,12 +2232,12 @@ Backend: Railway, Nixpacks, `cd backend && npm install && npm run build` → `no
 
 ### 30.9 Testing summary
 
-13 backend suites, **83/83 passing**, including **27/27 security tests**, re-run on 2026-09-26. Backend and frontend typecheck pass. Lint has 0 errors. The Next.js production build passes. No frontend automated tests and no browser testing.
+14 backend suites, **88 tests passing**, including **27/27 security tests**, re-run on 2026-09-26. Backend and frontend typecheck pass. Lint has 0 errors. The Next.js production build passes. No frontend automated tests and no browser testing.
 
 ### 30.10 Known limitations
 
-Grader network isolation (infrastructure) · email not delivered (stub) · in-memory rate limits · partial frontend CSP · browser-generated unsigned receipts · manual wa.me WhatsApp · admin-issued, record-only certificates · fees don't gate learning · uncapped manual payments · placeholder interview resources · mock interviews not completion-gated · scheduled announcements don't notify · no frontend/browser tests. Full list in §27.
+Grader network isolation (infrastructure) · email has no retry queue · in-memory rate limits · partial frontend CSP · browser-generated unsigned receipts · manual wa.me WhatsApp · admin-issued, record-only certificates · fees don't gate learning · uncapped manual payments · placeholder interview resources · mock interviews not completion-gated · scheduled announcements don't notify · no frontend/browser tests. Full list in §27.
 
 ### 30.11 Production checklist
 
-See §29. Already verified: tests (83/83), security tests (27/27), typecheck, lint, production build, and no committed `.env` secrets. Still to do: configure and verify environment variables, secrets, `JWT_EXPIRES_IN=15m`, `COOKIE_SAMESITE`, host Node versions, Atlas, Cloudinary, live auth/payment/receipt/notification checks, browser smoke testing, **grader egress blocking**, **email transport**, a full git-history secret scan, and rotating the seeded admin password.
+See §29. Already verified: tests (88, all passing), security tests (27/27), typecheck, lint, production build, and no committed `.env` secrets. Still to do: configure and verify environment variables, secrets, `JWT_EXPIRES_IN=15m`, `COOKIE_SAMESITE`, host Node versions, Atlas, Cloudinary, live auth/payment/receipt/notification checks, browser smoke testing, **grader egress blocking**, **SMTP configuration**, a full git-history secret scan, and rotating the seeded admin password.
