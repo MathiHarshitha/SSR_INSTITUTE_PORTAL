@@ -752,7 +752,7 @@ sequenceDiagram
 | **Server-side amount validation** | At submission: `amount ≤ amountDue` computed from the DB. At approval: `approvedAmount` (admin override or the claimed amount) is re-checked against the **current** balance, because the fee, discount or other payments may have changed. Approval of a request whose enrollment was removed returns 409 ("reject instead"). Tested: "re-validates against current DB state at approval time". |
 | **Tamper resistance** | Submit, approve and reject bodies are `.strict()`: any extra field such as `status`, `amountPaid` or `studentId` → 422. Fee snapshots (`totalFee`, `previousPaidAmount`, `amountDueAtSubmission`), student and course names are taken from the DB, never from the client. |
 | **Ledger entry for approvals** | `Payment { amount: approvedAmount, paymentDate: request.submittedAt, paymentMethod: "UPI", transactionRef: "PR-<requestId>", notes: "Verified from student-submitted payment screenshot", receiptNumber, recordedBy: admin, paymentRequest }`. |
-| **Manual payments** | Admins can also record cash/card/UPI/bank-transfer/other payments directly (`POST /fees/payments`). The student must be enrolled in the batch. **This endpoint does not cap the amount at the outstanding balance** (see §27). |
+| **Cash / manual payments** | Admin → Fees → **Record payment** (`POST /fees/payments`). Method defaults to **CASH** (also card, UPI, bank transfer, other). The form shows the student's total fee, paid and remaining amounts, and has a "Fill remaining" shortcut. Rules: the student must be enrolled in the batch, the amount must be > 0 with ≤ 2 decimals, and it **cannot exceed the current remaining fee** (400; 409 if already fully paid). The check and insert run in a transaction that writes to the enrollment first, so two admins recording at once cannot overshoot the fee (one gets 409). On success the student gets an in-app `PAYMENT_RECORDED` notification ("Payment Received" or "Course Fee Fully Paid") and an automatic **payment-received email** (§13.5). The response includes `paidAfterPayment`, `remainingAfterPayment` and `studentEmailSent`, and the admin sees whether the email went out. The payment date is the day it is recorded (the form has no date field). Recorded payments cannot be edited or deleted. |
 | **Discounts** | `PATCH /fees/enrollments/:enrollmentId/discount` (admin, ≥ 0). `finalFee` is clamped at 0. |
 | **Payment history** | Student: `GET /fees/my-payments` (ledger) and `GET /fees/my-payment-requests` (all submissions with status and reason). Admin: `GET /fees/payments` (paginated ledger, search by receipt number or student name), `GET /fees/payments/:studentId/:batchId`, and per-request history inside `GET /fees/payment-requests/:id`. |
 | **Receipt generation** | For every `Payment` row, in the browser (§11). |
@@ -904,6 +904,7 @@ Source: `services/notification.service.ts`, model `Notification`, `routes/notifi
 | `PAYMENT_SUBMITTED` | Student submits a payment screenshot | **Every ACTIVE admin** | `/admin/fees?tab=verification` |
 | `PAYMENT_APPROVED` | Admin approves a payment ("Payment Approved" with paid/remaining, or "Course Fee Fully Paid") | The student | `/student/fees` |
 | `PAYMENT_REJECTED` | Admin rejects a payment (message includes the reason) | The student | `/student/fees` |
+| `PAYMENT_RECORDED` | Admin records a cash / manual payment ("Payment Received" with paid/remaining, or "Course Fee Fully Paid") | The student | `/student/fees` |
 
 Not notified: certificate **revocation**, account block/suspend, course completion, and **scheduled** announcements (an announcement with a future `publishAt` never produces a notification, because there is no scheduler; it only appears in announcement lists once live).
 
@@ -936,8 +937,11 @@ Source: `backend/src/services/email.service.ts` (nodemailer over SMTP), test `te
 | Certificate issued | Admin issues a certificate | The student |
 | Application status changed | Admin changes a job application's status | The student |
 | **Payment approved** | **Admin clicks Approve on a payment request — sent automatically** | **The student's registered email (`User.email`)** |
+| **Payment received** | **Admin records a cash / manual payment — sent automatically** | **The student's registered email** |
 
 **Payment-approved email.** The email is sent after the approval transaction has committed. Subject: `Payment approved — ₹{amount} for {course}`, or `Course fee fully paid — {course}` when nothing remains. It lists the course, batch, amount approved, total paid, remaining fee, payment date and receipt number, and links to `CLIENT_URL/student/fees` to download the receipt. All values come from the committed approval and ledger row. User-supplied text (names) is HTML-escaped. The approve response includes `studentEmailSent: true | false`. The admin sees "A confirmation email was sent to the student", or a warning that it couldn't be sent (the payment stays approved). Rejections do not send this email.
+
+**Payment-received email (cash / manual).** Same layout, sent when an admin records an offline payment. Subject: `Payment received — ₹{amount} for {course}` (or the fully-paid subject). The intro says "Your cash payment has been received and recorded by SSR Institute." (other methods are named accordingly), and the table adds the payment method. The record-payment response carries `studentEmailSent` in the same way.
 
 **Delivery rules**
 
@@ -1340,7 +1344,7 @@ All `/fees` routes require authentication. Trainers get 403 on every route.
 | GET | `/fees/my-payments` | S | — | Own ledger (no `recordedBy`, no phone) |
 | GET | `/fees/status` | A | `page, limit, search, batch, status (PAID\|PARTIALLY_PAID\|PENDING)` | All enrollments' fee rows |
 | GET | `/fees/payments` | A | `page, limit, search, batch, paymentMethod, sortBy (createdAt\|paymentDate\|amount), sortOrder` | Ledger with `student {name,email,phone}` |
-| POST | `/fees/payments` | A | `student, batch, amount (> 0), paymentMethod, paymentDate?, transactionRef?, notes?` | Manual payment (201). 400 not enrolled. |
+| POST | `/fees/payments` | A | `student, batch, amount (> 0, ≤ 2 dp, ≤ remaining fee), paymentMethod, paymentDate?, transactionRef?, notes?` | Cash / manual payment (201) → payment + `paidAfterPayment`, `remainingAfterPayment`, `studentEmailSent`. Notifies and emails the student. 400 not enrolled or amount > remaining; 409 already fully paid (or lost a concurrent race). |
 | GET | `/fees/payments/:studentId/:batchId` | A | — | Payment history for one enrollment |
 | PATCH | `/fees/enrollments/:enrollmentId/discount` | A | `discount (≥ 0)` | 404 enrollment |
 
@@ -2000,7 +2004,6 @@ The finding IDs (H = high, M = medium, L = low) are the ones referenced in `back
 | Low | Only payment schemas reject unknown fields. Others strip them. | Acceptable; stricter option available |
 | Low | `AuditLog.ipAddress` never populated | Open |
 | Low | Unused public `/uploads` static mount | Open |
-| Low | Manual admin payments are not capped at the outstanding balance | Open (§27) |
 | — | Browser/E2E security testing (headers, cookie behaviour on real domains) | **Not performed** |
 
 ---
@@ -2077,7 +2080,7 @@ Every item below is confirmed in the current source code.
 | 6 | **WhatsApp is a manual wa.me link**, not an API integration | `frontend/lib/whatsapp.ts` | No automatic or tracked messaging (§12.6) |
 | 7 | **Certificates are admin-issued records only**: no auto-issue on completion and no PDF certificate | `services/certificate.service.ts` | Admin must issue each certificate. Students share the verification link. |
 | 8 | **Fees don't gate learning or certification** | No fee checks in `lessonAccess` / `certificate.service` | Students with dues can complete courses and receive certificates |
-| 9 | **Manual payments are not capped** at the outstanding balance | `fee.service.recordPayment` | An admin typo can over-credit an enrollment (balance floors at 0) |
+| 9 | **Recorded payments can't be edited or deleted**, and manual payments have no date field in the form (recorded as today) | `fee.service.recordPayment`, `record-payment-dialog.tsx` | A wrong entry (e.g. wrong student within the remaining fee) needs a direct database correction |
 | 10 | **Receipt numbers use `Math.random`** + timestamp (unique index, no retry on collision) | `fee.service.generateReceiptNumber` | A (very unlikely) collision would fail that payment insert |
 | 11 | **Interview resources are a placeholder** (no upload flow; `COMING_SOON` items are shown to eligible students) | `models/InterviewResource.ts` | Limited functionality |
 | 12 | **Mock interviews are not completion-gated** | `mockInterview.service.listInterviews` | Differs from jobs and interview resources |
@@ -2130,7 +2133,7 @@ Every item below is confirmed in the current source code.
 - Keep payment write schemas `.strict()`.
 - Keep screenshots private: never return `screenshot.key` or signed URLs, and keep `select: false`.
 - If fee gating is desired, add it to `lessonAccess` / `certificate.service` on the server (not only in the UI) and add tests.
-- Consider adding a balance cap to `recordPayment` (§27 #9).
+- Keep the balance cap and the enrollment-write transaction in `recordPayment` (they prevent over-crediting, including by concurrent admins).
 
 ### 28.5 Coding grader
 
@@ -2236,7 +2239,7 @@ Backend: Railway, Nixpacks, `cd backend && npm install && npm run build` → `no
 
 ### 30.10 Known limitations
 
-Grader network isolation (infrastructure) · email has no retry queue · in-memory rate limits · partial frontend CSP · browser-generated unsigned receipts · manual wa.me WhatsApp · admin-issued, record-only certificates · fees don't gate learning · uncapped manual payments · placeholder interview resources · mock interviews not completion-gated · scheduled announcements don't notify · no frontend/browser tests. Full list in §27.
+Grader network isolation (infrastructure) · email has no retry queue · in-memory rate limits · partial frontend CSP · browser-generated unsigned receipts · manual wa.me WhatsApp · admin-issued, record-only certificates · fees don't gate learning · recorded payments can't be edited or deleted · placeholder interview resources · mock interviews not completion-gated · scheduled announcements don't notify · no frontend/browser tests. Full list in §27.
 
 ### 30.11 Production checklist
 

@@ -87,6 +87,20 @@ describe("email service", () => {
     expect(createTransport).toHaveBeenCalledWith(expect.objectContaining({ port: 587, secure: false, auth: undefined }));
   });
 
+  it("sends a payment-received email for cash payments recorded by an admin", async () => {
+    sendMail.mockResolvedValue({ messageId: "3" });
+    const { emailService } = loadEmailService({ SMTP_HOST: "smtp.test.local" });
+    await expect(
+      emailService.sendPaymentRecorded("asha@test.local", { ...approval, paymentMethod: "CASH" })
+    ).resolves.toBe(true);
+    const mail = sendMail.mock.calls[0][0];
+    expect(mail.subject).toBe("Payment received — ₹4,000 for MERN Full Stack");
+    expect(mail.html).toContain("Your cash payment has been received and recorded by SSR Institute.");
+    expect(mail.html).toContain("Amount received");
+    expect(mail.html).toContain("CASH");
+    expect(mail.html).toContain("RCPT-TEST-0001");
+  });
+
   it("never throws when the SMTP server fails — it reports not sent", async () => {
     sendMail.mockRejectedValue(new Error("connection refused"));
     const { emailService } = loadEmailService({ SMTP_HOST: "smtp.test.local" });

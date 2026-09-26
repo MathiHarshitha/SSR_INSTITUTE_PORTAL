@@ -350,6 +350,80 @@ describe("Fee payment verification workflow", () => {
     }
   });
 
+  it("cash payment recorded by an admin: capped at the remaining fee, notifies and emails the student", async () => {
+    const { student, admin, batch } = await setup();
+    const spy = jest.spyOn(emailService, "sendPaymentRecorded").mockResolvedValue(true);
+    const record = (token: string, body: Record<string, unknown>) =>
+      request(app).post("/api/v1/fees/payments").set(authHeader(token)).send(body);
+    const base = { student: student.user._id.toString(), batch: batch._id.toString(), paymentMethod: "CASH" };
+    try {
+      // Only admins can record payments.
+      expect((await record(student.token, { ...base, amount: 1000 })).status).toBe(403);
+
+      // More than the outstanding fee is refused and nothing is written.
+      const tooMuch = await record(admin.token, { ...base, amount: 10000.01 });
+      expect(tooMuch.status).toBe(400);
+      expect(tooMuch.body.message).toContain("remaining fee of ₹10,000");
+      expect((await record(admin.token, { ...base, amount: 100.555 })).status).toBe(422);
+      expect(await Payment.countDocuments()).toBe(0);
+
+      const partial = await record(admin.token, { ...base, amount: 4000, transactionRef: "Receipt book #12" });
+      expect(partial.status).toBe(201);
+      expect(partial.body.data).toMatchObject({
+        paymentMethod: "CASH",
+        amount: 4000,
+        paidAfterPayment: 4000,
+        remainingAfterPayment: 6000,
+        studentEmailSent: true,
+      });
+      expect(spy).toHaveBeenCalledWith(
+        student.user.email,
+        expect.objectContaining({
+          name: "Asha Student",
+          paymentMethod: "CASH",
+          amount: 4000,
+          paidAfterApproval: 4000,
+          remainingAfterApproval: 6000,
+          receiptNumber: partial.body.data.receiptNumber,
+        })
+      );
+      const note = await Notification.findOne({ user: student.user._id, type: "PAYMENT_RECORDED" });
+      expect(note?.title).toBe("Payment Received");
+      expect(note?.message).toContain("cash payment of ₹4,000");
+      expect(await myStatus(student.token)).toMatchObject({ amountPaid: 4000, amountDue: 6000, status: "PARTIALLY_PAID" });
+
+      // Concurrent entries by two admins can't overshoot the fee together.
+      const [a, b] = await Promise.all([
+        record(admin.token, { ...base, amount: 6000 }),
+        record(admin.token, { ...base, amount: 6000 }),
+      ]);
+      expect([a.status, b.status].sort()).toEqual([201, 409]);
+      expect(await myStatus(student.token)).toMatchObject({ amountDue: 0, status: "PAID" });
+      expect(await Notification.findOne({ user: student.user._id, title: "Course Fee Fully Paid" })).not.toBeNull();
+
+      // Fully paid: further payments are refused.
+      expect((await record(admin.token, { ...base, amount: 1 })).status).toBe(409);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it("recording a cash payment still succeeds when the email can't be sent", async () => {
+    const { student, admin, batch } = await setup();
+    const spy = jest.spyOn(emailService, "sendPaymentRecorded").mockRejectedValue(new Error("SMTP unreachable"));
+    try {
+      const res = await request(app)
+        .post("/api/v1/fees/payments")
+        .set(authHeader(admin.token))
+        .send({ student: student.user._id.toString(), batch: batch._id.toString(), paymentMethod: "CASH", amount: 2500 });
+      expect(res.status).toBe(201);
+      expect(res.body.data.studentEmailSent).toBe(false);
+      expect(await Payment.countDocuments({ student: student.user._id })).toBe(1);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it("rejection requires a reason, notifies the student, and allows resubmission", async () => {
     const { student, admin, enrollment } = await setup();
     const eid = enrollment._id.toString();

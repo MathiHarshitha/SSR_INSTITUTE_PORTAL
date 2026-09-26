@@ -69,6 +69,10 @@ export interface PaymentApprovedEmail {
   paymentDate: Date;
 }
 
+export interface PaymentRecordedEmail extends PaymentApprovedEmail {
+  paymentMethod: string;
+}
+
 export const emailService = {
   sendOtpVerification: (to: string, otp: string) =>
     send({
@@ -130,30 +134,52 @@ export const emailService = {
 
   /** Sent automatically when an admin approves a payment screenshot. Figures come from the
    * committed approval, never from the client. */
-  sendPaymentApproved: (to: string, p: PaymentApprovedEmail) => {
-    const fullyPaid = p.remainingAfterApproval <= 0;
-    const feesUrl = `${env.clientUrl}/student/fees`;
-    const rows: [string, string][] = [
-      ["Course", p.courseName],
-      ...(p.batchName ? ([["Batch", p.batchName]] as [string, string][]) : []),
-      ["Amount approved", formatInr(p.amount)],
-      ["Total paid", formatInr(p.paidAfterApproval)],
-      ["Remaining fee", formatInr(Math.max(0, p.remainingAfterApproval))],
-      ["Payment date", p.paymentDate.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })],
-      ...(p.receiptNumber ? ([["Receipt number", p.receiptNumber]] as [string, string][]) : []),
-    ];
-    return send({
-      to,
-      subject: fullyPaid
-        ? `Course fee fully paid — ${p.courseName}`
-        : `Payment approved — ${formatInr(p.amount)} for ${p.courseName}`,
-      html: `<p>Hello ${esc(p.name)},</p>
-<p>Your payment has been approved by SSR Institute Admin.${fullyPaid ? " Your course fee is now <strong>fully paid</strong>." : ""}</p>
-<table cellpadding="6" style="border-collapse:collapse">${rows
-        .map(([label, value]) => `<tr><td style="color:#64748b">${esc(label)}</td><td><strong>${esc(value)}</strong></td></tr>`)
-        .join("")}</table>
-<p>Please log in to the portal to view and download your payment receipt: <a href="${esc(feesUrl)}">${esc(feesUrl)}</a></p>
-<p>Thank you,<br/>SSR Institute</p>`,
-    });
+  sendPaymentApproved: (to: string, p: PaymentApprovedEmail) =>
+    send(buildPaymentEmail(to, p, {
+      subject: `Payment approved — ${formatInr(p.amount)} for ${p.courseName}`,
+      intro: "Your payment has been approved by SSR Institute Admin.",
+      amountLabel: "Amount approved",
+    })),
+
+  /** Sent automatically when an admin records a cash (or other offline) payment. */
+  sendPaymentRecorded: (to: string, p: PaymentRecordedEmail) => {
+    const method = p.paymentMethod === "CASH" ? "cash payment" : `${p.paymentMethod.replace("_", " ").toLowerCase()} payment`;
+    return send(buildPaymentEmail(to, p, {
+      subject: `Payment received — ${formatInr(p.amount)} for ${p.courseName}`,
+      intro: `Your ${method} has been received and recorded by SSR Institute.`,
+      amountLabel: "Amount received",
+      extraRows: [["Payment method", p.paymentMethod.replace("_", " ")]],
+    }));
   },
 };
+
+/** Shared layout for payment confirmation emails. All values are escaped. */
+function buildPaymentEmail(
+  to: string,
+  p: PaymentApprovedEmail,
+  opts: { subject: string; intro: string; amountLabel: string; extraRows?: [string, string][] }
+): EmailPayload {
+  const fullyPaid = p.remainingAfterApproval <= 0;
+  const feesUrl = `${env.clientUrl}/student/fees`;
+  const rows: [string, string][] = [
+    ["Course", p.courseName],
+    ...(p.batchName ? ([["Batch", p.batchName]] as [string, string][]) : []),
+    [opts.amountLabel, formatInr(p.amount)],
+    ...(opts.extraRows ?? []),
+    ["Total paid", formatInr(p.paidAfterApproval)],
+    ["Remaining fee", formatInr(Math.max(0, p.remainingAfterApproval))],
+    ["Payment date", p.paymentDate.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })],
+    ...(p.receiptNumber ? ([["Receipt number", p.receiptNumber]] as [string, string][]) : []),
+  ];
+  return {
+    to,
+    subject: fullyPaid ? `Course fee fully paid — ${p.courseName}` : opts.subject,
+    html: `<p>Hello ${esc(p.name)},</p>
+<p>${esc(opts.intro)}${fullyPaid ? " Your course fee is now <strong>fully paid</strong>." : ""}</p>
+<table cellpadding="6" style="border-collapse:collapse">${rows
+      .map(([label, value]) => `<tr><td style="color:#64748b">${esc(label)}</td><td><strong>${esc(value)}</strong></td></tr>`)
+      .join("")}</table>
+<p>Please log in to the portal to view and download your payment receipt: <a href="${esc(feesUrl)}">${esc(feesUrl)}</a></p>
+<p>Thank you,<br/>SSR Institute</p>`,
+  };
+}
