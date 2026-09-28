@@ -58,9 +58,12 @@ export const env = {
   corsOrigins,
 
   emailFrom: process.env.EMAIL_FROM || "SSR Institute <smartskillsrecruitment@gmail.com>",
+  /** When set, email goes through Brevo's HTTPS API instead of SMTP — needed on hosts (e.g. the
+   * Render free plan) that block outbound SMTP ports 25/465/587. */
+  brevoApiKey: process.env.BREVO_API_KEY ?? "",
   smtp: {
     host: process.env.SMTP_HOST ?? "",
-    port: Number(process.env.SMTP_PORT ?? 587),
+    port: Number(process.env.SMTP_PORT || 587),
     user: process.env.SMTP_USER ?? "",
     password: process.env.SMTP_PASSWORD ?? "",
   },

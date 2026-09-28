@@ -37,19 +37,47 @@ function getTransporter(): Transporter {
   return transporter;
 }
 
+/** Splits `"Name <address>"` (or a bare address) into Brevo's sender shape. */
+function parseSender(from: string): { name?: string; email: string } {
+  const match = from.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);
+  return match ? { name: match[1] || undefined, email: match[2].trim() } : { email: from.trim() };
+}
+
+async function sendViaBrevo(payload: EmailPayload): Promise<void> {
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: { "api-key": env.brevoApiKey, "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify({
+      sender: parseSender(env.emailFrom),
+      to: [{ email: payload.to }],
+      subject: payload.subject,
+      htmlContent: payload.html,
+    }),
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) {
+    throw new Error(`Brevo API responded ${res.status}: ${await res.text()}`);
+  }
+}
+
 /**
- * Sends through SMTP (`SMTP_*` env vars). Without `SMTP_HOST` emails are only logged. Resolves
- * to whether the message was actually handed to the SMTP server — it never throws, because
- * every email is a side effect of a change that has already been committed, and a mail outage
- * must not turn that into an error response.
+ * Sends through Brevo's HTTPS API when `BREVO_API_KEY` is set, otherwise through SMTP
+ * (`SMTP_*` env vars). With neither configured emails are only logged. Resolves to whether the
+ * message was actually handed off — it never throws, because every email is a side effect of a
+ * change that has already been committed, and a mail outage must not turn that into an error
+ * response.
  */
 async function send(payload: EmailPayload): Promise<boolean> {
-  if (!env.smtp.host) {
+  if (!env.brevoApiKey && !env.smtp.host) {
     logger.info("Email (SMTP not configured, not sent)", { to: payload.to, subject: payload.subject });
     return false;
   }
   try {
-    await getTransporter().sendMail({ from: env.emailFrom, ...payload });
+    if (env.brevoApiKey) {
+      await sendViaBrevo(payload);
+    } else {
+      await getTransporter().sendMail({ from: env.emailFrom, ...payload });
+    }
     logger.info("Email sent", { to: payload.to, subject: payload.subject });
     return true;
   } catch (error) {
