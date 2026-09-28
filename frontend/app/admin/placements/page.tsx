@@ -219,7 +219,7 @@ export default function AdminPlacementsPage() {
           )}
 
           {!isLoading && !isError && jobs.length > 0 && (
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
               <p className="text-sm text-muted-foreground">
                 Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
               </p>

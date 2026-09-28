@@ -98,7 +98,7 @@ export default function StudentTasksPage() {
         <StatCard label="Total Tasks" value={all.length} icon={Flag} color="primary" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <div className="mb-3 flex flex-wrap gap-2">
             {filters.map((f) => (

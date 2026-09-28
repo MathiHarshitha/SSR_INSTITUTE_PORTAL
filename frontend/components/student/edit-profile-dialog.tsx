@@ -15,7 +15,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
   SelectContent,
@@ -106,7 +105,7 @@ export function EditProfileDialog({ open, onOpenChange, user, profile }: EditPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
           <DialogDescription>Update your personal, education, and professional details.</DialogDescription>
@@ -114,7 +113,7 @@ export function EditProfileDialog({ open, onOpenChange, user, profile }: EditPro
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <ScrollArea className="max-h-[65vh] pr-3">
+            <div className="-mx-1 max-h-[60vh] overflow-y-auto overscroll-contain pr-2">
               <div className="space-y-4 px-1">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
@@ -333,7 +332,7 @@ export function EditProfileDialog({ open, onOpenChange, user, profile }: EditPro
                   />
                 </div>
               </div>
-            </ScrollArea>
+            </div>
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

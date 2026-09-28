@@ -85,7 +85,7 @@ export default function StudentDashboardPage() {
             Welcome back, {user?.name}!
           </h1>
         </div>
-        <div className="flex max-w-sm shrink-0 items-center gap-2.5 clay px-3.5 py-2">
+        <div className="flex w-full items-center gap-2.5 clay px-3.5 py-2 sm:w-auto sm:max-w-sm sm:shrink-0">
           <MountainSnow className="h-5 w-5 shrink-0 text-secondary" />
           <p className="text-xs font-medium italic leading-snug text-foreground">
             &ldquo;Discipline today creates opportunities tomorrow.&rdquo;

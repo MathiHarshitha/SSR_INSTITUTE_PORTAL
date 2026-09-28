@@ -134,7 +134,7 @@ export function RecordPaymentDialog({ open, onOpenChange }: RecordPaymentDialogP
                     <SelectContent>
                       {batches.map((b) => (
                         <SelectItem key={b._id} value={b._id}>
-                          {b.name} ({b.course.name})
+                          {b.name} ({b.course?.name ?? "Deleted course"})
                         </SelectItem>
                       ))}
                     </SelectContent>

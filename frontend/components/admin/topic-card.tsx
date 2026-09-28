@@ -115,14 +115,14 @@ export function TopicCard({
                 key={lesson._id}
                 className="flex items-center justify-between rounded-md border border-border px-3 py-1.5 text-sm"
               >
-                <span className="flex items-center gap-2">
+                <span className="flex min-w-0 flex-wrap items-center gap-2">
                   {lesson.title}
                   {!lesson.published && <Badge variant="outline">Draft</Badge>}
                   {lesson.estimatedMinutes ? (
                     <span className="text-xs text-muted-foreground">{lesson.estimatedMinutes} min</span>
                   ) : null}
                 </span>
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1">
                   <Button
                     variant="ghost"
                     size="icon-xs"

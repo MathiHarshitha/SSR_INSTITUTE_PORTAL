@@ -123,13 +123,13 @@ export function DashboardShell({ user, title, children }: DashboardShellProps) {
   const closeMobileSidebar = useUIStore((s) => s.closeMobileSidebar);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-dvh overflow-hidden">
       <aside className="relative hidden w-64 shrink-0 overflow-hidden bg-gradient-to-br from-[#0b5568] via-[#0a2b34] to-[#050809] lg:block">
         <SidebarBackdrop />
-        <div className="relative z-10 flex h-screen w-64 flex-col">
+        <div className="relative z-10 flex h-dvh w-64 flex-col">
           <SidebarLogo />
 
-          <div className="flex-1 overflow-hidden px-3 py-2">
+          <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2 [scrollbar-width:none]">
             <TopNav role={user.role} variant="list" activeLayoutId="sidebar-active-desktop" />
           </div>
 
@@ -140,10 +140,10 @@ export function DashboardShell({ user, title, children }: DashboardShellProps) {
       <Sheet open={isMobileSidebarOpen} onOpenChange={(open) => !open && closeMobileSidebar()}>
         <SheetContent
           side="left"
-          className="relative w-72 overflow-hidden border-0 bg-gradient-to-br from-[#0b5568] via-[#0a2b34] to-[#050809] p-0 text-white"
+          className="w-[85vw] max-w-72 gap-0 sm:max-w-72 overflow-hidden border-0 bg-gradient-to-br from-[#0b5568] via-[#0a2b34] to-[#050809] p-0 text-white"
         >
           <SidebarBackdrop />
-          <SheetHeader className="relative z-10 px-5 py-4">
+          <SheetHeader className="relative z-10 shrink-0 px-5 py-4 pr-12">
             <SheetTitle className="flex items-center gap-3 text-left text-white">
               <span className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-black/5">
                 <Image src="/ssr-logo.webp" alt="SSR Institute" fill sizes="36px" className="object-contain p-1" />
@@ -151,8 +151,8 @@ export function DashboardShell({ user, title, children }: DashboardShellProps) {
               SSR Institute
             </SheetTitle>
           </SheetHeader>
-          <div className="relative z-10 flex h-[calc(100%-4.5rem)] flex-col">
-            <div className="flex-1 overflow-hidden px-3 py-2">
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-2 [scrollbar-width:none]">
               <TopNav
                 role={user.role}
                 variant="list"
@@ -166,9 +166,9 @@ export function DashboardShell({ user, title, children }: DashboardShellProps) {
         </SheetContent>
       </Sheet>
 
-      <div className="flex h-screen flex-1 flex-col overflow-hidden">
+      <div className="flex h-dvh min-w-0 flex-1 flex-col overflow-hidden">
         <Topbar user={user} title={title} onOpenMobileSidebar={openMobileSidebar} />
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-6">{children}</main>
       </div>
     </div>
   );

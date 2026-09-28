@@ -186,7 +186,7 @@ export default function AdminBatchesPage() {
                   {batches.map((batch) => (
                     <TableRow key={batch._id} className={cn(isFetching && "opacity-60")}>
                       <TableCell className="font-medium">{batch.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{batch.course.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{batch.course?.name ?? "Deleted course"}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {batch.trainer?.name ?? "Unassigned"}
                       </TableCell>
@@ -236,7 +236,7 @@ export default function AdminBatchesPage() {
           )}
 
           {!isLoading && !isError && batches.length > 0 && (
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
               <p className="text-sm text-muted-foreground">
                 Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
               </p>

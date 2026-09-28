@@ -40,8 +40,8 @@ function CertificateDetails({ certificate }: { certificate: VerifiedCertificate 
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className={mono ? "font-mono text-xs text-foreground" : "font-medium text-foreground"}>{value}</dd>
+      <dt className="shrink-0 text-muted-foreground">{label}</dt>
+      <dd className={mono ? "min-w-0 break-all text-right font-mono text-xs text-foreground" : "min-w-0 break-words text-right font-medium text-foreground"}>{value}</dd>
     </div>
   );
 }

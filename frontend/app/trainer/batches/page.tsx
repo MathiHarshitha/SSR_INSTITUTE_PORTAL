@@ -74,7 +74,7 @@ export default function TrainerBatchesPage() {
                   {batches.map((batch) => (
                     <TableRow key={batch._id}>
                       <TableCell className="font-medium">{batch.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{batch.course.name}</TableCell>
+                      <TableCell className="text-muted-foreground">{batch.course?.name ?? "Deleted course"}</TableCell>
                       <TableCell className="text-muted-foreground">
                         <div>{new Date(batch.startDate).toLocaleDateString()}</div>
                         <div className="text-xs">

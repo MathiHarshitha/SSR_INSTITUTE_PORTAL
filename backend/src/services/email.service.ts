@@ -37,10 +37,14 @@ function getTransporter(): Transporter {
   return transporter;
 }
 
-/** Splits `"Name <address>"` (or a bare address) into Brevo's sender shape. */
+/** Splits `Name <address>` (or a bare address) into Brevo's sender shape. Tolerant of the
+ * formatting slips that are easy to make in a hosting dashboard — surrounding quotes, stray
+ * whitespace — since Brevo rejects the whole send if the address it gets isn't clean. */
 function parseSender(from: string): { name?: string; email: string } {
-  const match = from.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/);
-  return match ? { name: match[1] || undefined, email: match[2].trim() } : { email: from.trim() };
+  const value = from.trim().replace(/^["']+|["']+$/g, "").trim();
+  const email = value.match(/<\s*([^<>\s]+@[^<>\s]+)\s*>/)?.[1] ?? value.match(/[^\s<>"']+@[^\s<>"']+/)?.[0] ?? value;
+  const name = value.includes("<") ? value.slice(0, value.indexOf("<")).replace(/["']/g, "").trim() : "";
+  return { name: name || undefined, email };
 }
 
 async function sendViaBrevo(payload: EmailPayload): Promise<void> {

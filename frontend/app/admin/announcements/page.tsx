@@ -66,7 +66,7 @@ export default function AdminAnnouncementsPage() {
           {announcements.map((a) => (
             <Card key={a._id}>
               <CardContent className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
+                <div className="min-w-0 flex-1 space-y-1 break-words">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-medium text-foreground">{a.title}</h3>
                     <Badge className={priorityBadgeClassName(a.priority)}>{a.priority}</Badge>

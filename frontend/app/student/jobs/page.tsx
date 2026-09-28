@@ -108,7 +108,7 @@ export default function StudentJobsPage() {
         <StatCard label="Selected" value={selected} icon={Award} color="green" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-wrap gap-2">
@@ -162,7 +162,7 @@ export default function StudentJobsPage() {
               {filtered.map((job) => (
                 <div key={job._id} className="clay p-4">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-3">
+                    <div className="flex min-w-0 items-start gap-3">
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-sm font-bold text-secondary">
                         {job.company.slice(0, 2).toUpperCase()}
                       </span>
