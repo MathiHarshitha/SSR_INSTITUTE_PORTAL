@@ -18,6 +18,7 @@ function getDummyPasswordHash(): Promise<string> {
 }
 import { ApiError } from "../utils/ApiError";
 import { emailService } from "./email.service";
+import { notifyActiveAdmins, notifySafely } from "./notification.service";
 import { env } from "../config/env";
 import { RegisterStudentInput, RegisterTrainerInput } from "../validators/auth.validator";
 import {
@@ -186,6 +187,19 @@ export async function verifyOtp(email: string, otp: string) {
 
   user.isEmailVerified = true;
   await user.save();
+
+  // Notified here rather than at registration: only now is the account ready for review, and
+  // unverified (possibly bogus) sign-ups don't spam the admins.
+  if (user.status === "PENDING") {
+    await notifySafely(() =>
+      notifyActiveAdmins({
+        type: "USER_PENDING_APPROVAL",
+        title: `New ${user.role.toLowerCase()} awaiting approval`,
+        message: `${user.name} (${user.email}) registered as a ${user.role.toLowerCase()} and needs your approval.`,
+        link: `/admin/users?preset=pending&view=${user._id}`,
+      })
+    );
+  }
 
   return { status: user.status };
 }

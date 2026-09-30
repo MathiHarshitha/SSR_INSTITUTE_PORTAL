@@ -99,6 +99,7 @@ export interface PendingSubmissionRow {
   task: { _id: string; title: string; type: TaskType; maxMarks: number; dueDate: string };
   student: { _id: string; name: string; email: string };
   batch: { _id: string; name: string };
+  content?: string;
   fileUrl?: string;
   comments?: string;
   status: SubmissionStatus;

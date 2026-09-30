@@ -7,6 +7,8 @@ import { Module } from "../src/models/Module";
 import { Topic } from "../src/models/Topic";
 import { Lesson } from "../src/models/Lesson";
 import { LessonProgress } from "../src/models/LessonProgress";
+import { OTPVerification } from "../src/models/OTPVerification";
+import { hashToken } from "../src/utils/tokens";
 import { createUser, authHeader } from "./helpers";
 
 const app = createApp();
@@ -69,6 +71,76 @@ describe("Notifications", () => {
       .get("/api/v1/notifications/unread-count")
       .set(authHeader(outsiderToken));
     expect(outsiderCount.body.data.count).toBe(0);
+  });
+
+  it("notifies the batch's trainer (only) when a student submits a task, linking to the submission", async () => {
+    const course = await Course.create({
+      name: "Course S",
+      shortDescription: "...",
+      duration: "1 month",
+      fee: 100,
+      status: "PUBLISHED",
+    });
+    const { user: trainer, token: trainerToken } = await createUser({ role: "TRAINER" });
+    const { token: otherTrainerToken } = await createUser({ role: "TRAINER" });
+    const batch = await createBatch(trainer._id.toString(), course._id.toString());
+    const { user: student, token: studentToken } = await createUser({ role: "STUDENT", name: "Sita Student" });
+    await Enrollment.create({ student: student._id, batch: batch._id, course: course._id });
+
+    const created = await request(app)
+      .post("/api/v1/tasks")
+      .set(authHeader(trainerToken))
+      .send({
+        type: "ASSIGNMENT",
+        title: "Build a form",
+        description: "A sufficiently long description",
+        batch: batch._id.toString(),
+        dueDate: "2099-01-01",
+        maxMarks: 10,
+      });
+    const taskId = created.body.data._id;
+    await request(app)
+      .patch(`/api/v1/tasks/${taskId}/status`)
+      .set(authHeader(trainerToken))
+      .send({ status: "PUBLISHED" });
+
+    const submitted = await request(app)
+      .post(`/api/v1/tasks/${taskId}/submit`)
+      .set(authHeader(studentToken))
+      .send({ fileUrl: "https://github.com/example/repo" });
+    expect(submitted.status).toBeLessThan(300);
+
+    const list = await request(app).get("/api/v1/notifications").set(authHeader(trainerToken));
+    const received = list.body.data.filter((n: { type: string }) => n.type === "SUBMISSION_RECEIVED");
+    expect(received).toHaveLength(1);
+    expect(received[0].message).toContain("Sita Student");
+    expect(received[0].link).toBe(`/trainer/tasks?task=${taskId}&submission=${submitted.body.data._id}`);
+
+    const otherCount = await request(app)
+      .get("/api/v1/notifications/unread-count")
+      .set(authHeader(otherTrainerToken));
+    expect(otherCount.body.data.count).toBe(0);
+  });
+
+  it("notifies active admins when a newly registered user verifies their email", async () => {
+    const { token: adminToken } = await createUser({ role: "ADMIN" });
+    const { user: pending } = await createUser({ role: "TRAINER", status: "PENDING", isEmailVerified: false });
+    await OTPVerification.create({
+      user: pending._id,
+      otpHash: hashToken("654321"),
+      purpose: "EMAIL_VERIFICATION",
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    });
+
+    const verified = await request(app)
+      .post("/api/v1/auth/verify-otp")
+      .send({ email: pending.email, otp: "654321" });
+    expect(verified.status).toBe(200);
+
+    const list = await request(app).get("/api/v1/notifications").set(authHeader(adminToken));
+    const approvals = list.body.data.filter((n: { type: string }) => n.type === "USER_PENDING_APPROVAL");
+    expect(approvals).toHaveLength(1);
+    expect(approvals[0].link).toBe(`/admin/users?preset=pending&view=${pending._id}`);
   });
 
   it("marks a notification read, and never lets another user mark someone else's notification", async () => {

@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { MoreHorizontal, Plus, ClipboardCheck } from "lucide-react";
+import { Suspense, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { MoreHorizontal, Plus, ClipboardCheck, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,7 +47,11 @@ function statusBadgeClassName(status: TaskStatus): string {
   }
 }
 
-export default function TrainerTasksPage() {
+function TrainerTasksContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const focusTaskId = searchParams.get("task");
+  const focusSubmissionId = searchParams.get("submission");
   const { data: batchData } = useBatches({ page: 1, limit: 100 });
   const batches = batchData?.batches ?? [];
 
@@ -62,6 +67,35 @@ export default function TrainerTasksPage() {
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [submissionsTask, setSubmissionsTask] = useState<TrainerTask | null>(null);
+
+  // Deep link from a "new submission" notification: ?task=<id>&submission=<id>. Handled once per
+  // link, and re-handled when a different notification is clicked while already on this page.
+  const [handledLink, setHandledLink] = useState<string | null>(null);
+  const [linkMissing, setLinkMissing] = useState(false);
+  const linkKey = focusTaskId ? `${focusTaskId}:${focusSubmissionId ?? ""}` : null;
+  if (linkKey && tasks && handledLink !== linkKey) {
+    const linked = tasks.find((t) => t._id === focusTaskId);
+    if (linked) {
+      setHandledLink(linkKey);
+      setLinkMissing(false);
+      setSubmissionsTask(linked);
+    } else if (statusFilter !== "ALL") {
+      setStatusFilter("ALL"); // the filter may be hiding it; look again once all tasks load
+    } else {
+      setHandledLink(linkKey);
+      setLinkMissing(true);
+    }
+  }
+
+  function openSubmissions(task: TrainerTask) {
+    setSubmissionsTask(task);
+  }
+
+  function closeSubmissions() {
+    setSubmissionsTask(null);
+    // Drop the deep-link params so the same notification can be opened again later.
+    if (focusTaskId) router.replace("/trainer/tasks");
+  }
 
   function handleSubmit(input: TaskFormInput) {
     createMutation.mutate(input, { onSuccess: () => setSheetOpen(false) });
@@ -97,6 +131,12 @@ export default function TrainerTasksPage() {
               ))}
             </SelectContent>
           </Select>
+
+          {linkMissing && (
+            <p className="rounded-md border border-border bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+              The task from that notification is no longer available.
+            </p>
+          )}
 
           {isError ? (
             <p className="py-12 text-center text-sm text-muted-foreground">Failed to load tasks.</p>
@@ -135,33 +175,49 @@ export default function TrainerTasksPage() {
                       <TableCell>
                         <Badge className={statusBadgeClassName(task.status)}>{task.status}</Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setSubmissionsTask(task)}>
-                              <ClipboardCheck className="h-4 w-4" />
-                              View submissions
-                            </DropdownMenuItem>
-                            {task.status === "DRAFT" && (
-                              <DropdownMenuItem
-                                onClick={() => statusMutation.mutate({ id: task._id, status: "PUBLISHED" })}
-                              >
-                                Publish
-                              </DropdownMenuItem>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-2">
+                          {task.status === "DRAFT" && (
+                            <Button
+                              size="sm"
+                              disabled={statusMutation.isPending}
+                              onClick={() => statusMutation.mutate({ id: task._id, status: "PUBLISHED" })}
+                            >
+                              <Send className="h-3.5 w-3.5" />
+                              Publish
+                            </Button>
+                          )}
+                          <Button variant="outline" size="sm" onClick={() => openSubmissions(task)}>
+                            <ClipboardCheck className="h-3.5 w-3.5" />
+                            View submissions
+                            {task.submissionCount > 0 && (
+                              <Badge className="ml-0.5 h-5 min-w-5 justify-center rounded-full bg-secondary/10 px-1.5 text-secondary">
+                                {task.submissionCount}
+                              </Badge>
                             )}
-                            {task.status === "PUBLISHED" && (
-                              <DropdownMenuItem
-                                variant="destructive"
-                                onClick={() => statusMutation.mutate({ id: task._id, status: "CLOSED" })}
+                          </Button>
+                          {task.status === "PUBLISHED" ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted"
+                                aria-label="More actions"
                               >
-                                Close
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => statusMutation.mutate({ id: task._id, status: "CLOSED" })}
+                                >
+                                  Close task
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : (
+                            // Keeps the button column aligned across rows.
+                            <span className="inline-block h-8 w-8" aria-hidden />
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -180,7 +236,20 @@ export default function TrainerTasksPage() {
         onSubmit={handleSubmit}
       />
 
-      <TaskSubmissionsDialog task={submissionsTask} onOpenChange={(open) => !open && setSubmissionsTask(null)} />
+      <TaskSubmissionsDialog
+        task={submissionsTask}
+        focusSubmissionId={submissionsTask?._id === focusTaskId ? focusSubmissionId : null}
+        onOpenChange={(open) => !open && closeSubmissions()}
+      />
     </div>
+  );
+}
+
+// useSearchParams (for the ?task= deep link from submission notifications) needs a Suspense boundary.
+export default function TrainerTasksPage() {
+  return (
+    <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <TrainerTasksContent />
+    </Suspense>
   );
 }

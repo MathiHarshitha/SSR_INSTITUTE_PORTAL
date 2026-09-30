@@ -186,6 +186,20 @@
   -webkit-backdrop-filter: blur(26px) saturate(180%);
 }
 
+/* "Loading…" dots in the brand loader (components/shared/brand-loader.tsx). */
+@keyframes brand-loader-dot {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+
+.brand-loader-dot {
+  animation: brand-loader-dot 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-loader-dot { animation: none; opacity: 0.6; }
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
   -ms-overflow-style: none;

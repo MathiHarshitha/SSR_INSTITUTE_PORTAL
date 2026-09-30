@@ -7,7 +7,7 @@ import { useCurrentUser, roleHomePath } from "@/hooks/useAuth";
 import { isDefinitiveAuthFailure, refreshAccessToken } from "@/lib/api-client";
 import { Role } from "@/types/auth";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { BrandLoader } from "@/components/shared/brand-loader";
 
 interface RequireAuthProps {
   allowedRoles: Role[];
@@ -90,16 +90,7 @@ export function RequireAuth({ allowedRoles, children }: RequireAuthProps) {
   }
 
   if (!isHydrated || !accessToken || isLoading || !effectiveUser) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-6">
-        <div className="w-full max-w-sm space-y-4">
-          <Skeleton className="h-8 w-2/3" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-5/6" />
-          <Skeleton className="h-32 w-full" />
-        </div>
-      </div>
-    );
+    return <BrandLoader />;
   }
 
   if (!allowedRoles.includes(effectiveUser.role)) {

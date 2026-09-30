@@ -3,10 +3,11 @@ import { Task, ITask } from "../models/Task";
 import { Submission } from "../models/Submission";
 import { Enrollment } from "../models/Enrollment";
 import { User } from "../models/User";
+import { Batch } from "../models/Batch";
 import { ApiError } from "../utils/ApiError";
 import { assertBatchAccess, listStudentBatchIds, listTrainerBatchIds } from "../utils/batchAccess";
 import { recordAudit } from "./auditLog.service";
-import { notifyUser, notifyUsers } from "./notification.service";
+import { notifySafely, notifyUser, notifyUsers } from "./notification.service";
 import { emailService } from "./email.service";
 import { Role } from "../constants/enums";
 import {
@@ -187,6 +188,8 @@ export async function submitTask(
 
   const isLate = new Date() > task.dueDate;
 
+  const previous = await Submission.findOne({ task: taskId, student: studentId }).select("_id").lean();
+
   const submission = await Submission.findOneAndUpdate(
     { task: taskId, student: studentId },
     {
@@ -201,6 +204,21 @@ export async function submitTask(
     },
     { upsert: true, new: true, setDefaultsOnInsert: true }
   );
+
+  await notifySafely(async () => {
+    const [batch, student] = await Promise.all([
+      Batch.findById(task.batch).select("trainer name").lean(),
+      User.findById(studentId).select("name").lean(),
+    ]);
+    if (!batch?.trainer) return;
+    const action = previous ? "resubmitted" : "submitted";
+    await notifyUser(String(batch.trainer), {
+      type: "SUBMISSION_RECEIVED",
+      title: `New submission: ${task.title}`,
+      message: `${student?.name ?? "A student"} ${action} "${task.title}"${isLate ? " after the due date" : ""} (${batch.name}).`,
+      link: `/trainer/tasks?task=${task._id}&submission=${submission._id}`,
+    });
+  });
 
   return submission;
 }
@@ -243,7 +261,7 @@ export async function evaluateSubmission(
 
     const student = await User.findById(submission.student).select("name email").lean();
     if (student) {
-      await emailService.sendSubmissionEvaluated(student.email, student.name, task.title, marks, task.maxMarks);
+      await emailService.sendSubmissionEvaluated(student.email, student.name, task.title, marks, task.maxMarks, feedback);
     }
   }
 

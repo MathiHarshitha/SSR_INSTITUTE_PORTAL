@@ -101,6 +101,34 @@ describe("email service", () => {
     expect(mail.html).toContain("RCPT-TEST-0001");
   });
 
+  it("sends an encouraging evaluation email with the trainer's feedback for low scores", async () => {
+    sendMail.mockResolvedValue({ messageId: "4" });
+    const { emailService } = loadEmailService({ SMTP_HOST: "smtp.test.local" });
+    await emailService.sendSubmissionEvaluated("asha@test.local", "Asha", "Arrays <i>101</i>", 3, 10, "Revise <script>loops</script>");
+    const mail = sendMail.mock.calls[0][0];
+    expect(mail.subject).toBe('Your submission for "Arrays <i>101</i>" has been evaluated: 3/10');
+    expect(mail.html).toContain("30%");
+    expect(mail.html).toContain("Every expert was once a beginner");
+    expect(mail.html).toContain("Trainer's feedback");
+    expect(mail.html).toContain("Revise &lt;script&gt;loops&lt;/script&gt;");
+    expect(mail.html).toContain("Arrays &lt;i&gt;101&lt;/i&gt;");
+    expect(mail.html).not.toContain("<script>");
+    expect(mail.html).toContain("http://localhost:3000/student/tasks");
+    // The logo is attached inline and referenced by Content-ID.
+    expect(mail.html).toContain('src="cid:ssr-logo"');
+    expect(mail.attachments).toEqual([expect.objectContaining({ cid: "ssr-logo", contentType: "image/png" })]);
+  });
+
+  it("celebrates high evaluation scores and omits the feedback block when there is none", async () => {
+    sendMail.mockResolvedValue({ messageId: "5" });
+    const { emailService } = loadEmailService({ SMTP_HOST: "smtp.test.local" });
+    await emailService.sendSubmissionEvaluated("asha@test.local", "Asha", "Arrays", 19, 20);
+    const mail = sendMail.mock.calls[0][0];
+    expect(mail.html).toContain("Outstanding work!");
+    expect(mail.html).toContain("95%");
+    expect(mail.html).not.toContain("Trainer's feedback");
+  });
+
   it("never throws when the SMTP server fails — it reports not sent", async () => {
     sendMail.mockRejectedValue(new Error("connection refused"));
     const { emailService } = loadEmailService({ SMTP_HOST: "smtp.test.local" });
