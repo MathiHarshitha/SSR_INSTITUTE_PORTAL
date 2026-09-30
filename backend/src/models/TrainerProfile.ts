@@ -10,6 +10,8 @@ export interface ITrainerProfile extends Document {
   bio?: string;
   resumeUrl?: string;
   documentUrls: string[];
+  alternatePhone?: string;
+  privacyPolicyAcceptedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,6 +26,8 @@ const trainerProfileSchema = new Schema<ITrainerProfile>(
     bio: { type: String },
     resumeUrl: { type: String },
     documentUrls: { type: [String], default: [] },
+    alternatePhone: { type: String },
+    privacyPolicyAcceptedAt: { type: Date },
   },
   { timestamps: true }
 );

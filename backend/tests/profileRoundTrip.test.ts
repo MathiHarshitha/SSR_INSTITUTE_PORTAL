@@ -31,6 +31,8 @@ describe("Profile: details entered at registration show up on the profile", () =
       highestQualification: "B.Tech",
       college: "JNTU",
       courseId: String(course._id),
+      guardianPhone: "9876500009",
+      acceptedPrivacyPolicy: true,
     });
     expect(reg.status).toBe(201);
     await activate("ravi@test.local");
@@ -39,7 +41,12 @@ describe("Profile: details entered at registration show up on the profile", () =
     const me = await request(app).get("/api/v1/auth/me").set("Authorization", `Bearer ${token}`);
     expect(me.status).toBe(200);
     expect(me.body.data).toMatchObject({ name: "Ravi Kumar", phone: "9876543210" });
-    expect(me.body.data.profile).toMatchObject({ gender: "MALE", highestQualification: "B.Tech", college: "JNTU" });
+    expect(me.body.data.profile).toMatchObject({
+      gender: "MALE",
+      highestQualification: "B.Tech",
+      college: "JNTU",
+      guardianPhone: "9876500009",
+    });
     expect(String(me.body.data.profile.dateOfBirth).slice(0, 10)).toBe("2001-05-14");
 
     // Editing one field keeps everything else.
@@ -63,6 +70,8 @@ describe("Profile: details entered at registration show up on the profile", () =
       specialization: "MERN",
       experienceYears: 5,
       skills: ["React", "Node"],
+      alternatePhone: "9876500010",
+      acceptedPrivacyPolicy: true,
     });
     expect(reg.status).toBe(201);
     await activate("priya@test.local");
@@ -74,7 +83,9 @@ describe("Profile: details entered at registration show up on the profile", () =
       specialization: "MERN",
       experienceYears: 5,
       skills: ["React", "Node"],
+      alternatePhone: "9876500010",
     });
+    expect(me.body.data.profile.privacyPolicyAcceptedAt).toBeTruthy();
     expect(await TrainerProfile.countDocuments()).toBe(1);
   });
 });

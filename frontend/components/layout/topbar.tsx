@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -17,7 +16,6 @@ import {
   Megaphone,
   Menu,
   Moon,
-  Search,
   Sun,
   Video,
   Wallet,
@@ -25,7 +23,6 @@ import {
 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -147,19 +144,11 @@ function ThemeToggle() {
 
 export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
   const [profileOpen, setProfileOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const router = useRouter();
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
   const { data: notificationsData } = useNotifications();
   const markAsRead = useMarkNotificationRead();
   const markAllAsRead = useMarkAllNotificationsRead();
   const notifications = notificationsData?.notifications ?? [];
-
-  function handleSearchSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const q = search.trim();
-    router.push(q ? `/student/search?q=${encodeURIComponent(q)}` : "/student/search");
-  }
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-card">
@@ -180,28 +169,7 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
           </div>
         </Link>
 
-        <h1
-          className={cn(
-            "truncate text-base font-semibold text-foreground sm:text-lg",
-            user.role === "STUDENT" && "lg:hidden"
-          )}
-        >
-          {title}
-        </h1>
-
-        {user.role === "STUDENT" && (
-          <form onSubmit={handleSearchSubmit} className="hidden max-w-xl flex-1 lg:block">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search anything... (courses, materials, tasks)"
-                className="h-10 rounded-full bg-muted pl-9"
-              />
-            </div>
-          </form>
-        )}
+        <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">{title}</h1>
 
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
         <ThemeToggle />

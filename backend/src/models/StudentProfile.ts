@@ -18,6 +18,9 @@ export interface IStudentProfile extends Document {
   linkedinUrl?: string;
   githubUrl?: string;
   interestedCourse?: Types.ObjectId;
+  /** Parent or spouse mobile number, collected at registration. */
+  guardianPhone?: string;
+  privacyPolicyAcceptedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +42,8 @@ const studentProfileSchema = new Schema<IStudentProfile>(
     linkedinUrl: { type: String },
     githubUrl: { type: String },
     interestedCourse: { type: Schema.Types.ObjectId, ref: "Course" },
+    guardianPhone: { type: String },
+    privacyPolicyAcceptedAt: { type: Date },
   },
   { timestamps: true }
 );

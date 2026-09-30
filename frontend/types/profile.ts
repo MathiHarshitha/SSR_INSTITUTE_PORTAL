@@ -12,6 +12,7 @@ export interface StudentProfileData {
   portfolioUrl?: string;
   linkedinUrl?: string;
   githubUrl?: string;
+  guardianPhone?: string;
 }
 
 export interface TrainerProfileData {
@@ -21,6 +22,7 @@ export interface TrainerProfileData {
   bio?: string;
   skills: string[];
   resumeUrl?: string;
+  alternatePhone?: string;
 }
 
 export interface UpdateMeInput {

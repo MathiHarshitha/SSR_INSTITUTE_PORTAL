@@ -23,7 +23,8 @@ import uploadRoutes from "./upload.routes";
 import reportRoutes from "./report.routes";
 import notificationRoutes from "./notification.routes";
 import enrollmentRoutes from "./enrollment.routes";
-import searchRoutes from "./search.routes";
+// Search is disabled for now; uncomment this and the `/search` route below to re-enable it.
+// import searchRoutes from "./search.routes";
 import finalAssessmentRoutes from "./finalAssessment.routes";
 import careerResourcesRoutes from "./careerResources.routes";
 import interviewResourceRoutes from "./interviewResource.routes";
@@ -54,7 +55,7 @@ router.use("/uploads", uploadRoutes);
 router.use("/reports", reportRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/enrollments", enrollmentRoutes);
-router.use("/search", searchRoutes);
+// router.use("/search", searchRoutes);
 router.use("/final-assessments", finalAssessmentRoutes);
 router.use("/career-resources", careerResourcesRoutes);
 router.use("/interview-resources", interviewResourceRoutes);

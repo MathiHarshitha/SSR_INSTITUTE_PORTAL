@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth-store";
-import { extractErrorMessage } from "@/lib/api-client";
+import { extractErrorMessage, isDefinitiveAuthFailure } from "@/lib/api-client";
 import { LoginFormValues } from "@/schemas/auth.schema";
 import { Role } from "@/types/auth";
 
@@ -27,7 +27,9 @@ export function useCurrentUser() {
       return user;
     },
     enabled: !!accessToken,
-    retry: false,
+    // Retry temporary failures (network, 5xx, cold start); a real 401 is handled by the
+    // api-client interceptor, which refreshes or signs the user out.
+    retry: (failureCount, error) => !isDefinitiveAuthFailure(error) && failureCount < 3,
     staleTime: 60_000,
   });
 }

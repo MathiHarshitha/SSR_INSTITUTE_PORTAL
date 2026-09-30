@@ -27,17 +27,37 @@ interface RetriableConfig extends InternalAxiosRequestConfig {
 
 let refreshPromise: Promise<string | null> | null = null;
 
+/** True when the server definitively rejected the request (the session is really gone), as
+ * opposed to a network error, timeout, 5xx (e.g. the API waking from a cold start) or 429. */
+export function isDefinitiveAuthFailure(error: unknown): boolean {
+  if (!axios.isAxiosError(error) || !error.response) return false;
+  const { status } = error.response;
+  return status >= 400 && status < 500 && status !== 408 && status !== 429;
+}
+
+const REFRESH_RETRY_DELAYS_MS = [1000, 3000, 8000];
+
+async function requestRefresh(): Promise<string | null> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await refreshClient.post<{ data: { accessToken: string } }>("/auth/refresh-token");
+      return res.data.data.accessToken;
+    } catch (error) {
+      if (isDefinitiveAuthFailure(error)) return null;
+      if (attempt >= REFRESH_RETRY_DELAYS_MS.length) throw error;
+      await new Promise((resolve) => setTimeout(resolve, REFRESH_RETRY_DELAYS_MS[attempt]));
+    }
+  }
+}
+
 /** Exchanges the httpOnly refresh cookie for a new in-memory access token (deduplicated across
- * concurrent callers). Returns null when there is no live session. */
+ * concurrent callers). Resolves to null only when the server says there is no live session;
+ * rejects when the server couldn't be reached, so a temporary outage never logs the user out. */
 export async function refreshAccessToken(): Promise<string | null> {
   if (!refreshPromise) {
-    refreshPromise = refreshClient
-      .post<{ data: { accessToken: string } }>("/auth/refresh-token")
-      .then((res) => res.data.data.accessToken)
-      .catch(() => null)
-      .finally(() => {
-        refreshPromise = null;
-      });
+    refreshPromise = requestRefresh().finally(() => {
+      refreshPromise = null;
+    });
   }
   return refreshPromise;
 }
@@ -49,7 +69,14 @@ apiClient.interceptors.response.use(
 
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
-      const newToken = await refreshAccessToken();
+      let newToken: string | null;
+      try {
+        newToken = await refreshAccessToken();
+      } catch (refreshError) {
+        // Server unreachable — fail this request with the network error (not the 401, which
+        // callers would read as "signed out") and keep the user signed in.
+        return Promise.reject(refreshError);
+      }
 
       if (newToken) {
         useAuthStore.getState().setAccessToken(newToken);

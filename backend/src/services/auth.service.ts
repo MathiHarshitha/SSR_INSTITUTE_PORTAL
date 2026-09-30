@@ -84,6 +84,8 @@ export async function registerStudent(input: RegisterStudentInput) {
             highestQualification: input.highestQualification,
             college: input.college,
             interestedCourse: input.courseId,
+            guardianPhone: input.guardianPhone,
+            privacyPolicyAcceptedAt: new Date(),
           },
         ],
         { session }
@@ -134,6 +136,8 @@ export async function registerTrainer(input: RegisterTrainerInput) {
             specialization: input.specialization,
             experienceYears: input.experienceYears,
             resumeUrl: input.resumeUrl,
+            alternatePhone: input.alternatePhone,
+            privacyPolicyAcceptedAt: new Date(),
           },
         ],
         { session }

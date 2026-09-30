@@ -7,6 +7,7 @@ import request from "supertest";
 import { createApp } from "../src/app";
 import { Course } from "../src/models/Course";
 import { User } from "../src/models/User";
+import { StudentProfile } from "../src/models/StudentProfile";
 import { createUser } from "./helpers";
 
 const app = createApp();
@@ -32,6 +33,8 @@ describe("Auth: registration -> OTP -> login", () => {
       password: "Passw0rd1",
       confirmPassword: "Passw0rd1",
       courseId: course._id.toString(),
+      guardianPhone: "9876500001",
+      acceptedPrivacyPolicy: true,
     });
 
     expect(res.status).toBe(201);
@@ -39,6 +42,56 @@ describe("Auth: registration -> OTP -> login", () => {
     const stored = await User.findOne({ email: "alice@test.local" });
     expect(stored?.status).toBe("PENDING");
     expect(stored?.isEmailVerified).toBe(false);
+
+    const profile = await StudentProfile.findOne({ user: stored?._id });
+    expect(profile?.guardianPhone).toBe("9876500001");
+    expect(profile?.privacyPolicyAcceptedAt).toBeInstanceOf(Date);
+  });
+
+  it("requires a parent/spouse phone and privacy policy acceptance", async () => {
+    const course = await createPublishedCourse();
+    const base = {
+      name: "Eve Student",
+      email: "eve@test.local",
+      phone: "9876533333",
+      password: "Passw0rd1",
+      confirmPassword: "Passw0rd1",
+      courseId: course._id.toString(),
+    };
+
+    const noGuardian = await request(app)
+      .post("/api/v1/auth/register/student")
+      .send({ ...base, acceptedPrivacyPolicy: true });
+    expect(noGuardian.status).toBe(422);
+
+    const notAccepted = await request(app)
+      .post("/api/v1/auth/register/student")
+      .send({ ...base, guardianPhone: "9876500002", acceptedPrivacyPolicy: false });
+    expect(notAccepted.status).toBe(422);
+
+    expect(await User.countDocuments({ email: "eve@test.local" })).toBe(0);
+  });
+
+  it("requires an alternate phone and privacy policy acceptance for trainers", async () => {
+    const base = {
+      name: "Tom Trainer",
+      email: "tom@test.local",
+      phone: "9876544444",
+      password: "Passw0rd1",
+      confirmPassword: "Passw0rd1",
+    };
+
+    const noAlternate = await request(app)
+      .post("/api/v1/auth/register/trainer")
+      .send({ ...base, acceptedPrivacyPolicy: true });
+    expect(noAlternate.status).toBe(422);
+
+    const notAccepted = await request(app)
+      .post("/api/v1/auth/register/trainer")
+      .send({ ...base, alternatePhone: "9876500003", acceptedPrivacyPolicy: false });
+    expect(notAccepted.status).toBe(422);
+
+    expect(await User.countDocuments({ email: "tom@test.local" })).toBe(0);
   });
 
   it("rejects a duplicate email registration", async () => {
@@ -50,6 +103,8 @@ describe("Auth: registration -> OTP -> login", () => {
       password: "Passw0rd1",
       confirmPassword: "Passw0rd1",
       courseId: course._id.toString(),
+      guardianPhone: "9876500001",
+      acceptedPrivacyPolicy: true,
     };
 
     await request(app).post("/api/v1/auth/register/student").send(payload);
@@ -67,6 +122,8 @@ describe("Auth: registration -> OTP -> login", () => {
       password: "Passw0rd1",
       confirmPassword: "Passw0rd1",
       courseId: course._id.toString(),
+      guardianPhone: "9876500001",
+      acceptedPrivacyPolicy: true,
     });
 
     const wrong = await request(app)
@@ -92,6 +149,8 @@ describe("Auth: registration -> OTP -> login", () => {
       password: "Passw0rd1",
       confirmPassword: "Passw0rd1",
       courseId: course._id.toString(),
+      guardianPhone: "9876500001",
+      acceptedPrivacyPolicy: true,
     });
 
     const beforeVerify = await request(app)

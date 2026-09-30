@@ -18,7 +18,7 @@ import {
   ListChecks,
   GraduationCap,
   Bell,
-  Search,
+  // Search,
   FileSearch,
 } from "lucide-react";
 import { Role } from "@/types/auth";
@@ -58,7 +58,8 @@ export const NAV_ITEMS: Record<Role, NavItem[]> = {
   STUDENT: [
     { label: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
     { label: "My Courses", href: "/student/courses", icon: GraduationCap },
-    { label: "Search", href: "/student/search", icon: Search },
+    // Search is disabled for now — see app/student/search/page.tsx.
+    // { label: "Search", href: "/student/search", icon: Search },
     { label: "Materials", href: "/student/materials", icon: FileText },
     { label: "Tasks", href: "/student/tasks", icon: ClipboardList },
     { label: "Attendance", href: "/student/attendance", icon: ListChecks },

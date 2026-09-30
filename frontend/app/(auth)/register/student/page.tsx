@@ -14,6 +14,7 @@ import { LoginMascot } from "@/components/auth/login/login-mascot";
 import styles from "@/components/auth/login/login.module.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -56,6 +57,8 @@ export default function RegisterStudentPage() {
       highestQualification: "",
       college: "",
       courseId: "",
+      guardianPhone: "",
+      acceptedPrivacyPolicy: false,
     },
   });
 
@@ -167,6 +170,19 @@ export default function RegisterStudentPage() {
                 />
                 <FormField
                   control={form.control}
+                  name="guardianPhone"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Parent / spouse mobile number</FormLabel>
+                      <FormControl>
+                        <Input type="tel" placeholder="9876543210" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
@@ -253,6 +269,36 @@ export default function RegisterStudentPage() {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="acceptedPrivacyPolicy"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex flex-row items-start gap-2">
+                      <FormControl>
+                        <Checkbox
+                          className="mt-0.5"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="block font-normal leading-snug text-muted-foreground">
+                        I have read and agree to the{" "}
+                        <Link
+                          href="/privacy-policy"
+                          target="_blank"
+                          className="font-medium text-primary hover:underline"
+                        >
+                          Privacy Policy &amp; Student Terms
+                        </Link>
+                        , including that fees once paid are non-refundable.
+                      </FormLabel>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Create account"}

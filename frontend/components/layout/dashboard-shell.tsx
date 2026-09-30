@@ -168,7 +168,14 @@ export function DashboardShell({ user, title, children }: DashboardShellProps) {
 
       <div className="flex h-screen flex-1 flex-col overflow-hidden">
         <Topbar user={user} title={title} onOpenMobileSidebar={openMobileSidebar} />
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">{children}</main>
+        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 sm:p-6">
+          <div className="flex-1">{children}</div>
+          <footer className="mt-8 pt-4 text-center text-[11px] text-muted-foreground">
+            <Link href="/privacy-policy" target="_blank" className="hover:text-foreground hover:underline">
+              Privacy Policy
+            </Link>
+          </footer>
+        </main>
       </div>
     </div>
   );

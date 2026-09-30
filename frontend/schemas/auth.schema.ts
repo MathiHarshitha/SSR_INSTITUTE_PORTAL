@@ -31,6 +31,8 @@ export const registerStudentSchema = z
     highestQualification: z.string().trim().optional(),
     college: z.string().trim().optional(),
     courseId: z.string().min(1, "Please select a course"),
+    guardianPhone: phoneSchema,
+    acceptedPrivacyPolicy: z.boolean().refine((v) => v, "You must accept the privacy policy"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
@@ -49,6 +51,8 @@ export const registerTrainerSchema = z
     specialization: z.string().trim().optional(),
     experienceYears: z.coerce.number().min(0).max(60).optional(),
     skills: z.string().trim().optional(),
+    alternatePhone: phoneSchema,
+    acceptedPrivacyPolicy: z.boolean().refine((v) => v, "You must accept the privacy policy"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
