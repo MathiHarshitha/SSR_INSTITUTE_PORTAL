@@ -237,12 +237,14 @@ export async function listFeeStatus(query: ListFeeStatusQuery, studentId?: strin
   if (query.batch) filter.batch = query.batch;
   if (studentId) filter.student = studentId;
 
-  const enrollments = await Enrollment.find(filter)
-    .populate("student", "name email")
-    .populate("course", "name fee")
-    .populate("batch", "name")
-    .sort({ enrolledAt: -1 })
-    .lean();
+  const enrollments = (
+    await Enrollment.find(filter)
+      .populate("student", "name email isTestAccount")
+      .populate("course", "name fee")
+      .populate("batch", "name")
+      .sort({ enrolledAt: -1 })
+      .lean()
+  ).filter((e) => e.student && e.course && e.batch); // skip enrollments whose student/course/batch was deleted
 
   const paidTotals = await Payment.aggregate<{ _id: Types.ObjectId; total: number }>([
     {

@@ -1,3 +1,4 @@
+import { countableStudentIds } from "../utils/countableStudents";
 import { Batch } from "../models/Batch";
 import { Enrollment } from "../models/Enrollment";
 import { ClassSchedule } from "../models/ClassSchedule";
@@ -28,7 +29,9 @@ export async function getTrainerDashboard(trainerId: string) {
     recentAnnouncements,
   ] = await Promise.all([
     Batch.countDocuments({ trainer: trainerId }),
-    Enrollment.distinct("student", { batch: { $in: batchIds } }).then((ids) => ids.length),
+    countableStudentIds().then((countable) =>
+      Enrollment.distinct("student", { batch: { $in: batchIds }, student: { $in: countable } }).then((ids) => ids.length)
+    ),
     ClassSchedule.find({ batch: { $in: batchIds }, date: { $gte: start, $lt: end } })
       .populate("batch", "name")
       .sort({ startTime: 1 })

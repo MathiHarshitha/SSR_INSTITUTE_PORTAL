@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -77,10 +77,15 @@ export function EditProfileDialog({ open, onOpenChange, user, profile }: EditPro
     defaultValues: toDefaults(user, profile),
   });
 
+  // Refill whenever the dialog opens, and also if fresher profile data arrives while it's open —
+  // but never overwrite something the student has already started typing.
+  const wasOpen = useRef(false);
   useEffect(() => {
-    if (open) form.reset(toDefaults(user, profile));
+    const justOpened = open && !wasOpen.current;
+    wasOpen.current = open;
+    if (justOpened || (open && !form.formState.isDirty)) form.reset(toDefaults(user, profile));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, user, profile]);
 
   async function handleSubmit(values: EditProfileFormValues) {
     await updateMe.mutateAsync({ name: values.name, phone: values.phone });

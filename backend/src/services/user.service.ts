@@ -20,6 +20,8 @@ interface RoleStatusBucket {
 export async function getUserStats() {
   const [buckets, totalCourses] = await Promise.all([
     User.aggregate<RoleStatusBucket>([
+      // Test accounts are left out of dashboard counts.
+      { $match: { isTestAccount: { $ne: true } } },
       { $group: { _id: { role: "$role", status: "$status" }, count: { $sum: 1 } } },
     ]),
     Course.countDocuments({ status: "PUBLISHED" }),

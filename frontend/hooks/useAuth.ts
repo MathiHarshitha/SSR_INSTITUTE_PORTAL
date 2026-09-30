@@ -41,7 +41,10 @@ export function useLogin() {
     mutationFn: (input: LoginFormValues) => authService.login(input),
     onSuccess: (data) => {
       setAuth(data.user, data.accessToken);
-      queryClient.setQueryData(AUTH_QUERY_KEY, data.user);
+      // The login response is only { id, name, email, role, status } — no phone or profile. Don't
+      // seed the /auth/me cache with it (it would be treated as fresh and the profile page would
+      // show empty details); drop any cached user so the full record is fetched.
+      queryClient.removeQueries({ queryKey: AUTH_QUERY_KEY });
       toast.success("Welcome back!");
       router.push(roleHomePath(data.user.role));
     },

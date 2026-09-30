@@ -128,7 +128,13 @@ function FeeStatusTab() {
               <TableBody>
                 {rows.map((row) => (
                   <TableRow key={row.enrollmentId}>
-                    <TableCell className="font-medium">{row.student.name}</TableCell>
+                    <TableCell className="font-medium">
+                      {row.student.name} {row.student.isTestAccount && (
+                        <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400" title="Test account — excluded from counts and fee totals">
+                          TEST
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{row.batch.name}</TableCell>
                     <TableCell className="text-muted-foreground">
                       ₹{row.finalFee.toLocaleString("en-IN")}

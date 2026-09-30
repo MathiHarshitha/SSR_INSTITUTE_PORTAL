@@ -298,7 +298,13 @@ export default function AdminUsersPage() {
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user._id} className={cn(isFetching && "opacity-60")}>
-                      <TableCell className="font-medium">{user.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {user.name} {user.isTestAccount && (
+                        <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400" title="Test account — excluded from counts and fee totals">
+                          TEST
+                        </span>
+                      )}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         <div>{user.email}</div>
                         <div className="text-xs">{user.phone}</div>

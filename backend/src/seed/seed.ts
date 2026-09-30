@@ -122,6 +122,8 @@ async function seedStudents(courseId: string) {
         passwordHash,
         role: "STUDENT",
         status: i <= 8 ? "ACTIVE" : "PENDING",
+        // Demo data: excluded from dashboards, reports and fee totals.
+        isTestAccount: true,
         isEmailVerified: true,
       });
       await StudentProfile.create({

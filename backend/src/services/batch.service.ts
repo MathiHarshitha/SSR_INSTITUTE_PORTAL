@@ -1,3 +1,4 @@
+import { countableStudentIds } from "../utils/countableStudents";
 import { searchRegex } from "../utils/searchRegex";
 import { FilterQuery } from "mongoose";
 import { Batch, IBatch } from "../models/Batch";
@@ -36,9 +37,11 @@ export async function createBatch(adminId: string, input: CreateBatchInput) {
   return batch;
 }
 
+/** Enrolled counts exclude test accounts and enrollments left behind by deleted students. */
 async function withEnrollmentCounts(batches: IBatch[]) {
+  const countable = await countableStudentIds();
   const counts = await Enrollment.aggregate<{ _id: unknown; count: number }>([
-    { $match: { batch: { $in: batches.map((b) => b._id) } } },
+    { $match: { batch: { $in: batches.map((b) => b._id) }, student: { $in: countable } } },
     { $group: { _id: "$batch", count: { $sum: 1 } } },
   ]);
   const countMap = new Map(counts.map((c) => [String(c._id), c.count]));
@@ -133,11 +136,12 @@ export async function listBatchStudents(batchId: string, userId: string, role: R
   await assertBatchAccess(batchId, userId, role);
 
   const enrollments = await Enrollment.find({ batch: batchId })
-    .populate("student", "name email phone status")
+    .populate("student", "name email phone status isTestAccount")
     .sort({ enrolledAt: -1 })
     .lean();
 
-  return enrollments.map((e) => ({
+  // Enrollments whose student account was deleted have nothing to show.
+  return enrollments.filter((e) => e.student).map((e) => ({
     enrollmentId: e._id,
     enrolledAt: e.enrolledAt,
     student: e.student,
@@ -148,15 +152,16 @@ export async function enrollStudent(adminId: string, batchId: string, studentId:
   const batch = await Batch.findById(batchId);
   if (!batch) throw ApiError.notFound("Batch not found");
 
-  const student = await User.findOne({ _id: studentId, role: "STUDENT" }).select("status").lean();
+  const student = await User.findOne({ _id: studentId, role: "STUDENT" }).select("status isTestAccount").lean();
   if (!student) throw ApiError.badRequest("Student not found");
   if (student.status !== "ACTIVE") throw ApiError.badRequest("Only active students can be enrolled");
 
   const existing = await Enrollment.findOne({ student: studentId, batch: batchId }).lean();
   if (existing) throw ApiError.conflict("Student is already enrolled in this batch");
 
-  const currentCount = await Enrollment.countDocuments({ batch: batchId });
-  if (currentCount >= batch.capacity) {
+  // Test accounts neither use up nor are blocked by batch capacity.
+  const currentCount = await Enrollment.countDocuments({ batch: batchId, student: { $in: await countableStudentIds() } });
+  if (!student.isTestAccount && currentCount >= batch.capacity) {
     throw ApiError.badRequest("Batch is at full capacity");
   }
 
