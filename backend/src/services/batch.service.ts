@@ -140,12 +140,14 @@ export async function listBatchStudents(batchId: string, userId: string, role: R
     .sort({ enrolledAt: -1 })
     .lean();
 
-  // Enrollments whose student account was deleted have nothing to show.
-  return enrollments.filter((e) => e.student).map((e) => ({
-    enrollmentId: e._id,
-    enrolledAt: e.enrolledAt,
-    student: e.student,
-  }));
+  // Skip enrollments whose student account no longer exists (populate yields null).
+  return enrollments
+    .filter((e) => e.student)
+    .map((e) => ({
+      enrollmentId: e._id,
+      enrolledAt: e.enrolledAt,
+      student: e.student,
+    }));
 }
 
 export async function enrollStudent(adminId: string, batchId: string, studentId: string) {

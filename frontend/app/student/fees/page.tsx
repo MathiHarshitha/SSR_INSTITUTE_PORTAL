@@ -91,7 +91,7 @@ export default function StudentFeesPage() {
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <div className="clay p-4">
             <p className="mb-3 text-sm font-semibold text-foreground">Course Fee Overview</p>

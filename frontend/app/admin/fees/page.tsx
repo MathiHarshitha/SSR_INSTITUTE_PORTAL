@@ -158,7 +158,7 @@ function FeeStatusTab() {
         )}
 
         {!isLoading && !isError && rows.length > 0 && (
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
             <p className="text-sm text-muted-foreground">
               Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
             </p>
@@ -251,7 +251,7 @@ function PaymentHistoryTab() {
         )}
 
         {!isLoading && !isError && payments.length > 0 && (
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
             <p className="text-sm text-muted-foreground">
               Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
             </p>
@@ -424,7 +424,7 @@ function PaymentVerificationTab() {
         )}
 
         {!isLoading && !isError && requests.length > 0 && (
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
             <p className="text-sm text-muted-foreground">
               Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
             </p>
@@ -488,7 +488,7 @@ function AdminFeesContent() {
         </Button>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <Button size="sm" variant={tab === "status" ? "secondary" : "ghost"} onClick={() => setTab("status")}>
           Fee Status
         </Button>

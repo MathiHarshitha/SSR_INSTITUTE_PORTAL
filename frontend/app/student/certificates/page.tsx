@@ -74,7 +74,7 @@ export default function StudentCertificatesPage() {
         <StatCard label="Verified" value={earned.filter((c) => c.status === "ISSUED").length} icon={CheckCircle2} color="green" />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <div className="mb-3 flex flex-wrap gap-2">
             {([

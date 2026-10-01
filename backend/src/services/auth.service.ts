@@ -27,7 +27,7 @@ import {
   UpdateTrainerProfileInput,
 } from "../validators/profile.validator";
 
-async function createOtpForUser(userId: mongoose.Types.ObjectId, email: string): Promise<void> {
+async function createOtpForUser(userId: mongoose.Types.ObjectId, email: string, name: string): Promise<void> {
   const otp = generateOtp(6);
   const otpHash = hashToken(otp);
   const expiresAt = new Date(Date.now() + env.otpExpiresMinutes * 60 * 1000);
@@ -41,7 +41,7 @@ async function createOtpForUser(userId: mongoose.Types.ObjectId, email: string):
     expiresAt,
   });
 
-  await emailService.sendOtpVerification(email, otp);
+  await emailService.sendOtpVerification(email, name, otp);
 }
 
 export async function registerStudent(input: RegisterStudentInput) {
@@ -94,7 +94,7 @@ export async function registerStudent(input: RegisterStudentInput) {
     });
 
     if (!user) throw ApiError.internal("Failed to create student account");
-    await createOtpForUser((user as IUser)._id, (user as IUser).email);
+    await createOtpForUser((user as IUser)._id, (user as IUser).email, (user as IUser).name);
     return { userId: (user as IUser)._id.toString(), email: (user as IUser).email };
   } finally {
     await session.endSession();
@@ -146,7 +146,7 @@ export async function registerTrainer(input: RegisterTrainerInput) {
     });
 
     if (!user) throw ApiError.internal("Failed to create trainer account");
-    await createOtpForUser((user as IUser)._id, (user as IUser).email);
+    await createOtpForUser((user as IUser)._id, (user as IUser).email, (user as IUser).name);
     return { userId: (user as IUser)._id.toString(), email: (user as IUser).email };
   } finally {
     await session.endSession();
@@ -209,7 +209,7 @@ export async function verifyOtp(email: string, otp: string) {
 export async function resendOtp(email: string) {
   const user = await User.findOne({ email });
   if (!user || user.isEmailVerified) return;
-  await createOtpForUser(user._id, user.email);
+  await createOtpForUser(user._id, user.email, user.name);
 }
 
 interface LoginResult {

@@ -55,7 +55,7 @@ export default function StudentSchedulePage() {
           Failed to load schedule.
         </div>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <div className="clay p-4">
             <MiniCalendar
               marks={marks}

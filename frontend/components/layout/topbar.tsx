@@ -205,7 +205,7 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
               </span>
             )}
           </DropdownMenuTrigger>
-          <DropdownMenuContent glass={false} align="end" className="w-80 p-2">
+          <DropdownMenuContent glass={false} align="end" className="w-[min(20rem,calc(100vw-1rem))] p-2">
             <div className="flex items-center justify-between px-1 py-1.5">
               <p className="text-sm font-semibold text-foreground">Notifications</p>
               {unreadCount > 0 && (

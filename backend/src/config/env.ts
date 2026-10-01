@@ -22,6 +22,12 @@ if (!["lax", "strict", "none"].includes(cookieSameSite)) {
   throw new Error("COOKIE_SAMESITE must be one of: lax, strict, none");
 }
 
+const clientUrl = process.env.CLIENT_URL ?? "http://localhost:3000";
+const localDevOrigins = ["http://localhost:3000", "http://localhost:5173"];
+const corsOrigins = isLocalDev
+  ? Array.from(new Set([...localDevOrigins, clientUrl]))
+  : [clientUrl];
+
 export const env = {
   nodeEnv,
   isProduction,
@@ -43,12 +49,21 @@ export const env = {
   resetTokenExpiresMinutes: Number(process.env.RESET_TOKEN_EXPIRES_MINUTES ?? 30),
   otpExpiresMinutes: Number(process.env.OTP_EXPIRES_MINUTES ?? 10),
 
-  clientUrl: process.env.CLIENT_URL ?? "http://localhost:3000",
+  /** Canonical frontend origin — used to build absolute links (e.g. password-reset emails). */
+  clientUrl,
+  /** Origins the API accepts cross-origin requests from. In dev this always includes both
+   * common local frontend ports regardless of CLIENT_URL, so switching between a Next.js
+   * (3000) and Vite (5173) frontend locally never requires touching .env. In production it's
+   * exactly CLIENT_URL — no implicit localhost access. */
+  corsOrigins,
 
   emailFrom: process.env.EMAIL_FROM || "SSR Institute <smartskillsrecruitment@gmail.com>",
+  /** When set, email goes through Brevo's HTTPS API instead of SMTP — needed on hosts (e.g. the
+   * Render free plan) that block outbound SMTP ports 25/465/587. */
+  brevoApiKey: process.env.BREVO_API_KEY ?? "",
   smtp: {
     host: process.env.SMTP_HOST ?? "",
-    port: Number(process.env.SMTP_PORT ?? 587),
+    port: Number(process.env.SMTP_PORT || 587),
     user: process.env.SMTP_USER ?? "",
     password: process.env.SMTP_PASSWORD ?? "",
   },

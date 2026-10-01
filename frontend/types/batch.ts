@@ -16,7 +16,7 @@ export interface BatchTrainerRef {
 export interface AdminBatch {
   _id: string;
   name: string;
-  course: BatchCourseRef;
+  course: BatchCourseRef | null;
   trainer?: BatchTrainerRef;
   startDate: string;
   endDate: string;

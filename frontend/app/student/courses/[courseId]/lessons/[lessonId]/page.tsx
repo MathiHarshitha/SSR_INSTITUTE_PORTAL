@@ -291,7 +291,7 @@ export default function LessonPlayerPage({
           </Button>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex min-w-0 flex-wrap gap-2">
           {prevLesson && (
             <Link
               href={`/student/courses/${courseId}/lessons/${prevLesson.lessonId}`}
@@ -304,9 +304,9 @@ export default function LessonPlayerPage({
           {nextLesson && nextLesson.state !== "LOCKED" && (
             <Link
               href={`/student/courses/${courseId}/lessons/${nextLesson.lessonId}`}
-              className={cn(buttonVariants({ size: "sm" }))}
+              className={cn(buttonVariants({ size: "sm" }), "max-w-full")}
             >
-              Next: {nextLesson.title}
+              <span className="truncate">Next: {nextLesson.title}</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
           )}

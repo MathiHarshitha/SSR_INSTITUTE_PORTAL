@@ -2,7 +2,21 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/store/auth-store";
 import { ApiErrorResponse } from "@/types/auth";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api/v1";
+// Centralized API base URL — every API call in the app (axios client below, and any plain
+// `fetch` in server components that can't use the browser-oriented axios client) resolves the
+// backend origin from here, so there's exactly one place that needs to change per environment.
+//
+// NEXT_PUBLIC_API_URL always wins when set (e.g. to point a deployment at a staging backend).
+// Absent that, the default depends on how the app was built: a production build (`next build`,
+// which is what `next dev` never runs) defaults to the actual deployed backend — not localhost,
+// which can never be reached from a real visitor's browser — so the app works correctly on
+// Vercel even if that project's dashboard never gets the variable configured. Local dev keeps
+// defaulting to localhost.
+const PRODUCTION_API_URL = "https://ssr-institute-portal.onrender.com/api/v1";
+const LOCAL_API_URL = "http://localhost:5000/api/v1";
+
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? (process.env.NODE_ENV === "production" ? PRODUCTION_API_URL : LOCAL_API_URL);
 
 export const apiClient = axios.create({
   baseURL: API_URL,

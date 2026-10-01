@@ -94,7 +94,7 @@ export default function StudentProfilePage() {
 
   if (!effectiveUser) {
     return (
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Skeleton className="h-[32rem] rounded-3xl lg:col-span-1" />
         <Skeleton className="h-[32rem] rounded-3xl lg:col-span-1" />
         <Skeleton className="h-[32rem] rounded-3xl lg:col-span-1" />

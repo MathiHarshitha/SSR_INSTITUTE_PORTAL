@@ -438,7 +438,7 @@ function AdminUsersContent() {
           )}
 
           {!isLoading && !isError && users.length > 0 && (
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
               <p className="text-sm text-muted-foreground">
                 Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
               </p>
@@ -486,15 +486,15 @@ function AdminUsersContent() {
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-3 gap-1">
                 <span className="text-muted-foreground">Name</span>
-                <span className="col-span-2 font-medium">{viewUser.name}</span>
+                <span className="col-span-2 min-w-0 break-words font-medium">{viewUser.name}</span>
               </div>
               <div className="grid grid-cols-3 gap-1">
                 <span className="text-muted-foreground">Email</span>
-                <span className="col-span-2">{viewUser.email}</span>
+                <span className="col-span-2 min-w-0 break-all">{viewUser.email}</span>
               </div>
               <div className="grid grid-cols-3 gap-1">
                 <span className="text-muted-foreground">Phone</span>
-                <span className="col-span-2">{viewUser.phone}</span>
+                <span className="col-span-2 min-w-0 break-words">{viewUser.phone}</span>
               </div>
               <div className="grid grid-cols-3 gap-1">
                 <span className="text-muted-foreground">Role</span>

@@ -75,7 +75,7 @@ export function BatchFormSheet({ open, onOpenChange, batch, isSubmitting, onSubm
     if (batch) {
       form.reset({
         name: batch.name,
-        course: batch.course._id,
+        course: batch.course?._id ?? "",
         trainer: batch.trainer?._id ?? "",
         startDate: toDateInputValue(batch.startDate),
         endDate: toDateInputValue(batch.endDate),

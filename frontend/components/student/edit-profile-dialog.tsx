@@ -110,18 +110,16 @@ export function EditProfileDialog({ open, onOpenChange, user, profile }: EditPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      {/* Capped to the viewport as a flex column: header and footer stay put and only the fields
-          scroll, so nothing can spill past the bottom of the dialog on short screens. */}
-      <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col sm:max-w-xl">
-        <DialogHeader className="shrink-0 pr-8">
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
           <DialogTitle>Edit Profile</DialogTitle>
           <DialogDescription>Update your personal, education, and professional details.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="flex min-h-0 flex-1 flex-col gap-4">
-            <div className="-mx-4 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4">
-              <div className="space-y-4 px-1 pb-1">
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <div className="-mx-1 max-h-[60vh] overflow-y-auto overscroll-contain pr-2">
+              <div className="space-y-4 px-1">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <FormField
                     control={form.control}

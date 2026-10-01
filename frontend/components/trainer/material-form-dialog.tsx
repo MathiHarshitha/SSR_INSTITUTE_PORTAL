@@ -63,7 +63,7 @@ export function MaterialFormDialog({
   const form = useForm<MaterialFormValues>({ resolver: zodResolver(materialFormSchema), defaultValues: EMPTY });
   const selectedBatchId = form.watch("batch");
   const selectedBatch = batches.find((b) => b._id === selectedBatchId);
-  const { data: modules } = useModules(selectedBatch?.course._id ?? "");
+  const { data: modules } = useModules(selectedBatch?.course?._id ?? "");
   const fileType = form.watch("fileType");
 
   useEffect(() => {

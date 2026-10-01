@@ -189,13 +189,13 @@ export function LessonContentSheet({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4 px-4 pb-4">
             <Tabs defaultValue="overview">
-              <TabsList className="w-full">
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="teach">Teach it</TabsTrigger>
-                <TabsTrigger value="code">Code &amp; practice</TabsTrigger>
-                <TabsTrigger value="quiz">Quiz</TabsTrigger>
-                <TabsTrigger value="coding">Coding</TabsTrigger>
-                <TabsTrigger value="wrapup">Wrap-up</TabsTrigger>
+              <TabsList className="w-full justify-start">
+                <TabsTrigger value="overview" className="flex-none">Overview</TabsTrigger>
+                <TabsTrigger value="teach" className="flex-none">Teach it</TabsTrigger>
+                <TabsTrigger value="code" className="flex-none">Code &amp; practice</TabsTrigger>
+                <TabsTrigger value="quiz" className="flex-none">Quiz</TabsTrigger>
+                <TabsTrigger value="coding" className="flex-none">Coding</TabsTrigger>
+                <TabsTrigger value="wrapup" className="flex-none">Wrap-up</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-4 pt-4">

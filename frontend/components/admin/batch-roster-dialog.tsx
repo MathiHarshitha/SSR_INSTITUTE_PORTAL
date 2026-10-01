@@ -39,7 +39,7 @@ export function BatchRosterDialog({ batch, onOpenChange }: BatchRosterDialogProp
   const enrollMutation = useEnrollStudent(batch?._id ?? "");
   const removeMutation = useRemoveStudent(batch?._id ?? "");
 
-  const enrolledIds = new Set((students ?? []).map((s) => s.student._id));
+  const enrolledIds = new Set((students ?? []).filter((s) => s.student).map((s) => s.student._id));
   const candidates = (candidateData?.users ?? []).filter((u) => !enrolledIds.has(u._id));
 
   return (
@@ -73,9 +73,9 @@ export function BatchRosterDialog({ batch, onOpenChange }: BatchRosterDialogProp
                     key={student._id}
                     className="flex items-center justify-between border-b border-border px-3 py-2 last:border-0"
                   >
-                    <div>
-                      <p className="text-sm font-medium">{student.name}</p>
-                      <p className="text-xs text-muted-foreground">{student.email}</p>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{student.name}</p>
+                      <p className="truncate text-xs text-muted-foreground">{student.email}</p>
                     </div>
                     <Button
                       size="sm"
@@ -109,7 +109,7 @@ export function BatchRosterDialog({ batch, onOpenChange }: BatchRosterDialogProp
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {students.map((enrollment) => (
+                  {students.filter((s) => s.student).map((enrollment) => (
                     <TableRow key={enrollment.enrollmentId}>
                       <TableCell>
                         <p className="font-medium">{enrollment.student.name}</p>
