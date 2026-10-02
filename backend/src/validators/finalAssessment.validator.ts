@@ -11,7 +11,8 @@ export const createFinalAssessmentSchema = z.object({
   title: z.string().trim().min(2).max(150).optional(),
   questions: z.array(quizQuestionSchema).min(1).max(100),
   passingScore: z.coerce.number().int().min(0).max(100).optional(),
-  published: z.coerce.boolean().optional(),
+  // Not z.coerce.boolean(): that turns the string "false" into true.
+  published: z.boolean().optional(),
 });
 
 export const updateFinalAssessmentSchema = createFinalAssessmentSchema.partial();

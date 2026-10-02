@@ -4,7 +4,8 @@ import { logger } from "../utils/logger";
 import { ListAuditLogsQuery } from "../validators/auditLog.validator";
 
 interface RecordAuditParams {
-  userId: Types.ObjectId | string;
+  /** Omitted when the actor isn't a known account (e.g. failed login for an unknown email). */
+  userId?: Types.ObjectId | string;
   action: string;
   entity: string;
   entityId?: Types.ObjectId | string;

@@ -1,6 +1,6 @@
 import { Module } from "../models/Module";
 import { Topic } from "../models/Topic";
-import { Lesson } from "../models/Lesson";
+import { Lesson, ILesson } from "../models/Lesson";
 import { Course } from "../models/Course";
 import { LessonProgress } from "../models/LessonProgress";
 import { ApiError } from "../utils/ApiError";
@@ -24,14 +24,33 @@ export interface Requester {
 /** Curriculum is shared by every batch of a course, and deleting a lesson/topic/module cascades
  * to every student's LessonProgress. A trainer is scoped to their own batches, so they may not
  * delete content any student has already made progress in — only an admin can. */
-async function assertMayDeleteLessons(requester: Requester, lessonIds: unknown[]): Promise<void> {
+async function assertNoStudentProgressForTrainer(
+  requester: Requester,
+  lessonIds: unknown[],
+  message: string
+): Promise<void> {
   if (requester.role === "ADMIN" || lessonIds.length === 0) return;
   const hasProgress = await LessonProgress.exists({ lesson: { $in: lessonIds } });
-  if (hasProgress) {
-    throw ApiError.forbidden(
-      "Students have already made progress in this content — ask an admin to delete it"
-    );
-  }
+  if (hasProgress) throw ApiError.forbidden(message);
+}
+
+async function assertMayDeleteLessons(requester: Requester, lessonIds: unknown[]): Promise<void> {
+  await assertNoStudentProgressForTrainer(
+    requester,
+    lessonIds,
+    "Students have already made progress in this content — ask an admin to delete it"
+  );
+}
+
+/** Same rule for edits that weaken what completing a lesson requires (unpublishing it, or
+ * dropping/shrinking its practice, quiz or coding stage): course-wide, so admin-only once any
+ * student has progress in the lesson. */
+function weakensLessonRequirements(lesson: ILesson, input: UpdateLessonInput): boolean {
+  if (input.published === false && lesson.published !== false) return true;
+  if (input.practice === null && lesson.practice) return true;
+  if (input.quiz !== undefined && input.quiz.length < (lesson.quiz?.length ?? 0)) return true;
+  if (input.codingQuestion === null && lesson.codingQuestion) return true;
+  return false;
 }
 
 async function assertCourseExists(courseId: string): Promise<void> {
@@ -233,6 +252,13 @@ export async function updateLesson(requester: Requester, id: string, input: Upda
   const lesson = await Lesson.findById(id);
   if (!lesson) throw ApiError.notFound("Lesson not found");
   await assertCourseContentAccess(String(lesson.course), requester);
+  if (weakensLessonRequirements(lesson, input)) {
+    await assertNoStudentProgressForTrainer(
+      requester,
+      [lesson._id],
+      "Students have already made progress in this lesson — ask an admin to unpublish it or remove its practice, quiz or coding question"
+    );
+  }
 
   Object.assign(lesson, input);
   await lesson.save();

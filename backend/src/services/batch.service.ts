@@ -135,8 +135,10 @@ export async function updateBatchStatus(adminId: string, id: string, status: IBa
 export async function listBatchStudents(batchId: string, userId: string, role: Role) {
   await assertBatchAccess(batchId, userId, role);
 
+  // Trainers only need to identify students; phone and the internal test-account flag are admin-only.
+  const studentFields = role === "ADMIN" ? "name email phone status isTestAccount" : "name email status";
   const enrollments = await Enrollment.find({ batch: batchId })
-    .populate("student", "name email phone status isTestAccount")
+    .populate("student", studentFields)
     .sort({ enrolledAt: -1 })
     .lean();
 

@@ -6,12 +6,26 @@ import { assertLessonUnlocked } from "../utils/lessonAccess";
 import { getLessonStageStatus } from "../utils/progressState";
 import { runCodingSubmission } from "../utils/codingJudge";
 import { maybeCompleteLesson } from "./progress.service";
+import { recordAudit } from "./auditLog.service";
 import { ITestResult } from "../models/CodingSubmission";
 
-/** What a student may see about each test: pass/fail and the runtime error, never the test's
- * inputs or expected output — otherwise hidden test cases can simply be hard-coded. */
+/** Older submissions per (student, lesson) beyond this many are pruned on each new one. */
+const MAX_STORED_SUBMISSIONS_PER_LESSON = 20;
+
+/** Students with a submission currently being graded — one in-flight judge per user, so a
+ * single student can't occupy every grader slot. */
+const gradingInFlight = new Set<string>();
+
+/** What a student may see about each test: pass/fail and an error, never the test's inputs or
+ * expected output — otherwise hidden test cases can simply be hard-coded. A runtime error's
+ * message can echo an input (e.g. `JSON.parse(arg)`, `throw new Error(String(arg))`), so only
+ * grader-generated messages are passed through; anything else is reduced to its error type. */
 function toStudentTestResults(results: ITestResult[]) {
-  return results.map((r) => ({ passed: r.passed, ...(r.error ? { error: r.error } : {}) }));
+  return results.map((r) => {
+    if (!r.error) return { passed: r.passed };
+    const error = r.graderError ? r.error : `${r.errorName ?? "Error"}: runtime error`;
+    return { passed: r.passed, error };
+  });
 }
 
 export async function getCodingState(studentId: string, lessonId: string) {
@@ -51,9 +65,37 @@ export async function submitCodingAnswer(studentId: string, lessonId: string, co
     throw ApiError.forbidden("Pass the quiz before attempting the coding question");
   }
 
-  const { passed, testResults } = await runCodingSubmission(lesson.codingQuestion, code);
+  if (gradingInFlight.has(studentId)) {
+    throw ApiError.tooMany("Your previous submission is still being graded");
+  }
+  gradingInFlight.add(studentId);
+  let graded: Awaited<ReturnType<typeof runCodingSubmission>>;
+  try {
+    graded = await runCodingSubmission(lesson.codingQuestion, code);
+  } finally {
+    gradingInFlight.delete(studentId);
+  }
+  const { passed, testResults } = graded;
 
-  await CodingSubmission.create({ student: studentId, lesson: lessonId, code, passed, testResults });
+  const submission = await CodingSubmission.create({ student: studentId, lesson: lessonId, code, passed, testResults });
+
+  // Keep only the most recent submissions (getCodingState reads just the latest one).
+  const stale = await CodingSubmission.find({ student: studentId, lesson: lessonId })
+    .sort({ createdAt: -1 })
+    .skip(MAX_STORED_SUBMISSIONS_PER_LESSON)
+    .select("_id")
+    .lean();
+  if (stale.length > 0) {
+    await CodingSubmission.deleteMany({ _id: { $in: stale.map((s) => s._id) } });
+  }
+
+  await recordAudit({
+    userId: studentId,
+    action: "CODING_SUBMITTED",
+    entity: "CodingSubmission",
+    entityId: submission._id,
+    metadata: { lesson: lessonId, passed },
+  });
 
   if (passed) {
     await LessonProgress.findOneAndUpdate(

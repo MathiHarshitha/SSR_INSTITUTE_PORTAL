@@ -84,23 +84,33 @@ async function sendViaBrevo(payload: EmailPayload): Promise<void> {
  * change that has already been committed, and a mail outage must not turn that into an error
  * response.
  */
-async function send(payload: EmailPayload): Promise<boolean> {
+async function send(payload: EmailPayload, kind: string): Promise<boolean> {
+  // Logs carry only the email kind and a masked recipient — never the subject or body, which
+  // can hold codes, links or personal details.
+  const meta = { kind, to: maskEmail(payload.to) };
   if (!env.brevoApiKey && !env.smtp.host) {
-    logger.info("Email (SMTP not configured, not sent)", { to: payload.to, subject: payload.subject });
+    logger.info("Email (SMTP not configured, not sent)", meta);
     return false;
   }
   try {
     if (env.brevoApiKey) {
       await sendViaBrevo(payload);
     } else {
-      await getTransporter().sendMail({ from: env.emailFrom, ...payload });
+      await getTransporter().sendMail({ from: env.emailFrom, ...payload, attachments: [logoAttachment] });
     }
-    logger.info("Email sent", { to: payload.to, subject: payload.subject });
+    logger.info("Email sent", meta);
     return true;
   } catch (error) {
-    logger.error(`Email to ${payload.to} failed ("${payload.subject}")`, error);
+    logger.error(`Email (${kind}) to ${meta.to} failed`, error);
     return false;
   }
+}
+
+/** "asha@test.local" -> "a***@test.local", for logs. */
+export function maskEmail(email: string): string {
+  const at = email.lastIndexOf("@");
+  if (at < 1) return "***";
+  return `${email[0]}***${email.slice(at)}`;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -282,16 +292,18 @@ export const emailService = {
   sendOtpVerification: (to: string, name: string, otp: string) =>
     send({
       to,
-      subject: `${otp} is your SSR Institute verification code`,
+      // Static subject: subjects show up in inbox previews, notifications and provider logs, so
+      // the code itself is only in the body.
+      subject: "Your SSR Institute verification code",
       html: buildOtpEmail(name, otp),
-    }),
+    }, "otp_verification"),
 
   sendAccountApproved: (to: string, name: string) =>
     send({
       to,
       subject: "Your SSR Institute account has been approved",
       html: buildAccountApprovedEmail(name),
-    }),
+    }, "account_approved"),
 
   sendAccountRejected: (to: string, name: string, reason?: string) =>
     send({
@@ -305,7 +317,7 @@ export const emailService = {
 ${reason ? callout("danger", `<strong>Reason:</strong> ${esc(reason)}`) : ""}
 ${paragraph("If you think this is a mistake, please contact the SSR Institute office.")}`,
       }),
-    }),
+    }, "account_rejected"),
 
   sendPasswordReset: (to: string, resetUrl: string) =>
     send({
@@ -318,7 +330,7 @@ ${paragraph("If you think this is a mistake, please contact the SSR Institute of
 ${paragraph(`This link expires in <strong>${env.resetTokenExpiresMinutes} minutes</strong>. If you didn't request a reset, you can ignore this email and your password will stay the same.`)}`,
         cta: { label: "Reset password", url: resetUrl },
       }),
-    }),
+    }, "password_reset"),
 
   sendSubmissionEvaluated: (
     to: string,
@@ -357,7 +369,7 @@ ${
 ${paragraph(`<strong>What's next:</strong> ${esc(band.tip)}`)}`,
         cta: { label: "View my tasks", url: `${env.clientUrl}/student/tasks` },
       }),
-    });
+    }, "submission_evaluated");
   },
 
   sendInterviewScheduled: (to: string, name: string, date: string, time: string) =>
@@ -376,7 +388,7 @@ ${details([
 ${paragraph("Prepare well and join on time. This is a great chance to practise and get useful feedback. All the best! 👍")}`,
         cta: { label: "View interview details", url: `${env.clientUrl}/student/interviews` },
       }),
-    }),
+    }, "interview_scheduled"),
 
   sendCertificateIssued: (to: string, name: string, courseName: string, certificateNumber: string) =>
     send({
@@ -393,7 +405,7 @@ ${details([
 ])}`,
         cta: { label: "View my certificates", url: `${env.clientUrl}/student/certificates` },
       }),
-    }),
+    }, "certificate_issued"),
 
   sendApplicationStatusChanged: (to: string, name: string, jobTitle: string, company: string, status: string) =>
     send({
@@ -411,7 +423,7 @@ ${details([
 ])}`,
         cta: { label: "View my applications", url: `${env.clientUrl}/student/jobs` },
       }),
-    }),
+    }, "application_status_changed"),
 
   /** Sent automatically when an admin approves a payment screenshot. Figures come from the
    * committed approval, never from the client. */
@@ -420,7 +432,7 @@ ${details([
       subject: `Payment approved — ${formatInr(p.amount)} for ${p.courseName}`,
       intro: "Your payment has been approved by SSR Institute Admin.",
       amountLabel: "Amount approved",
-    })),
+    }), "payment_approved"),
 
   /** Sent automatically when an admin records a cash (or other offline) payment. */
   sendPaymentRecorded: (to: string, p: PaymentRecordedEmail) => {
@@ -430,7 +442,7 @@ ${details([
       intro: `Your ${method} has been received and recorded by SSR Institute.`,
       amountLabel: "Amount received",
       extraRows: [["Payment method", p.paymentMethod.replace("_", " ")]],
-    }));
+    }), "payment_recorded");
   },
 };
 
@@ -521,6 +533,7 @@ function buildPaymentEmail(
     ...(p.receiptNumber ? ([["Receipt number", p.receiptNumber]] as [string, string][]) : []),
   ];
   const remaining = formatInr(Math.max(0, p.remainingAfterApproval));
+  const feesUrl = `${env.clientUrl}/student/fees`;
   const rowsHtml = rows
     .map(
       ([label, value], i) =>

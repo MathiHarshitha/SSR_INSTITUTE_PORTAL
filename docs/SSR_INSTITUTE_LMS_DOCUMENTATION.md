@@ -1698,7 +1698,7 @@ flowchart TD
 |---|---|---|---|---|
 | `NODE_ENV` | `development` / `test` relax security defaults. **Anything else is treated as production-strict.** | Recommended | `development` | `production` |
 | `PORT` | HTTP port | Optional (Railway injects it) | `5000` | `5000` |
-| `MONGODB_URI` | MongoDB connection string (**replica set required**) | **Required** (startup fails without it) | — | `mongodb+srv://YOUR_DB_USER:YOUR_DB_PASSWORD_HERE@YOUR_CLUSTER.mongodb.net/ssr-portal` |
+| `MONGODB_URI` | MongoDB connection string (**replica set required**) | **Required** (startup fails without it) | — | `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/ssr-portal` |
 | `JWT_SECRET` | HS256 signing key for access tokens. ≥ 32 characters outside dev/test. | **Required** | — | `YOUR_RANDOM_64_CHAR_SECRET_HERE` |
 | `JWT_EXPIRES_IN` | Access-token lifetime (jsonwebtoken format) | Optional (set explicitly in production) | `15m` | `15m` |
 | `SESSION_TTL_DAYS` | Refresh session and cookie lifetime (days) | Optional | `30` | `30` |
@@ -1745,7 +1745,7 @@ Test-only variables (set automatically by `tests/setupEnv.ts`, not needed in `.e
 
 ```env
 NODE_ENV=production
-MONGODB_URI=mongodb+srv://YOUR_DB_USER:YOUR_DB_PASSWORD_HERE@YOUR_CLUSTER.mongodb.net/ssr-portal
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/ssr-portal
 JWT_SECRET=YOUR_RANDOM_SECRET_OF_AT_LEAST_32_CHARACTERS_HERE
 JWT_EXPIRES_IN=15m
 SESSION_TTL_DAYS=30

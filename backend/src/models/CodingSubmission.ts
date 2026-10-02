@@ -6,6 +6,11 @@ export interface ITestResult {
   expectedOutput: unknown;
   actualOutput?: unknown;
   error?: string;
+  /** Error constructor name (e.g. "TypeError") of a runtime failure. */
+  errorName?: string;
+  /** True when `error` was produced by the grader (limits, syntax) rather than by running the
+   * code on a test's inputs — only those messages are shown to the student verbatim. */
+  graderError?: boolean;
 }
 
 export interface ICodingSubmission extends Document {
@@ -27,6 +32,8 @@ const testResultSchema = new Schema<ITestResult>(
     expectedOutput: { type: Schema.Types.Mixed },
     actualOutput: { type: Schema.Types.Mixed },
     error: { type: String },
+    errorName: { type: String },
+    graderError: { type: Boolean },
   },
   { _id: false }
 );

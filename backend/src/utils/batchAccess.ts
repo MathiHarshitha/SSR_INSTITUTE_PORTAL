@@ -1,5 +1,7 @@
 import { Batch, IBatch } from "../models/Batch";
 import { Enrollment } from "../models/Enrollment";
+import { Module } from "../models/Module";
+import { Types } from "mongoose";
 import { ApiError } from "../utils/ApiError";
 import { Role } from "../constants/enums";
 
@@ -64,6 +66,16 @@ export async function assertCourseContentAccess(
 export async function listTrainerCourseIds(trainerId: string): Promise<string[]> {
   const courseIds = await Batch.find({ trainer: trainerId }).distinct("course");
   return courseIds.map((id) => String(id));
+}
+
+/** Content attached to a batch may only reference a module from that batch's own course. */
+export async function assertModuleInCourse(
+  moduleId: string | undefined,
+  courseId: Types.ObjectId | string
+): Promise<void> {
+  if (!moduleId) return;
+  const exists = await Module.exists({ _id: moduleId, course: courseId });
+  if (!exists) throw ApiError.badRequest("Module does not belong to this batch's course");
 }
 
 /** A student may only read curriculum content for a course they're enrolled in. */

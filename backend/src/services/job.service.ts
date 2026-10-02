@@ -264,6 +264,11 @@ export async function updateApplicationStatus(
 ) {
   const application = await JobApplication.findById(applicationId);
   if (!application) throw ApiError.notFound("Application not found");
+  // A withdrawal is the student's decision and is terminal; SELECTED/REJECTED remain
+  // correctable by admins.
+  if (application.status === "WITHDRAWN") {
+    throw ApiError.badRequest("This application was withdrawn by the student and can no longer be updated");
+  }
 
   application.status = status;
   if (statusNote !== undefined) application.statusNote = statusNote;

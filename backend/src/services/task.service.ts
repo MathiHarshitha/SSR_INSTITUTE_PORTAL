@@ -151,6 +151,8 @@ export async function deleteTask(userId: string, role: Role, id: string) {
 
 // --- Submissions ---
 
+const EVALUATED_SUBMISSION_MESSAGE = "This submission has already been evaluated and can no longer be changed";
+
 export async function listPendingSubmissions(userId: string, role: Role) {
   const batchIds = role === "TRAINER" ? await listTrainerBatchIds(userId) : undefined;
   const filter: Record<string, unknown> = { status: { $in: ["SUBMITTED", "LATE"] } };
@@ -188,22 +190,39 @@ export async function submitTask(
 
   const isLate = new Date() > task.dueDate;
 
-  const previous = await Submission.findOne({ task: taskId, student: studentId }).select("_id").lean();
+  const previous = await Submission.findOne({ task: taskId, student: studentId }).select("_id status").lean();
+  if (previous?.status === "EVALUATED") throw ApiError.conflict(EVALUATED_SUBMISSION_MESSAGE);
 
-  const submission = await Submission.findOneAndUpdate(
-    { task: taskId, student: studentId },
-    {
-      $set: {
-        batch: task.batch,
-        content: input.content,
-        fileUrl: input.fileUrl,
-        comments: input.comments,
-        status: isLate ? "LATE" : "SUBMITTED",
-        submittedAt: new Date(),
+  // The status guard makes this atomic: if the trainer evaluates in between, the filter no
+  // longer matches, the upsert collides with the unique (task, student) index, and we refuse.
+  let submission;
+  try {
+    submission = await Submission.findOneAndUpdate(
+      { task: taskId, student: studentId, status: { $ne: "EVALUATED" } },
+      {
+        $set: {
+          batch: task.batch,
+          content: input.content,
+          fileUrl: input.fileUrl,
+          comments: input.comments,
+          status: isLate ? "LATE" : "SUBMITTED",
+          submittedAt: new Date(),
+        },
       },
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  } catch (error) {
+    if ((error as { code?: number }).code === 11000) throw ApiError.conflict(EVALUATED_SUBMISSION_MESSAGE);
+    throw error;
+  }
+
+  await recordAudit({
+    userId: studentId,
+    action: previous ? "TASK_RESUBMITTED" : "TASK_SUBMITTED",
+    entity: "Submission",
+    entityId: submission._id,
+    metadata: { task: taskId, late: isLate },
+  });
 
   await notifySafely(async () => {
     const [batch, student] = await Promise.all([

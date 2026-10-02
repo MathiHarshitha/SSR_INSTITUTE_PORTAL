@@ -2,7 +2,12 @@ import { searchRegex } from "../utils/searchRegex";
 import { FilterQuery } from "mongoose";
 import { Material, IMaterial } from "../models/Material";
 import { ApiError } from "../utils/ApiError";
-import { assertBatchAccess, listStudentBatchIds, listTrainerBatchIds } from "../utils/batchAccess";
+import {
+  assertBatchAccess,
+  assertModuleInCourse,
+  listStudentBatchIds,
+  listTrainerBatchIds,
+} from "../utils/batchAccess";
 import { recordAudit } from "./auditLog.service";
 import { Role } from "../constants/enums";
 import {
@@ -17,6 +22,7 @@ export async function createMaterial(
   input: CreateMaterialInput
 ) {
   const batch = await assertBatchAccess(input.batch, userId, role);
+  await assertModuleInCourse(input.module, batch.course);
 
   const material = await Material.create({
     ...input,
@@ -75,7 +81,8 @@ export async function updateMaterial(
   const material = await Material.findById(id);
   if (!material) throw ApiError.notFound("Material not found");
 
-  await assertBatchAccess(String(material.batch), userId, role);
+  const batch = await assertBatchAccess(String(material.batch), userId, role);
+  await assertModuleInCourse(input.module, batch.course);
 
   Object.assign(material, input);
   await material.save();

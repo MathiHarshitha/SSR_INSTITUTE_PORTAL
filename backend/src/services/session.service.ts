@@ -6,6 +6,7 @@ import { env } from "../config/env";
 import { ApiError } from "../utils/ApiError";
 import { hashToken } from "../utils/tokens";
 import { signAccessToken } from "../utils/jwt";
+import { recordAudit } from "./auditLog.service";
 
 /** How long the token a session just rotated away from stays acceptable (concurrent tabs). */
 const ROTATION_GRACE_MS = 30 * 1000;
@@ -57,7 +58,8 @@ export async function createSession(user: { _id: Types.ObjectId; role: string; s
  * Returns `refreshToken: null` when the caller's cookie jar already holds the newer token.
  */
 export async function refreshSession(
-  rawToken: string
+  rawToken: string,
+  ipAddress?: string
 ): Promise<{ accessToken: string; refreshToken: string | null }> {
   const parsed = parseRefreshToken(rawToken);
   if (!parsed) throw ApiError.unauthorized("Invalid or expired refresh token");
@@ -77,6 +79,13 @@ export async function refreshSession(
   if (!isCurrent && !isRecentPrevious) {
     session.revokedAt = new Date();
     await session.save();
+    await recordAudit({
+      userId: session.user,
+      action: "SESSION_REUSE_DETECTED",
+      entity: "Session",
+      entityId: session._id,
+      ipAddress,
+    });
     throw ApiError.unauthorized("Session has ended. Please log in again.");
   }
 
@@ -120,13 +129,14 @@ export async function refreshSession(
 }
 
 /** Logout: ends only the session the presented refresh token belongs to. */
-export async function revokeSessionByRefreshToken(rawToken: string | undefined): Promise<void> {
+export async function revokeSessionByRefreshToken(rawToken: string | undefined, ipAddress?: string): Promise<void> {
   const parsed = rawToken ? parseRefreshToken(rawToken) : null;
   if (!parsed) return;
   const session = await Session.findById(parsed.sessionId);
   if (session && hashesEqual(hashToken(parsed.secret), session.refreshTokenHash) && !session.revokedAt) {
     session.revokedAt = new Date();
     await session.save();
+    await recordAudit({ userId: session.user, action: "LOGOUT", entity: "Session", entityId: session._id, ipAddress });
   }
 }
 

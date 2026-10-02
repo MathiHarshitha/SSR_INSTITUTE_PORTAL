@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { sendError } from "../utils/apiResponse";
 
 const handler = (message: string) =>
@@ -22,6 +22,25 @@ export const authLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: handler("Too many attempts. Please try again later."),
+});
+
+/** Per-account login limit: counts only failed attempts against one email, so a distributed
+ * attack (many IPs) on a single account is still slowed down. Keyed by the normalized email in
+ * the body, so it must run after body parsing; falls back to the IP when there's no email.
+ * Uses the default in-memory store — per process, reset on restart. A shared store (e.g. Redis)
+ * is needed for this to hold across multiple instances. */
+export const loginAccountLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const email = (req.body as { email?: unknown } | undefined)?.email;
+    if (typeof email === "string" && email.trim()) return `login:${email.trim().toLowerCase()}`;
+    return `ip:${ipKeyGenerator(req.ip ?? "")}`;
+  },
+  handler: handler("Too many failed login attempts for this account. Please try again later."),
 });
 
 /** Token refresh — looser than login (every tab refreshes on load and on expiry), but bounded. */

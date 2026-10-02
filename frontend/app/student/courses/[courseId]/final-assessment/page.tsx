@@ -8,13 +8,17 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  StudentFinalAssessmentSubmitResult,
   useAnswerFinalAssessment,
   useFinalAssessmentState,
   useStartFinalAssessment,
   useSubmitFinalAssessment,
 } from "@/hooks/useFinalAssessment";
 import { extractErrorMessage } from "@/lib/api-client";
-import { FinalAssessmentSubmitResult } from "@/types/finalAssessment";
+
+function formatRetryTime(iso: string): string {
+  return new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
 
 /** Same server-side session pattern as the lesson quiz (see lesson-quiz.tsx): the current
  * question, index, and grade all live server-side, so refresh/back-nav can't bypass it. */
@@ -30,7 +34,7 @@ export default function FinalAssessmentPage({ params }: { params: Promise<{ cour
   const selected = selection && selection.index === state?.currentIndex ? selection.option : null;
   const setSelected = (option: number | null) =>
     setSelection(option === null ? null : { index: state?.currentIndex, option });
-  const [result, setResult] = useState<FinalAssessmentSubmitResult | null>(null);
+  const [result, setResult] = useState<StudentFinalAssessmentSubmitResult | null>(null);
 
   if (isError) {
     return (
@@ -110,8 +114,9 @@ export default function FinalAssessmentPage({ params }: { params: Promise<{ cour
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <p className="text-sm font-medium">
-              You already completed this assessment — scored {state?.score}%
-              {state?.passed ? " (passed)" : ""}.
+              {state?.passed
+                ? `You already completed this assessment — scored ${state.score}% (passed).`
+                : "You did not pass your last attempt at this assessment."}
             </p>
             {state?.passed ? (
               <p className="text-xs text-muted-foreground">Your course completion has been recorded.</p>
@@ -119,6 +124,9 @@ export default function FinalAssessmentPage({ params }: { params: Promise<{ cour
               <>
                 <p className="text-xs text-muted-foreground">
                   You need to pass the final assessment to complete the course.
+                  {state?.retryAvailableAt
+                    ? ` You can retake it after ${formatRetryTime(state.retryAvailableAt)}.`
+                    : ""}
                 </p>
                 <Button onClick={handleStart} disabled={startAssessment.isPending}>
                   Retake Final Assessment
@@ -175,14 +183,24 @@ export default function FinalAssessmentPage({ params }: { params: Promise<{ cour
             ) : (
               <XCircle className="h-10 w-10 text-destructive" />
             )}
-            <p className="text-lg font-semibold">You scored {result.score}%</p>
+            <p className="text-lg font-semibold">
+              {result.passed ? `You scored ${result.score}%` : "Not passed this time"}
+            </p>
             <p className="text-sm text-muted-foreground">
-              {result.passed ? "You passed the final assessment." : "You did not reach the passing score."}
+              {result.passed
+                ? "You passed the final assessment."
+                : `You did not reach the passing score${
+                    typeof result.passingScore === "number" ? ` of ${result.passingScore}%` : ""
+                  }.`}
             </p>
             <p className="text-xs text-muted-foreground">
               {result.passed
                 ? "Your course completion has been recorded — check your certificate and career resources."
-                : "You need to pass the final assessment to complete the course. You can retake it."}
+                : `You need to pass the final assessment to complete the course. ${
+                    result.retryAvailableAt
+                      ? `You can retake it after ${formatRetryTime(result.retryAvailableAt)}.`
+                      : "You can retake it."
+                  }`}
             </p>
             <Link
               href={`/student/courses/${courseId}`}

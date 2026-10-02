@@ -6,6 +6,7 @@ import { assertLessonUnlocked } from "../utils/lessonAccess";
 import { getLessonStageStatus } from "../utils/progressState";
 import { QUIZ_PASS_PERCENT } from "../constants/enums";
 import { maybeCompleteLesson } from "./progress.service";
+import { recordAudit } from "./auditLog.service";
 
 /**
  * Server-side quiz session state machine (spec §7: no going back, no reopening submitted
@@ -139,6 +140,14 @@ export async function submitQuiz(studentId: string, lessonId: string) {
   attempt.score = score;
   attempt.submittedAt = new Date();
   await attempt.save();
+
+  await recordAudit({
+    userId: studentId,
+    action: "QUIZ_SUBMITTED",
+    entity: "QuizAttempt",
+    entityId: attempt._id,
+    metadata: { lesson: lessonId, score, passed },
+  });
 
   const existingProgress = await LessonProgress.findOne({ student: studentId, lesson: lessonId })
     .select("quizBestScore quizPassed")

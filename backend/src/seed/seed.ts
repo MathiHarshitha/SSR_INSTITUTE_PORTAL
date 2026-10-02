@@ -19,8 +19,7 @@ const ADMIN_EMAIL = "admin@ssrinstitute.in";
 /** No committed fallback: a default password baked into the repo would give anyone who reads it
  * the admin account of every database this script was ever run against. Resolved lazily so
  * importing this module (e.g. for curriculum-only seeding in tests) doesn't require it. */
-function getSeedPassword(): string {
-  const value = process.env.SEED_PASSWORD;
+function assertStrongPassword(name: string, value: string | undefined): string {
   if (
     !value ||
     value.length < 12 ||
@@ -29,10 +28,25 @@ function getSeedPassword(): string {
     !/[0-9]/.test(value)
   ) {
     throw new Error(
-      "SEED_PASSWORD must be set to a strong password (12+ chars, upper, lower and a digit) before seeding accounts"
+      `${name} must be set to a strong password (12+ chars, upper, lower and a digit) before seeding accounts`
     );
   }
   return value;
+}
+
+/** Shared password for the demo trainer/student accounts. */
+function getSeedPassword(): string {
+  return assertStrongPassword("SEED_PASSWORD", process.env.SEED_PASSWORD);
+}
+
+/** The admin gets its own password when SEED_ADMIN_PASSWORD is set, so knowing a demo
+ * account's password doesn't also give the admin account. */
+function getSeedAdminPassword(): string {
+  if (process.env.SEED_ADMIN_PASSWORD) {
+    return assertStrongPassword("SEED_ADMIN_PASSWORD", process.env.SEED_ADMIN_PASSWORD);
+  }
+  logger.warn("SEED_ADMIN_PASSWORD not set — the admin account shares SEED_PASSWORD with the demo accounts");
+  return getSeedPassword();
 }
 
 export async function seedCourses() {
@@ -62,7 +76,7 @@ async function seedAdmin() {
   const existing = await User.findOne({ email: ADMIN_EMAIL });
   if (existing) return existing;
 
-  const passwordHash = await hashPassword(getSeedPassword());
+  const passwordHash = await hashPassword(getSeedAdminPassword());
   return User.create({
     name: "SSR Admin",
     email: ADMIN_EMAIL,
@@ -289,6 +303,10 @@ function redactMongoUri(uri: string): string {
 }
 
 async function run() {
+  // Demo accounts with known passwords must never land in a production database by accident.
+  if (env.isProduction && process.env.ALLOW_PRODUCTION_SEED !== "true") {
+    throw new Error("Refusing to seed with NODE_ENV=production (set ALLOW_PRODUCTION_SEED=true to override)");
+  }
   await connectDB();
   logger.info(`Seeding database: ${redactMongoUri(env.mongodbUri)}`);
 
@@ -302,7 +320,7 @@ async function run() {
   // Never log the password itself — logs are shipped/retained elsewhere.
   logger.info("Seed complete", {
     admin: ADMIN_EMAIL,
-    note: "Accounts use the SEED_PASSWORD you provided. Change it immediately outside of development.",
+    note: "Accounts use the SEED_PASSWORD (admin: SEED_ADMIN_PASSWORD, if set) you provided. Change them immediately outside of development.",
   });
 
   await disconnectDB();

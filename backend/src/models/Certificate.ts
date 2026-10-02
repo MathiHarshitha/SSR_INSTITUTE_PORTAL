@@ -41,6 +41,15 @@ const certificateSchema = new Schema<ICertificate>(
   { timestamps: true }
 );
 
-certificateSchema.index({ student: 1, batch: 1 });
+// At most one ISSUED certificate per student/batch, enforced by the DB so two concurrent
+// issue requests can't both pass the service's pre-check. REVOKED rows are excluded, so a
+// re-issue after revocation still works. NOTE: if production already holds duplicate ISSUED
+// certificates for a student/batch, this index build will fail — revoke/remove the extras first.
+// Explicitly named so it doesn't collide with the old non-unique `student_1_batch_1` index
+// (same key, different options), which can be dropped once this one is built.
+certificateSchema.index(
+  { student: 1, batch: 1 },
+  { unique: true, partialFilterExpression: { status: "ISSUED" }, name: "student_1_batch_1_issued_unique" }
+);
 
 export const Certificate = model<ICertificate>("Certificate", certificateSchema);

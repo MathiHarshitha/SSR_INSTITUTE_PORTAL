@@ -9,6 +9,9 @@ jest.mock("nodemailer", () => ({ __esModule: true, default: { createTransport } 
 // config/env.ts calls dotenv.config(); without this a developer's real backend/.env would leak
 // SMTP settings into these cases.
 jest.mock("dotenv", () => ({ __esModule: true, default: { config: jest.fn() }, config: jest.fn() }));
+// Captured so tests can assert nothing sensitive reaches the logs.
+const logged = { info: jest.fn(), warn: jest.fn(), error: jest.fn(), http: jest.fn() };
+jest.mock("../src/utils/logger", () => ({ logger: logged }));
 
 type EmailModule = typeof import("../src/services/email.service");
 
@@ -127,6 +130,27 @@ describe("email service", () => {
     expect(mail.html).toContain("Outstanding work!");
     expect(mail.html).toContain("95%");
     expect(mail.html).not.toContain("Trainer's feedback");
+  });
+
+  it("keeps the OTP out of the subject and out of every log line, and masks the recipient", async () => {
+    sendMail.mockResolvedValue({ messageId: "6" });
+    const { emailService } = loadEmailService({ SMTP_HOST: "smtp.test.local" });
+    await emailService.sendOtpVerification("asha@test.local", "Asha", "482913");
+    const mail = sendMail.mock.calls[0][0];
+    expect(mail.subject).toBe("Your SSR Institute verification code");
+    expect(mail.html).toContain("482913");
+
+    sendMail.mockRejectedValue(new Error("connection refused"));
+    await emailService.sendOtpVerification("asha@test.local", "Asha", "482913");
+    // Not configured: the "not sent" log path.
+    await loadEmailService({}).emailService.sendOtpVerification("asha@test.local", "Asha", "482913");
+
+    const lines = JSON.stringify([logged.info.mock.calls, logged.error.mock.calls, logged.warn.mock.calls]);
+    expect(lines).not.toContain("482913");
+    expect(lines).not.toContain("verification code");
+    expect(lines).not.toContain("asha@test.local");
+    expect(lines).toContain("a***@test.local");
+    expect(lines).toContain("otp_verification");
   });
 
   it("never throws when the SMTP server fails — it reports not sent", async () => {

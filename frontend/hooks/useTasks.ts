@@ -114,6 +114,10 @@ export function useSubmitTask(taskId: string) {
       toast.success("Task submitted");
       queryClient.invalidateQueries({ queryKey: [KEY] });
     },
-    onError: (error) => toast.error(extractErrorMessage(error)),
+    onError: (error) => {
+      toast.error(extractErrorMessage(error));
+      // e.g. a 409 because the trainer evaluated it meanwhile — refetch so the dialog shows marks.
+      queryClient.invalidateQueries({ queryKey: [KEY] });
+    },
   });
 }

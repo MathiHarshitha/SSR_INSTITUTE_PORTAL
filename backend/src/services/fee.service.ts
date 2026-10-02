@@ -369,6 +369,14 @@ export async function updateDiscount(adminId: string, enrollmentId: string, disc
   const enrollment = await Enrollment.findById(enrollmentId);
   if (!enrollment) throw ApiError.notFound("Enrollment not found");
 
+  // Discount is subtracted from the course fee (see getEnrollmentBalance), so it can't exceed it.
+  const course = await Course.findById(enrollment.course).select("fee").lean();
+  if (!course) throw ApiError.conflict("The course for this enrollment no longer exists");
+  if (discount > course.fee) {
+    throw ApiError.badRequest(`Discount cannot exceed the course fee (${course.fee})`);
+  }
+
+  const previousDiscount = enrollment.discount ?? 0;
   enrollment.discount = discount;
   await enrollment.save();
 
@@ -377,7 +385,7 @@ export async function updateDiscount(adminId: string, enrollmentId: string, disc
     action: "FEE_DISCOUNT_UPDATED",
     entity: "Enrollment",
     entityId: enrollment._id,
-    metadata: { discount },
+    metadata: { discount, previousDiscount },
   });
 
   return enrollment;

@@ -6,7 +6,9 @@ import { ApiError } from "./ApiError";
 const PER_TEST_TIMEOUT_MS = 2000;
 const MAX_TOTAL_TIMEOUT_MS = 10000;
 const MAX_CODE_LENGTH = 20000;
-const MAX_OUTPUT_BYTES = 1024 * 1024;
+const MAX_OUTPUT_BYTES = 256 * 1024;
+/** Longest serialized actualOutput kept per test result in the stored submission. */
+const MAX_STORED_OUTPUT_CHARS = 1000;
 const MAX_CONCURRENT_JUDGES = 2;
 const MAX_QUEUED_JUDGES = 20;
 
@@ -20,7 +22,10 @@ const MAX_QUEUED_JUDGES = 20;
  *     addons or `process.binding`),
  *   - cannot build functions from strings (`--disallow-code-generation-from-strings`),
  *   - has a small heap cap and a hard wall-clock SIGKILL (the vm timeout alone is bypassable
- *     with microtasks),
+ *     with microtasks); the heap cap doesn't cover ArrayBuffer backing stores, so every
+ *     buffer/typed-array/WebAssembly constructor is deleted from each sandbox global,
+ *   - gets its test arguments rebuilt inside the sandbox realm (no runner-realm objects are
+ *     ever handed to student code),
  *   - is never sent the expected outputs — it only returns what the code produced, and the
  *     pass/fail comparison happens here, so a sandbox escape cannot forge a "passed" verdict.
  * Residual risk: Node's permission model does not restrict outbound network access. For
@@ -34,26 +39,61 @@ process.stdin.setEncoding("utf8");
 process.stdin.on("data", (c) => { raw += c; });
 process.stdin.on("end", () => {
   const { code, functionName, tests, timeoutMs } = JSON.parse(raw);
+  // Off-heap allocators: --max-old-space-size doesn't bound ArrayBuffer backing stores (or
+  // WebAssembly.Memory), so they're removed from every sandbox global. Nothing else in the
+  // sandbox hands out a buffer, so they can't be recovered via a prototype chain.
+  const prepare = new vm.Script(
+    "for (const k of " + JSON.stringify([
+      "ArrayBuffer", "SharedArrayBuffer", "DataView", "Atomics", "WebAssembly",
+      "Int8Array", "Uint8Array", "Uint8ClampedArray", "Int16Array", "Uint16Array",
+      "Int32Array", "Uint32Array", "Float16Array", "Float32Array", "Float64Array",
+      "BigInt64Array", "BigUint64Array",
+    ]) + ") delete globalThis[k];" +
+    // Args are rebuilt from a JSON string inside the sandbox realm, so student code never
+    // holds an object from the runner's realm.
+    "globalThis.__args = JSON.parse(globalThis.__argsJson); delete globalThis.__argsJson;"
+  );
+  let script = null;
+  let compileError = null;
+  try {
+    script = new vm.Script(
+      code + "\n;(typeof " + functionName + " === \"function\" ? " + functionName +
+        "(...__args) : (() => { throw new Error(" + JSON.stringify(functionName + " is not defined") + ") })())"
+    );
+  } catch (err) {
+    let message = "Syntax error";
+    try { message = String((err && err.message) || err).slice(0, 500); } catch {}
+    compileError = { ok: false, error: message, errorName: "SyntaxError", graderError: true };
+  }
   const results = [];
   for (const args of tests) {
+    if (compileError) { results.push(compileError); continue; }
     const context = vm.createContext(Object.create(null), {
       codeGeneration: { strings: false, wasm: false },
       microtaskMode: "afterEvaluate",
     });
-    context.__args = JSON.parse(JSON.stringify(args));
+    context.__argsJson = JSON.stringify(args);
     try {
-      const script = new vm.Script(
-        code + "\n;(typeof " + functionName + " === \"function\" ? " + functionName +
-          "(...__args) : (() => { throw new Error(" + JSON.stringify(functionName + " is not defined") + ") })())"
-      );
+      prepare.runInContext(context);
       const out = script.runInContext(context, { timeout: timeoutMs });
       let json;
       try { json = JSON.stringify(out); } catch { json = undefined; }
       results.push({ ok: true, isUndefined: out === undefined, json: json === undefined ? null : json });
     } catch (err) {
+      // A runner-realm Error here can only come from vm itself (student throws are sandbox-realm).
+      if (err instanceof Error && err.code === "ERR_SCRIPT_EXECUTION_TIMEOUT") {
+        results.push({ ok: false, error: "Time limit exceeded", graderError: true });
+        continue;
+      }
       let message = "Execution error";
+      let name;
       try { message = String((err && err.message) || err).slice(0, 500); } catch {}
-      results.push({ ok: false, error: message });
+      try {
+        const n = err && err.name;
+        // Only built-in error types: a free-form name is student-controlled and could carry a test input.
+        if (typeof n === "string" && /^(Error|TypeError|RangeError|ReferenceError|SyntaxError|EvalError|URIError|AggregateError|InternalError)$/.test(n)) name = n;
+      } catch {}
+      results.push({ ok: false, error: message, errorName: name });
     }
   }
   process.stdout.write(JSON.stringify(results), () => process.exit(0));
@@ -105,6 +145,26 @@ interface RunnerResult {
   isUndefined?: boolean;
   json?: string | null;
   error?: string;
+  errorName?: string;
+  /** The message was produced by the grader itself (limits, syntax errors), not by running
+   * the student's code against a test's inputs — so it's safe to show verbatim. */
+  graderError?: boolean;
+}
+
+function limitFailure(error: string): RunnerResult {
+  return { ok: false, error, graderError: true };
+}
+
+/** Keeps a stored submission small: an oversized output is replaced by a string preview. */
+function truncateForStorage(value: unknown): unknown {
+  let json: string | undefined;
+  try {
+    json = JSON.stringify(value);
+  } catch {
+    return undefined;
+  }
+  if (json === undefined || json.length <= MAX_STORED_OUTPUT_CHARS) return value;
+  return `${json.slice(0, MAX_STORED_OUTPUT_CHARS)}…`;
 }
 
 function runIsolated(code: string, functionName: string, tests: unknown[][]): Promise<RunnerResult[]> {
@@ -134,7 +194,7 @@ function runIsolated(code: string, functionName: string, tests: unknown[][]): Pr
     };
 
     const timer = setTimeout(
-      () => finish(() => resolve(tests.map(() => ({ ok: false, error: "Time limit exceeded" })))),
+      () => finish(() => resolve(tests.map(() => limitFailure("Time limit exceeded")))),
       totalTimeout
     );
 
@@ -142,7 +202,7 @@ function runIsolated(code: string, functionName: string, tests: unknown[][]): Pr
     child.stdout.on("data", (chunk: string) => {
       stdout += chunk;
       if (stdout.length > MAX_OUTPUT_BYTES) {
-        finish(() => resolve(tests.map(() => ({ ok: false, error: "Output limit exceeded" }))));
+        finish(() => resolve(tests.map(() => limitFailure("Output limit exceeded"))));
       }
     });
     child.on("error", (err) => finish(() => reject(err)));
@@ -153,7 +213,7 @@ function runIsolated(code: string, functionName: string, tests: unknown[][]): Pr
           if (!Array.isArray(parsed) || parsed.length !== tests.length) throw new Error("bad shape");
           resolve(parsed);
         } catch {
-          resolve(tests.map(() => ({ ok: false, error: "Execution failed (memory or runtime limit)" })));
+          resolve(tests.map(() => limitFailure("Execution failed (memory or runtime limit)")));
         }
       })
     );
@@ -193,7 +253,16 @@ export async function runCodingSubmission(
   const testResults: ITestResult[] = question.testCases.map((testCase, i) => {
     const r = runnerResults[i];
     if (!r?.ok) {
-      return { passed: false, args: testCase.args, expectedOutput: testCase.expectedOutput, error: r?.error ?? "Execution error" };
+      const error = r?.error ?? "Execution error";
+      return {
+        passed: false,
+        args: testCase.args,
+        expectedOutput: testCase.expectedOutput,
+        error,
+        ...(r?.errorName ? { errorName: r.errorName } : {}),
+        // The "not defined" message is fixed text built from the question, not from inputs.
+        graderError: r?.graderError === true || error === `${fnName} is not defined`,
+      };
     }
     let actualOutput: unknown;
     try {
@@ -201,11 +270,13 @@ export async function runCodingSubmission(
     } catch {
       actualOutput = undefined;
     }
+    // Compare against the full output first; only the stored copy is truncated.
+    const passed = deepEqual(actualOutput, testCase.expectedOutput);
     return {
-      passed: deepEqual(actualOutput, testCase.expectedOutput),
+      passed,
       args: testCase.args,
       expectedOutput: testCase.expectedOutput,
-      actualOutput,
+      actualOutput: truncateForStorage(actualOutput),
     };
   });
 

@@ -13,6 +13,7 @@ import { Lesson } from "../src/models/Lesson";
 import { Enrollment } from "../src/models/Enrollment";
 import { LessonProgress } from "../src/models/LessonProgress";
 import { FinalAssessment } from "../src/models/FinalAssessment";
+import { FinalAssessmentAttempt } from "../src/models/FinalAssessmentAttempt";
 import { Task } from "../src/models/Task";
 import { Announcement } from "../src/models/Announcement";
 import { InterviewResource } from "../src/models/InterviewResource";
@@ -158,7 +159,12 @@ describe("H1/H2 — final assessment must be passed; failed attempts don't leak 
       .send({ student: String(student._id), batch: String(batch._id) });
     expect(cert.status).toBe(400);
 
-    // Retake and pass → now complete.
+    // Retake (after the failed-attempt cooldown) and pass → now complete.
+    await request(app).post(`${base}/start`).set(authHeader(token)).expect(429);
+    await FinalAssessmentAttempt.updateOne(
+      { student: student._id, course: course._id },
+      { $set: { submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000) } }
+    );
     await request(app).post(`${base}/start`).set(authHeader(token)).expect(200);
     await request(app).post(`${base}/answer`).set(authHeader(token)).send({ selectedIndex: 1 }).expect(200);
     const passed = await request(app).post(`${base}/submit`).set(authHeader(token));

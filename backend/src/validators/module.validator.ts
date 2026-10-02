@@ -76,7 +76,8 @@ const lessonFieldsBase = z.object({
   description: z.string().trim().max(2000).optional(),
   estimatedMinutes: z.coerce.number().min(0).optional(),
   difficulty: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]).optional(),
-  published: z.coerce.boolean().optional(),
+  // Not z.coerce.boolean(): that turns the string "false" into true.
+  published: z.boolean().optional(),
 
   whatIsIt: z.string().trim().max(3000).optional(),
   whyItMatters: z.string().trim().max(3000).optional(),
