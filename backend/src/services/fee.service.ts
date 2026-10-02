@@ -237,12 +237,14 @@ export async function listFeeStatus(query: ListFeeStatusQuery, studentId?: strin
   if (query.batch) filter.batch = query.batch;
   if (studentId) filter.student = studentId;
 
-  const enrollments = await Enrollment.find(filter)
-    .populate("student", "name email")
-    .populate("course", "name fee")
-    .populate("batch", "name")
-    .sort({ enrolledAt: -1 })
-    .lean();
+  const enrollments = (
+    await Enrollment.find(filter)
+      .populate("student", "name email isTestAccount")
+      .populate("course", "name fee")
+      .populate("batch", "name")
+      .sort({ enrolledAt: -1 })
+      .lean()
+  ).filter((e) => e.student && e.course && e.batch); // skip enrollments whose student/course/batch was deleted
 
   const paidTotals = await Payment.aggregate<{ _id: Types.ObjectId; total: number }>([
     {
@@ -367,6 +369,14 @@ export async function updateDiscount(adminId: string, enrollmentId: string, disc
   const enrollment = await Enrollment.findById(enrollmentId);
   if (!enrollment) throw ApiError.notFound("Enrollment not found");
 
+  // Discount is subtracted from the course fee (see getEnrollmentBalance), so it can't exceed it.
+  const course = await Course.findById(enrollment.course).select("fee").lean();
+  if (!course) throw ApiError.conflict("The course for this enrollment no longer exists");
+  if (discount > course.fee) {
+    throw ApiError.badRequest(`Discount cannot exceed the course fee (${course.fee})`);
+  }
+
+  const previousDiscount = enrollment.discount ?? 0;
   enrollment.discount = discount;
   await enrollment.save();
 
@@ -375,7 +385,7 @@ export async function updateDiscount(adminId: string, enrollmentId: string, disc
     action: "FEE_DISCOUNT_UPDATED",
     entity: "Enrollment",
     entityId: enrollment._id,
-    metadata: { discount },
+    metadata: { discount, previousDiscount },
   });
 
   return enrollment;

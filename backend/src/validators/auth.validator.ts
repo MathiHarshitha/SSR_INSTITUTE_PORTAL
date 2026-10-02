@@ -10,13 +10,15 @@ const passwordSchema = z
   .regex(/[A-Z]/, "Password must contain an uppercase letter")
   .regex(/[0-9]/, "Password must contain a number");
 
+const phoneSchema = z
+  .string()
+  .trim()
+  .regex(/^[0-9+\-\s()]{7,20}$/, "Invalid phone number");
+
 const baseRegisterFields = {
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().toLowerCase().email(),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^[0-9+\-\s()]{7,20}$/, "Invalid phone number"),
+  phone: phoneSchema,
   password: passwordSchema,
   confirmPassword: z.string().optional(),
 };
@@ -32,6 +34,8 @@ export const registerStudentSchema = z
       .string()
       .trim()
       .regex(/^[0-9a-fA-F]{24}$/, "Select a valid course"),
+    guardianPhone: phoneSchema,
+    acceptedPrivacyPolicy: z.literal(true, { error: "You must accept the privacy policy" }),
   })
   .refine(
     (data) => data.confirmPassword === undefined || data.password === data.confirmPassword,
@@ -46,6 +50,8 @@ export const registerTrainerSchema = z
     experienceYears: z.coerce.number().min(0).max(60).optional(),
     specialization: z.string().trim().max(200).optional(),
     resumeUrl: httpUrl().optional(),
+    alternatePhone: phoneSchema,
+    acceptedPrivacyPolicy: z.literal(true, { error: "You must accept the privacy policy" }),
   })
   .refine(
     (data) => data.confirmPassword === undefined || data.password === data.confirmPassword,

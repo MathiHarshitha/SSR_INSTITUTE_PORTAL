@@ -11,7 +11,12 @@ export interface IFinalAssessmentAttempt extends Document {
   finalAssessment: Types.ObjectId;
   status: QuizAttemptStatus;
   currentIndex: number;
+  /** Answers indexed by the assessment's *original* question index. */
   answers: (number | null)[];
+  /** Per-attempt question order: position i shows questions[order[i]]. */
+  order: number[];
+  /** Number of attempts started (incremented on every fresh start). */
+  attemptCount: number;
   score?: number;
   passed?: boolean;
   startedAt: Date;
@@ -28,6 +33,8 @@ const finalAssessmentAttemptSchema = new Schema<IFinalAssessmentAttempt>(
     status: { type: String, enum: ["IN_PROGRESS", "SUBMITTED", "QUIT"], default: "IN_PROGRESS" },
     currentIndex: { type: Number, default: 0, min: 0 },
     answers: { type: [Schema.Types.Mixed], default: [] },
+    order: { type: [Number], default: [] },
+    attemptCount: { type: Number, default: 0, min: 0 },
     score: { type: Number, min: 0, max: 100 },
     passed: { type: Boolean },
     startedAt: { type: Date, default: Date.now },

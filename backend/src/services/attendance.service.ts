@@ -17,6 +17,22 @@ export async function markAttendance(userId: string, role: Role, input: MarkAtte
   const batch = await assertBatchAccess(input.batch, userId, role);
   const day = toDayStart(input.date);
 
+  // Dates are stored at UTC-day granularity, so compare at that granularity. "Today" is
+  // taken at the furthest-ahead timezone (UTC+14) so a local-date submission just after
+  // local midnight (e.g. IST) isn't misread as a future day.
+  const latestToday = toDayStart(new Date(Date.now() + 14 * 60 * 60 * 1000));
+  if (day > latestToday) throw ApiError.badRequest("Attendance cannot be marked for a future date");
+
+  // Trainers are held to the batch's schedule; admins may override for corrections.
+  if (role !== "ADMIN") {
+    if (batch.status !== "ACTIVE") {
+      throw ApiError.badRequest("Attendance can only be marked for an active batch");
+    }
+    if (day < toDayStart(batch.startDate) || day > toDayStart(batch.endDate)) {
+      throw ApiError.badRequest("Attendance date must fall within the batch's start and end dates");
+    }
+  }
+
   // Every record must be for a student actually enrolled in this batch — otherwise a trainer
   // could write attendance for any student (it feeds the job-eligibility attendance %).
   const studentIds = [...new Set(input.records.map((r) => r.student))];

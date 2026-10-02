@@ -20,6 +20,8 @@ interface RoleStatusBucket {
 export async function getUserStats() {
   const [buckets, totalCourses] = await Promise.all([
     User.aggregate<RoleStatusBucket>([
+      // Test accounts are left out of dashboard counts.
+      { $match: { isTestAccount: { $ne: true } } },
       { $group: { _id: { role: "$role", status: "$status" }, count: { $sum: 1 } } },
     ]),
     Course.countDocuments({ status: "PUBLISHED" }),
@@ -125,12 +127,18 @@ async function setStatus(
   userId: string,
   status: UserStatus,
   action: string,
+  /** Source states this transition is valid from, and its verb for the error message. */
+  transition: { from: UserStatus[]; verb: string },
   reason?: string
 ) {
   const user = await User.findById(userId);
   if (!user) throw ApiError.notFound("User not found");
   if (user.role === "ADMIN") {
     throw ApiError.forbidden("Admin accounts cannot be modified this way");
+  }
+  // e.g. "unblock" must not activate a PENDING/REJECTED account that never passed approval.
+  if (!transition.from.includes(user.status)) {
+    throw ApiError.badRequest(`Cannot ${transition.verb} a user who is ${user.status.toLowerCase()}`);
   }
 
   user.status = status;
@@ -144,13 +152,13 @@ async function setStatus(
 }
 
 export const blockUser = (adminId: string, userId: string) =>
-  setStatus(adminId, userId, "BLOCKED", "USER_BLOCKED");
+  setStatus(adminId, userId, "BLOCKED", "USER_BLOCKED", { from: ["ACTIVE", "SUSPENDED"], verb: "block" });
 
 export const unblockUser = (adminId: string, userId: string) =>
-  setStatus(adminId, userId, "ACTIVE", "USER_UNBLOCKED");
+  setStatus(adminId, userId, "ACTIVE", "USER_UNBLOCKED", { from: ["BLOCKED"], verb: "unblock" });
 
 export const suspendUser = (adminId: string, userId: string, reason?: string) =>
-  setStatus(adminId, userId, "SUSPENDED", "USER_SUSPENDED", reason);
+  setStatus(adminId, userId, "SUSPENDED", "USER_SUSPENDED", { from: ["ACTIVE"], verb: "suspend" }, reason);
 
 export const reactivateUser = (adminId: string, userId: string) =>
-  setStatus(adminId, userId, "ACTIVE", "USER_REACTIVATED");
+  setStatus(adminId, userId, "ACTIVE", "USER_REACTIVATED", { from: ["SUSPENDED"], verb: "reactivate" });

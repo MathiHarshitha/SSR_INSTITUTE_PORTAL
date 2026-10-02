@@ -14,7 +14,7 @@ import { sanitize } from "express-mongo-sanitize";
  */
 export function mongoSanitize(req: Request, _res: Response, next: NextFunction): void {
   if (req.body) sanitize(req.body);
-  if (req.params) sanitize(req.params);
+  // No req.params here: they're only populated during routing, and are always strings in Express 5.
   if (req.query) {
     const cleaned = sanitize(req.query);
     Object.defineProperty(req, "query", {

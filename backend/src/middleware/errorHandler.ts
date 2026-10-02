@@ -25,7 +25,9 @@ export function errorHandler(
 
   if (err instanceof ApiError) {
     statusCode = err.statusCode;
-    message = err.message;
+    // 5xx ApiError text describes server internals; clients outside local dev get a generic
+    // message (the real one is still logged below).
+    message = statusCode >= 500 && !env.isLocalDev ? "Something went wrong" : err.message;
     errors = err.errors;
   } else if (err instanceof ZodError) {
     statusCode = 422;

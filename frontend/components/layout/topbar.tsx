@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -14,18 +13,17 @@ import {
   ChevronDown,
   ClipboardCheck,
   ClipboardList,
+  FileInput,
   Megaphone,
   Menu,
   Moon,
-  Search,
   Sun,
+  UserPlus,
   Video,
   Wallet,
   XCircle,
 } from "lucide-react";
-import { Button, buttonVariants } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -76,7 +74,14 @@ const NOTIFICATION_ICON: Record<NotificationType, { icon: typeof Bell; chip: str
   PAYMENT_APPROVED: { icon: Wallet, chip: "bg-status-good/10 text-status-good" },
   PAYMENT_REJECTED: { icon: Wallet, chip: "bg-destructive/10 text-destructive" },
   PAYMENT_RECORDED: { icon: Wallet, chip: "bg-status-good/10 text-status-good" },
+  SUBMISSION_RECEIVED: { icon: FileInput, chip: "bg-secondary/10 text-secondary" },
+  USER_PENDING_APPROVAL: {
+    icon: UserPlus,
+    chip: "bg-status-warning/15 text-amber-800 dark:text-status-warning",
+  },
 };
+
+const DEFAULT_NOTIFICATION_ICON = { icon: Bell, chip: "bg-secondary/10 text-secondary" };
 
 function NotificationRow({
   notification,
@@ -85,7 +90,10 @@ function NotificationRow({
   notification: AppNotification;
   onRead: (id: string) => void;
 }) {
-  const { icon: Icon, chip } = NOTIFICATION_ICON[notification.type];
+  // A type this build doesn't know yet (backend deployed ahead of the frontend, or a stale bundle)
+  // must fall back to a generic icon rather than crash the whole layout.
+  const { icon: Icon, chip } =
+    (NOTIFICATION_ICON as Partial<typeof NOTIFICATION_ICON>)[notification.type] ?? DEFAULT_NOTIFICATION_ICON;
 
   const content = (
     <div className="flex w-full items-start gap-2.5 whitespace-normal py-1">
@@ -133,33 +141,30 @@ function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <button
+      type="button"
       aria-label="Toggle theme"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+      className={cn(TOOLBAR_BUTTON, "relative overflow-hidden")}
     >
-      <Sun className="h-5 w-5 dark:hidden" />
-      <Moon className="hidden h-5 w-5 dark:block" />
-    </Button>
+      {/* Sun and moon swap with a small rotate/scale so the toggle feels tactile. */}
+      <Sun className="h-[18px] w-[18px] rotate-0 scale-100 text-amber-500 transition-all duration-300 dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-[18px] w-[18px] rotate-90 scale-0 text-sky-300 transition-all duration-300 dark:rotate-0 dark:scale-100" />
+    </button>
   );
 }
 
+/** Round icon button used inside the top bar's tool pill. */
+const TOOLBAR_BUTTON =
+  "inline-flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground outline-none transition-all hover:bg-card hover:text-foreground hover:shadow-sm focus-visible:ring-2 focus-visible:ring-ring data-popup-open:bg-card data-popup-open:text-foreground data-popup-open:shadow-sm";
+
 export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
   const [profileOpen, setProfileOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const router = useRouter();
   const { data: unreadCount = 0 } = useUnreadNotificationCount();
   const { data: notificationsData } = useNotifications();
   const markAsRead = useMarkNotificationRead();
   const markAllAsRead = useMarkAllNotificationsRead();
   const notifications = notificationsData?.notifications ?? [];
-
-  function handleSearchSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const q = search.trim();
-    router.push(q ? `/student/search?q=${encodeURIComponent(q)}` : "/student/search");
-  }
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-card">
@@ -180,41 +185,24 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
           </div>
         </Link>
 
-        <h1
-          className={cn(
-            "truncate text-base font-semibold text-foreground sm:text-lg",
-            user.role === "STUDENT" && "lg:hidden"
-          )}
-        >
-          {title}
-        </h1>
-
-        {user.role === "STUDENT" && (
-          <form onSubmit={handleSearchSubmit} className="hidden max-w-xl flex-1 lg:block">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search anything... (courses, materials, tasks)"
-                className="h-10 rounded-full bg-muted pl-9"
-              />
-            </div>
-          </form>
-        )}
+        <h1 className="truncate text-base font-semibold text-foreground sm:text-lg">{title}</h1>
 
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-0.5 rounded-full border border-border/70 bg-muted/60 p-1">
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger
-            className={buttonVariants({ variant: "ghost", size: "icon" }) + " relative"}
-            aria-label="Notifications"
+            className={cn(TOOLBAR_BUTTON, "relative")}
+            aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
           >
-            <Bell className={cn("h-5 w-5", unreadCount > 0 && "text-primary")} />
+            <Bell className={cn("h-[18px] w-[18px]", unreadCount > 0 && "text-secondary")} />
             {unreadCount > 0 && (
-              <Badge className="absolute -right-1 -top-1 h-4 min-w-4 animate-pulse justify-center rounded-full bg-accent p-0 text-[10px] text-accent-foreground">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </Badge>
+              <span className="absolute -right-0.5 -top-0.5 flex">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-50" />
+                <span className="relative inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 px-1 text-[10px] font-bold leading-none text-white shadow-sm ring-2 ring-card">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              </span>
             )}
           </DropdownMenuTrigger>
           <DropdownMenuContent glass={false} align="end" className="w-[min(20rem,calc(100vw-1rem))] p-2">
@@ -250,24 +238,43 @@ export function Topbar({ user, title, onOpenMobileSidebar }: TopbarProps) {
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
 
         <button
           type="button"
           onClick={() => setProfileOpen(true)}
-          className="flex items-center gap-2 rounded-full pl-1 outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
+          className="group flex items-center gap-2.5 rounded-full border border-border/70 bg-card p-1 shadow-sm outline-none transition-all hover:border-secondary/40 hover:shadow-md hover:shadow-secondary/10 focus-visible:ring-2 focus-visible:ring-ring sm:pr-3"
           aria-label="Open account panel"
         >
-          <Avatar className="h-9 w-9 ring-2 ring-secondary/40 ring-offset-2 ring-offset-background transition-all hover:ring-secondary/70">
-            {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
-            <AvatarFallback className="bg-primary text-xs font-semibold text-primary-foreground">
-              {initials(user.name)}
-            </AvatarFallback>
-          </Avatar>
-          <span className="hidden leading-tight sm:block">
-            <span className="block text-sm font-semibold text-foreground">{user.name}</span>
-            <span className="block text-xs text-muted-foreground capitalize">{user.role.toLowerCase()}</span>
+          <span className="relative shrink-0">
+            {/* Gradient ring in the sidebar's teal family. */}
+            <span className="block rounded-full bg-gradient-to-br from-[#00b8d4] via-secondary to-[#0b5568] p-[2px]">
+              <Avatar className="h-8 w-8 ring-2 ring-card">
+                {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.name} />}
+                <AvatarFallback className="bg-gradient-to-br from-[#0b5568] to-[#0a2b34] text-xs font-semibold text-white">
+                  {initials(user.name)}
+                </AvatarFallback>
+              </Avatar>
+            </span>
+            {user.status === "ACTIVE" && (
+              <span
+                className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-card"
+                aria-hidden
+              />
+            )}
           </span>
-          <ChevronDown className="hidden h-4 w-4 shrink-0 text-muted-foreground sm:block" />
+          <span className="hidden min-w-0 text-left leading-tight sm:block">
+            <span className="block max-w-[10rem] truncate text-sm font-semibold text-foreground">{user.name}</span>
+            <span className="mt-0.5 inline-block rounded-full bg-secondary/10 px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide text-secondary">
+              {user.role.toLowerCase()}
+            </span>
+          </span>
+          <ChevronDown
+            className={cn(
+              "hidden h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:text-foreground sm:block",
+              profileOpen && "rotate-180"
+            )}
+          />
         </button>
         </div>
       </div>

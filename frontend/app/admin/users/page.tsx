@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Search, ChevronLeft, ChevronRight, MoreHorizontal, Eye } from "lucide-react";
+import { Suspense, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Search, ChevronLeft, ChevronRight, MoreHorizontal, Eye, Check, X } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -91,17 +93,88 @@ function presetToFilters(preset: PresetKey): { role?: Role; status?: UserStatus 
 
 type DialogAction = "approve" | "reject" | "block" | "unblock" | "suspend" | "reactivate";
 
-export default function AdminUsersPage() {
-  const [preset, setPreset] = useState<PresetKey>("all");
+/** The action a user's current status calls for, shown as visible buttons (never in a menu). */
+function PrimaryUserActions({
+  user,
+  onAction,
+}: {
+  user: AdminUserListItem;
+  onAction: (user: AdminUserListItem, action: DialogAction) => void;
+}) {
+  if (user.status === "PENDING") {
+    return (
+      <>
+        <Button size="sm" onClick={() => onAction(user, "approve")}>
+          <Check className="h-3.5 w-3.5" />
+          Approve
+        </Button>
+        <Button size="sm" variant="destructive" onClick={() => onAction(user, "reject")}>
+          <X className="h-3.5 w-3.5" />
+          Reject
+        </Button>
+      </>
+    );
+  }
+  if (user.status === "BLOCKED") {
+    return (
+      <Button size="sm" variant="outline" onClick={() => onAction(user, "unblock")}>
+        Unblock
+      </Button>
+    );
+  }
+  if (user.status === "SUSPENDED") {
+    return (
+      <Button size="sm" variant="outline" onClick={() => onAction(user, "reactivate")}>
+        Reactivate
+      </Button>
+    );
+  }
+  return null;
+}
+
+function isPresetKey(value: string | null): value is PresetKey {
+  return PRESETS.some((p) => p.key === value);
+}
+
+function AdminUsersContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const presetParam = searchParams.get("preset");
+  const viewParam = searchParams.get("view");
+  const [preset, setPreset] = useState<PresetKey>(() => (isPresetKey(presetParam) ? presetParam : "all"));
   const [extraStatus, setExtraStatus] = useState<UserStatus | "ALL">("ALL");
   const [searchInput, setSearchInput] = useState("");
   const search = useDebouncedValue(searchInput);
   const [page, setPage] = useState(1);
   const limit = 10;
 
-  const [viewUserId, setViewUserId] = useState<string | null>(null);
+  const [viewUserId, setViewUserId] = useState<string | null>(viewParam);
   const [actionTarget, setActionTarget] = useState<AdminUserListItem | null>(null);
   const [dialogAction, setDialogAction] = useState<DialogAction | null>(null);
+
+  // Deep link from a "user awaiting approval" notification (?preset=pending&view=<id>); also
+  // re-applied when another such notification is clicked while already on this page.
+  const linkKey = `${presetParam ?? ""}:${viewParam ?? ""}`;
+  const [appliedLink, setAppliedLink] = useState(linkKey);
+  if (linkKey !== appliedLink) {
+    setAppliedLink(linkKey);
+    if (isPresetKey(presetParam)) {
+      setPreset(presetParam);
+      setExtraStatus("ALL");
+      setPage(1);
+    }
+    if (viewParam) setViewUserId(viewParam);
+  }
+
+  function openProfile(id: string) {
+    setViewUserId(id);
+  }
+
+  function closeProfile() {
+    setViewUserId(null);
+    // Drop the deep-link params so the same notification can be opened again later.
+    if (viewParam) router.replace(isPresetKey(presetParam) ? `/admin/users?preset=${presetParam}` : "/admin/users");
+  }
 
   const presetFilters = presetToFilters(preset);
   const status = presetFilters.status ?? (extraStatus !== "ALL" ? extraStatus : undefined);
@@ -120,7 +193,7 @@ export default function AdminUsersPage() {
   );
 
   const { data, isLoading, isError, isFetching } = useUsers(query);
-  const { data: viewUser, isLoading: isLoadingViewUser } = useUser(viewUserId);
+  const { data: viewUser, isLoading: isLoadingViewUser, isError: isErrorViewUser } = useUser(viewUserId);
 
   const approveMutation = useApproveUser();
   const rejectMutation = useRejectUser();
@@ -298,7 +371,13 @@ export default function AdminUsersPage() {
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user._id} className={cn(isFetching && "opacity-60")}>
-                      <TableCell className="font-medium">{user.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {user.name} {user.isTestAccount && (
+                        <span className="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-400" title="Test account — excluded from counts and fee totals">
+                          TEST
+                        </span>
+                      )}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         <div>{user.email}</div>
                         <div className="text-xs">{user.phone}</div>
@@ -308,35 +387,29 @@ export default function AdminUsersPage() {
                       </TableCell>
                       <TableCell>
                         <Badge className={statusBadgeClassName(user.status)}>{user.status}</Badge>
+                        {user.status === "PENDING" && !user.isEmailVerified && (
+                          <p className="mt-1 text-xs text-muted-foreground">Email not verified</p>
+                        )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setViewUserId(user._id)}>
-                              <Eye className="h-4 w-4" />
-                              View profile
-                            </DropdownMenuItem>
-                            {user.status === "PENDING" && (
-                              <>
-                                <DropdownMenuItem onClick={() => openAction(user, "approve")}>
-                                  Approve
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  variant="destructive"
-                                  onClick={() => openAction(user, "reject")}
-                                >
-                                  Reject
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                            {user.status === "ACTIVE" && (
-                              <>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-2">
+                          <PrimaryUserActions user={user} onAction={openAction} />
+                          <Button variant="ghost" size="sm" onClick={() => openProfile(user._id)}>
+                            <Eye className="h-3.5 w-3.5" />
+                            View
+                          </Button>
+                          {user.status === "ACTIVE" ? (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted"
+                                aria-label="More actions"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
                                 <DropdownMenuItem
                                   variant="destructive"
                                   onClick={() => openAction(user, "block")}
@@ -349,20 +422,13 @@ export default function AdminUsersPage() {
                                 >
                                   Suspend
                                 </DropdownMenuItem>
-                              </>
-                            )}
-                            {user.status === "BLOCKED" && (
-                              <DropdownMenuItem onClick={() => openAction(user, "unblock")}>
-                                Unblock
-                              </DropdownMenuItem>
-                            )}
-                            {user.status === "SUSPENDED" && (
-                              <DropdownMenuItem onClick={() => openAction(user, "reactivate")}>
-                                Reactivate
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          ) : (
+                            // Keeps the button column aligned across rows.
+                            <span className="inline-block h-8 w-8" aria-hidden />
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -404,7 +470,7 @@ export default function AdminUsersPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={!!viewUserId} onOpenChange={(open) => !open && setViewUserId(null)}>
+      <Dialog open={!!viewUserId} onOpenChange={(open) => !open && closeProfile()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>User profile</DialogTitle>
@@ -470,7 +536,33 @@ export default function AdminUsersPage() {
                 </div>
               )}
             </div>
+          ) : isErrorViewUser ? (
+            <p className="text-sm text-muted-foreground">Failed to load this user.</p>
           ) : null}
+
+          {viewUser?.status === "PENDING" && (
+            <DialogFooter>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  closeProfile();
+                  openAction(viewUser, "reject");
+                }}
+              >
+                <X className="h-4 w-4" />
+                Reject
+              </Button>
+              <Button
+                onClick={() => {
+                  closeProfile();
+                  openAction(viewUser, "approve");
+                }}
+              >
+                <Check className="h-4 w-4" />
+                Approve
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -488,5 +580,14 @@ export default function AdminUsersPage() {
         />
       )}
     </div>
+  );
+}
+
+// useSearchParams (for the deep link from approval notifications) needs a Suspense boundary.
+export default function AdminUsersPage() {
+  return (
+    <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+      <AdminUsersContent />
+    </Suspense>
   );
 }

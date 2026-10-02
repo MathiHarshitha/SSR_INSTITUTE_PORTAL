@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search, ChevronLeft, ChevronRight, MoreHorizontal, Plus, Pencil, Users } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, MoreHorizontal, Plus, Pencil, Users, Send } from "lucide-react";
 import { cn } from "cn";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -179,37 +179,45 @@ export default function AdminPlacementsPage() {
                       <TableCell>
                         <Badge className={statusBadgeClassName(job.status)}>{job.status}</Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setApplicationsJob(job)}>
-                              <Users className="h-4 w-4" />
-                              View applications
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openEdit(job)}>
-                              <Pencil className="h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            {job.status !== "PUBLISHED" && (
-                              <DropdownMenuItem
-                                onClick={() => statusMutation.mutate({ id: job._id, status: "PUBLISHED" })}
-                              >
-                                Publish
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-2">
+                          {job.status !== "PUBLISHED" && (
+                            <Button
+                              size="sm"
+                              disabled={statusMutation.isPending}
+                              onClick={() => statusMutation.mutate({ id: job._id, status: "PUBLISHED" })}
+                            >
+                              <Send className="h-3.5 w-3.5" />
+                              Publish
+                            </Button>
+                          )}
+                          <Button variant="outline" size="sm" onClick={() => setApplicationsJob(job)}>
+                            <Users className="h-3.5 w-3.5" />
+                            View applications
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted"
+                              aria-label="More actions"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openEdit(job)}>
+                                <Pencil className="h-4 w-4" />
+                                Edit
                               </DropdownMenuItem>
-                            )}
-                            {job.status !== "CLOSED" && (
-                              <DropdownMenuItem
-                                variant="destructive"
-                                onClick={() => statusMutation.mutate({ id: job._id, status: "CLOSED" })}
-                              >
-                                Close
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                              {job.status !== "CLOSED" && (
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onClick={() => statusMutation.mutate({ id: job._id, status: "CLOSED" })}
+                                >
+                                  Close
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

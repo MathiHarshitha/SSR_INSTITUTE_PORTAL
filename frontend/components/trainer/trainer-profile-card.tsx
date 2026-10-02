@@ -190,6 +190,10 @@ export function TrainerProfileCard({ profile }: { profile: TrainerProfileData | 
                 </dd>
               </div>
               <div>
+                <dt className="text-muted-foreground">Alternate mobile</dt>
+                <dd className="font-medium">{profile?.alternatePhone ?? "—"}</dd>
+              </div>
+              <div>
                 <dt className="text-muted-foreground">Resume</dt>
                 <dd className="font-medium">
                   {profile?.resumeUrl ? (

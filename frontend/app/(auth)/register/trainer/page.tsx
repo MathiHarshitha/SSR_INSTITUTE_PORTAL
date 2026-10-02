@@ -13,6 +13,7 @@ import { LoginMascot } from "@/components/auth/login/login-mascot";
 import styles from "@/components/auth/login/login.module.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
   CardContent,
@@ -46,6 +47,8 @@ export default function RegisterTrainerPage() {
       qualification: "",
       specialization: "",
       skills: "",
+      alternatePhone: "",
+      acceptedPrivacyPolicy: false,
     },
   });
 
@@ -118,6 +121,19 @@ export default function RegisterTrainerPage() {
                       <FormLabel>Phone</FormLabel>
                       <FormControl>
                         <Input placeholder="9876543210" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="alternatePhone"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Alternate mobile number</FormLabel>
+                      <FormControl>
+                        <Input type="tel" placeholder="9876543210" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -203,6 +219,37 @@ export default function RegisterTrainerPage() {
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="acceptedPrivacyPolicy"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex flex-row items-start gap-2">
+                      <FormControl>
+                        <Checkbox
+                          className="mt-0.5"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="block font-normal leading-snug text-muted-foreground">
+                        I have read and agree to the{" "}
+                        <Link
+                          href="/privacy-policy"
+                          target="_blank"
+                          className="font-medium text-primary hover:underline"
+                        >
+                          Privacy Policy
+                        </Link>{" "}
+                        and consent to SSR Institute using my details for academic and
+                        administrative purposes.
+                      </FormLabel>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Submitting..." : "Create account"}

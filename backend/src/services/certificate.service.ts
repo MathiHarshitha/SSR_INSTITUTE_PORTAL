@@ -13,6 +13,8 @@ import { notifyUser } from "./notification.service";
 import { emailService } from "./email.service";
 import { IssueCertificateInput, ListCertificatesQuery } from "../validators/certificate.validator";
 
+const DUPLICATE_ACTIVE_CERTIFICATE = "An active certificate already exists for this student and batch";
+
 function generateCertificateNumber(): string {
   const year = new Date().getFullYear();
   // 64 bits: the public /verify endpoint must not be enumerable by guessing numbers.
@@ -48,7 +50,11 @@ async function createCertificateRecord(params: {
         ...(params.issuedBy ? { issuedBy: params.issuedBy } : {}),
       });
     } catch (err) {
-      if ((err as { code?: number }).code !== 11000) throw err;
+      const dup = err as { code?: number; keyPattern?: Record<string, unknown> };
+      if (dup.code !== 11000) throw err;
+      // Only a certificateNumber collision is worth retrying; any other duplicate is the
+      // one-ISSUED-per-student/batch index losing a race with a concurrent issue.
+      if (!dup.keyPattern?.certificateNumber) throw ApiError.conflict(DUPLICATE_ACTIVE_CERTIFICATE);
     }
   }
   if (!certificate) throw ApiError.internal("Could not generate a unique certificate number, try again");
@@ -89,7 +95,7 @@ export async function issueCertificate(adminId: string, input: IssueCertificateI
     batch: input.batch,
     status: "ISSUED",
   }).lean();
-  if (existing) throw ApiError.conflict("An active certificate already exists for this student and batch");
+  if (existing) throw ApiError.conflict(DUPLICATE_ACTIVE_CERTIFICATE);
 
   const certificate = await createCertificateRecord({
     studentId: input.student,

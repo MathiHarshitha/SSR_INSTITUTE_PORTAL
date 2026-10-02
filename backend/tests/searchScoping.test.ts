@@ -37,7 +37,8 @@ async function seedFindableLesson(courseId: string, title: string) {
   });
 }
 
-describe("global search respects enrollment/authorization scoping", () => {
+// Search is disabled (its route is commented out in src/routes/index.ts); re-enable these with it.
+describe.skip("global search respects enrollment/authorization scoping", () => {
   it("only returns a student's enrolled-course lessons, never another course's", async () => {
     const enrolledCourse = await createCourse("Findable Enrolled Course");
     const otherCourse = await createCourse("Findable Other Course");
@@ -70,5 +71,75 @@ describe("global search respects enrollment/authorization scoping", () => {
     const lessonTitles = res.body.data.lessons.map((l: { title: string }) => l.title);
     expect(lessonTitles).toContain("Zebraquery Closures Lesson");
     expect(lessonTitles).not.toContain("Zebraquery Hoisting Lesson");
+  });
+});
+
+describe.skip("global search matching", () => {
+  async function enrolledStudentFor(courseId: string) {
+    const { user: trainer } = await createUser({ role: "TRAINER" });
+    const batch = await Batch.create({
+      name: "Batch M",
+      course: courseId,
+      trainer: trainer._id,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      classDays: ["MON"],
+      startTime: "10:00",
+      endTime: "12:00",
+      mode: "ONLINE",
+      capacity: 30,
+    });
+    const { user: student, token } = await createUser({ role: "STUDENT" });
+    await Enrollment.create({ student: student._id, batch: batch._id, course: courseId });
+    return token;
+  }
+
+  it("matches partial words, case-insensitively, on course/module/topic/lesson names", async () => {
+    const course = await createCourse("MERN Full Stack");
+    const token = await enrolledStudentFor(course._id.toString());
+    await seedFindableLesson(course._id.toString(), "JavaScript Closures");
+
+    const courseRes = await request(app).get("/api/v1/search").query({ q: "mer" }).set(authHeader(token));
+    expect(courseRes.status).toBe(200);
+    expect(courseRes.body.data.courses.map((c: { name: string }) => c.name)).toContain("MERN Full Stack");
+
+    const res = await request(app).get("/api/v1/search").query({ q: "clos" }).set(authHeader(token));
+    expect(res.status).toBe(200);
+    expect(res.body.data.lessons.map((l: { title: string }) => l.title)).toContain("JavaScript Closures");
+    expect(res.body.data.topics.map((t: { name: string }) => t.name)).toContain("JavaScript Closures topic");
+    expect(res.body.data.modules.map((m: { name: string }) => m.name)).toContain("JavaScript Closures module");
+  });
+
+  it("lists the lessons inside a topic whose name matches", async () => {
+    const course = await createCourse("Python Basics");
+    const token = await enrolledStudentFor(course._id.toString());
+    const module = await Module.create({ course: course._id, name: "Core Python", order: 0 });
+    const topic = await Topic.create({ course: course._id, module: module._id, name: "Decorators", order: 0 });
+    await Lesson.create({
+      topic: topic._id,
+      module: module._id,
+      course: course._id,
+      title: "Wrapping functions",
+      order: 0,
+      whatIsIt: "...",
+      whyItMatters: "...",
+      analogy: "...",
+      simpleExample: "...",
+      published: true,
+    });
+
+    const res = await request(app).get("/api/v1/search").query({ q: "decor" }).set(authHeader(token));
+    expect(res.status).toBe(200);
+    expect(res.body.data.topics.map((t: { name: string }) => t.name)).toContain("Decorators");
+    expect(res.body.data.lessons.map((l: { title: string }) => l.title)).toContain("Wrapping functions");
+  });
+
+  it("treats regex characters in the query literally", async () => {
+    const course = await createCourse("C++ Programming");
+    const token = await enrolledStudentFor(course._id.toString());
+
+    const res = await request(app).get("/api/v1/search").query({ q: "c++" }).set(authHeader(token));
+    expect(res.status).toBe(200);
+    expect(res.body.data.courses.map((c: { name: string }) => c.name)).toContain("C++ Programming");
   });
 });

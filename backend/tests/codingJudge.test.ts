@@ -77,6 +77,83 @@ describe("Coding judge isolation", () => {
     expect(Date.now() - started).toBeLessThan(25000);
   });
 
+  it("removes off-heap allocators (typed arrays, ArrayBuffer, WebAssembly) from the sandbox", async () => {
+    const q = { ...addQuestion, testCases: [{ args: [], expectedOutput: "x" }] } as unknown as ICodingQuestion;
+
+    const probe = await runCodingSubmission(
+      q,
+      `function add() { return [typeof Uint8Array, typeof ArrayBuffer, typeof SharedArrayBuffer, typeof DataView,
+        typeof Atomics, typeof WebAssembly, typeof Float64Array, typeof BigInt64Array].join(","); }`
+    );
+    expect(probe.testResults[0].actualOutput).toBe(Array(8).fill("undefined").join(","));
+
+    const alloc = await runCodingSubmission(q, `function add() { const b = new Uint8Array(1e9); return b.length; }`);
+    expect(alloc.passed).toBe(false);
+    expect(alloc.testResults[0].errorName).toBe("ReferenceError");
+
+    // Not recoverable through the args (built inside the sandbox realm) or other prototypes.
+    const recover = await runCodingSubmission(
+      q,
+      `function add() {
+        const fromArgs = __args.constructor === Array && Object.getPrototypeOf(__args) === Array.prototype;
+        return String(fromArgs) + "," + typeof globalThis.__argsJson;
+      }`
+    );
+    expect(recover.testResults[0].actualOutput).toBe("true,undefined");
+  });
+
+  it("passes args through intact", async () => {
+    const q = {
+      ...addQuestion,
+      functionName: "echo",
+      testCases: [{ args: [[1, 2], { a: "b" }, null, "s"], expectedOutput: [[1, 2], { a: "b" }, null, "s"] }],
+    } as unknown as ICodingQuestion;
+    const res = await runCodingSubmission(q, "function echo(...a) { return a; }");
+    expect(res.passed).toBe(true);
+  });
+
+  it("truncates large outputs in the stored result but grades on the full value", async () => {
+    const big = "y".repeat(5000);
+    const q = {
+      ...addQuestion,
+      testCases: [
+        { args: [], expectedOutput: big },
+        { args: [], expectedOutput: "nope" },
+      ],
+    } as unknown as ICodingQuestion;
+    const res = await runCodingSubmission(q, `function add() { return "y".repeat(5000); }`);
+    expect(res.testResults[0].passed).toBe(true);
+    expect(res.testResults[1].passed).toBe(false);
+    for (const r of res.testResults) {
+      expect(typeof r.actualOutput).toBe("string");
+      expect((r.actualOutput as string).length).toBeLessThanOrEqual(1001);
+      expect((r.actualOutput as string).endsWith("…")).toBe(true);
+    }
+  });
+
+  it("caps total output size", async () => {
+    const q = { ...addQuestion, testCases: [{ args: [], expectedOutput: "x" }] } as unknown as ICodingQuestion;
+    const res = await runCodingSubmission(q, `function add() { return "z".repeat(400 * 1024); }`);
+    expect(res.passed).toBe(false);
+    expect(res.testResults[0].error).toBe("Output limit exceeded");
+    expect(res.testResults[0].graderError).toBe(true);
+  });
+
+  it("flags only grader-generated errors as safe to show; runtime errors keep their type", async () => {
+    const q = { ...addQuestion, testCases: [{ args: ["secret-input"], expectedOutput: "x" }] } as unknown as ICodingQuestion;
+
+    const thrown = await runCodingSubmission(q, `function add(s) { throw new TypeError("leak " + s); }`);
+    expect(thrown.testResults[0].graderError).toBe(false);
+    expect(thrown.testResults[0].errorName).toBe("TypeError");
+
+    const syntax = await runCodingSubmission(q, `function add( {`);
+    expect(syntax.testResults[0].graderError).toBe(true);
+
+    const missing = await runCodingSubmission(q, `function other() {}`);
+    expect(missing.testResults[0].error).toBe("add is not defined");
+    expect(missing.testResults[0].graderError).toBe(true);
+  });
+
   it("never lets a forged verdict pass — grading happens outside the sandbox", async () => {
     const forge = `function add() {
       const p = this.constructor.constructor("return process")();

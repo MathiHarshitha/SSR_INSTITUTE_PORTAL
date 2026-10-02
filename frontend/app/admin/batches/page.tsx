@@ -202,16 +202,20 @@ export default function AdminBatchesPage() {
                       <TableCell>
                         <Badge className={statusBadgeClassName(batch.status)}>{batch.status}</Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setRosterBatch(batch)}>
+                          <Users className="h-3.5 w-3.5" />
+                          Manage students
+                        </Button>
                         <DropdownMenu>
-                          <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted">
+                          <DropdownMenuTrigger
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted"
+                            aria-label="More actions"
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setRosterBatch(batch)}>
-                              <Users className="h-4 w-4" />
-                              Manage students
-                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openEdit(batch)}>
                               <Pencil className="h-4 w-4" />
                               Edit
@@ -227,6 +231,7 @@ export default function AdminBatchesPage() {
                             ))}
                           </DropdownMenuContent>
                         </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

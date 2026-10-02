@@ -77,9 +77,22 @@ export async function scheduleInterview(
   return interview;
 }
 
-function assertInterviewAccess(interview: IMockInterview, userId: string, role: Role): void {
+/** Students currently enrolled in any of the trainer's batches. Re-evaluated on every
+ * request so a trainer loses access once the student leaves (or they leave) the batch. */
+async function listTrainerStudentIds(trainerId: string) {
+  const batchIds = await listTrainerBatchIds(trainerId);
+  return Enrollment.find({ batch: { $in: batchIds } }).distinct("student");
+}
+
+async function assertInterviewAccess(interview: IMockInterview, userId: string, role: Role): Promise<void> {
   if (role === "ADMIN") return;
-  if (role === "TRAINER" && String(interview.interviewer) === userId) return;
+  if (role === "TRAINER" && String(interview.interviewer) === userId) {
+    const enrolled = await Enrollment.exists({
+      student: interview.student,
+      batch: { $in: await listTrainerBatchIds(userId) },
+    });
+    if (enrolled) return;
+  }
   if (role === "STUDENT" && String(interview.student) === userId) return;
   throw ApiError.forbidden("You do not have access to this interview");
 }
@@ -87,8 +100,10 @@ function assertInterviewAccess(interview: IMockInterview, userId: string, role: 
 export async function listInterviews(userId: string, role: Role, query: ListInterviewsQuery) {
   const filter: FilterQuery<IMockInterview> = {};
 
-  if (role === "TRAINER") filter.interviewer = userId;
-  else if (role === "STUDENT") filter.student = userId;
+  if (role === "TRAINER") {
+    filter.interviewer = userId;
+    filter.student = { $in: await listTrainerStudentIds(userId) };
+  } else if (role === "STUDENT") filter.student = userId;
   else {
     if (query.interviewer) filter.interviewer = query.interviewer;
     if (query.student) filter.student = query.student;
@@ -116,7 +131,7 @@ export async function updateInterview(
 ) {
   const interview = await MockInterview.findById(id);
   if (!interview) throw ApiError.notFound("Interview not found");
-  assertInterviewAccess(interview, userId, role);
+  await assertInterviewAccess(interview, userId, role);
   if (role === "STUDENT") throw ApiError.forbidden("Students cannot modify interviews");
 
   const { meetingLink, ...rest } = input;
@@ -141,7 +156,7 @@ export async function recordFeedback(
 ) {
   const interview = await MockInterview.findById(id);
   if (!interview) throw ApiError.notFound("Interview not found");
-  assertInterviewAccess(interview, userId, role);
+  await assertInterviewAccess(interview, userId, role);
   if (role === "STUDENT") throw ApiError.forbidden("Students cannot record interview feedback");
 
   Object.assign(interview, input);
@@ -159,7 +174,7 @@ export async function recordFeedback(
 export async function deleteInterview(userId: string, role: Role, id: string) {
   const interview = await MockInterview.findById(id);
   if (!interview) throw ApiError.notFound("Interview not found");
-  assertInterviewAccess(interview, userId, role);
+  await assertInterviewAccess(interview, userId, role);
   if (role === "STUDENT") throw ApiError.forbidden("Students cannot delete interviews");
 
   await interview.deleteOne();

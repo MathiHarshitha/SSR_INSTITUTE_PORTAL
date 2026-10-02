@@ -1,5 +1,18 @@
 "use client";
 
+import { notFound } from "next/navigation";
+
+/* Search is disabled for now. The route returns 404 and the nav link, top-bar search box and
+ * backend `/search` route are commented out. To re-enable: restore the original page below,
+ * uncomment the "Search" item in constants/nav.ts, and uncomment the `/search` route in
+ * backend/src/routes/index.ts. */
+export default function StudentSearchPage() {
+  notFound();
+}
+
+/* Original search page:
+"use client";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -11,8 +24,15 @@ import { useSearch } from "@/hooks/useSearch";
 
 export default function StudentSearchPage() {
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState(() => searchParams.get("q") ?? "");
-  const { data, isLoading, isFetching } = useSearch(query);
+  const urlQuery = searchParams.get("q") ?? "";
+  const [query, setQuery] = useState(urlQuery);
+  // A new search from the top bar changes ?q= while this page stays mounted; adopt it.
+  const [prevUrlQuery, setPrevUrlQuery] = useState(urlQuery);
+  if (urlQuery !== prevUrlQuery) {
+    setPrevUrlQuery(urlQuery);
+    setQuery(urlQuery);
+  }
+  const { data, isFetching, isError, isDebouncing } = useSearch(query);
 
   const hasResults =
     data &&
@@ -25,13 +45,16 @@ export default function StudentSearchPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-foreground">Search</h2>
-        <p className="text-sm text-muted-foreground">Search across your enrolled courses, modules, and lessons.</p>
+        <p className="text-sm text-muted-foreground">
+          Search across your enrolled courses, modules, topics, and lessons.
+        </p>
       </div>
 
       <div className="relative max-w-md">
         <SearchIcon className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Search for a topic, e.g. closures"
+          autoFocus
+          placeholder="Search a course, module, topic or lesson"
           className="pl-8"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -40,7 +63,9 @@ export default function StudentSearchPage() {
 
       {query.trim().length < 2 ? (
         <p className="text-sm text-muted-foreground">Type at least 2 characters to search.</p>
-      ) : isLoading || isFetching ? (
+      ) : isError && !isDebouncing && !isFetching ? (
+        <p className="text-sm text-destructive">Search failed. Please try again.</p>
+      ) : isDebouncing || isFetching || !data ? (
         <div className="space-y-2">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-12 w-full" />
@@ -136,3 +161,4 @@ export default function StudentSearchPage() {
     </div>
   );
 }
+*/

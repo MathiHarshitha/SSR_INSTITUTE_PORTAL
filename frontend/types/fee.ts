@@ -8,7 +8,7 @@ interface NamedRef {
 
 export interface FeeStatusRow {
   enrollmentId: string;
-  student: NamedRef & { email: string };
+  student: NamedRef & { email: string; isTestAccount?: boolean };
   batch: NamedRef;
   course: NamedRef & { fee: number };
   discount: number;

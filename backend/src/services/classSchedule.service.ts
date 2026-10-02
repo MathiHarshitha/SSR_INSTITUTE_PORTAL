@@ -1,7 +1,12 @@
 import { FilterQuery } from "mongoose";
 import { ClassSchedule, IClassSchedule } from "../models/ClassSchedule";
 import { ApiError } from "../utils/ApiError";
-import { assertBatchAccess, listStudentBatchIds, listTrainerBatchIds } from "../utils/batchAccess";
+import {
+  assertBatchAccess,
+  assertModuleInCourse,
+  listStudentBatchIds,
+  listTrainerBatchIds,
+} from "../utils/batchAccess";
 import { recordAudit } from "./auditLog.service";
 import { Role } from "../constants/enums";
 import {
@@ -11,7 +16,8 @@ import {
 } from "../validators/classSchedule.validator";
 
 export async function createClass(userId: string, role: Role, input: CreateClassScheduleInput) {
-  await assertBatchAccess(input.batch, userId, role);
+  const batch = await assertBatchAccess(input.batch, userId, role);
+  await assertModuleInCourse(input.module, batch.course);
 
   const classSchedule = await ClassSchedule.create({
     ...input,
@@ -63,7 +69,8 @@ export async function updateClass(
   const classSchedule = await ClassSchedule.findById(id);
   if (!classSchedule) throw ApiError.notFound("Class not found");
 
-  await assertBatchAccess(String(classSchedule.batch), userId, role);
+  const batch = await assertBatchAccess(String(classSchedule.batch), userId, role);
+  await assertModuleInCourse(input.module, batch.course);
 
   const { meetingLink, ...rest } = input;
   Object.assign(classSchedule, rest);

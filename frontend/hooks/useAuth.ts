@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { authService } from "@/services/auth.service";
 import { useAuthStore } from "@/store/auth-store";
-import { extractErrorMessage } from "@/lib/api-client";
+import { extractErrorMessage, isDefinitiveAuthFailure } from "@/lib/api-client";
 import { LoginFormValues } from "@/schemas/auth.schema";
 import { Role } from "@/types/auth";
 
@@ -27,7 +27,9 @@ export function useCurrentUser() {
       return user;
     },
     enabled: !!accessToken,
-    retry: false,
+    // Retry temporary failures (network, 5xx, cold start); a real 401 is handled by the
+    // api-client interceptor, which refreshes or signs the user out.
+    retry: (failureCount, error) => !isDefinitiveAuthFailure(error) && failureCount < 3,
     staleTime: 60_000,
   });
 }
@@ -41,7 +43,10 @@ export function useLogin() {
     mutationFn: (input: LoginFormValues) => authService.login(input),
     onSuccess: (data) => {
       setAuth(data.user, data.accessToken);
-      queryClient.setQueryData(AUTH_QUERY_KEY, data.user);
+      // The login response is only { id, name, email, role, status } — no phone or profile. Don't
+      // seed the /auth/me cache with it (it would be treated as fresh and the profile page would
+      // show empty details); drop any cached user so the full record is fetched.
+      queryClient.removeQueries({ queryKey: AUTH_QUERY_KEY });
       toast.success("Welcome back!");
       router.push(roleHomePath(data.user.role));
     },

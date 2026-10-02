@@ -12,6 +12,9 @@ export interface IUser extends Document {
   avatarUrl?: string;
   rejectionReason?: string;
   isEmailVerified: boolean;
+  /** Internal QA account: can use the portal normally but is left out of every count, total and
+   * capacity figure (dashboards, reports, batch enrollment, revenue). Set only via script. */
+  isTestAccount: boolean;
   lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -35,6 +38,7 @@ const userSchema = new Schema<IUser>(
     avatarUrl: { type: String },
     rejectionReason: { type: String },
     isEmailVerified: { type: Boolean, default: false },
+    isTestAccount: { type: Boolean, default: false, index: true },
     lastLoginAt: { type: Date },
   },
   { timestamps: true }

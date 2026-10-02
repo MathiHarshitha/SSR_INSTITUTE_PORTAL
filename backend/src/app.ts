@@ -4,7 +4,6 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import compression from "compression";
-import path from "path";
 import { env } from "./config/env";
 import { logger } from "./utils/logger";
 import { apiLimiter } from "./middleware/rateLimiters";
@@ -31,8 +30,9 @@ export function createApp(): Application {
     })
   );
   app.use(compression());
+  // JSON only — no urlencoded parser, so a plain cross-site HTML <form> post (which can't send
+  // application/json without a CORS preflight) never reaches a handler with a parsed body.
   app.use(express.json({ limit: "10mb" }));
-  app.use(express.urlencoded({ extended: true, limit: "10mb" }));
   app.use(cookieParser());
   app.use(mongoSanitize);
 
@@ -41,8 +41,6 @@ export function createApp(): Application {
       stream: { write: (message: string) => logger.http(message.trim()) },
     })
   );
-
-  app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
   app.get("/health", (_req, res) => {
     res.status(200).json({ success: true, message: "SSR Portal API is running" });

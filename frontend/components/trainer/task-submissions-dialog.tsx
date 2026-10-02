@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Eye } from "lucide-react";
+import { cn } from "cn";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { useEvaluateSubmission, useTaskSubmissions } from "@/hooks/useTasks";
 import { SubmissionRow, TrainerTask } from "@/types/task";
+import { SubmissionViewDialog } from "@/components/trainer/submission-view-dialog";
 
 function statusBadgeClassName(status: SubmissionRow["status"]): string {
   switch (status) {
@@ -39,12 +42,24 @@ function statusBadgeClassName(status: SubmissionRow["status"]): string {
 interface TaskSubmissionsDialogProps {
   task: TrainerTask | null;
   onOpenChange: (open: boolean) => void;
+  /** Submission to highlight and open straight away (deep link from a notification). */
+  focusSubmissionId?: string | null;
 }
 
-export function TaskSubmissionsDialog({ task, onOpenChange }: TaskSubmissionsDialogProps) {
-  const { data: submissions, isLoading } = useTaskSubmissions(task?._id ?? null);
+export function TaskSubmissionsDialog({ task, onOpenChange, focusSubmissionId }: TaskSubmissionsDialogProps) {
+  const { data: submissions, isLoading, isFetching, isError } = useTaskSubmissions(task?._id ?? null);
   const evaluateMutation = useEvaluateSubmission(task?._id ?? "");
   const [drafts, setDrafts] = useState<Record<string, { marks: string; feedback: string }>>({});
+  const [viewing, setViewing] = useState<SubmissionRow | null>(null);
+
+  // Open the focused submission once fresh data has loaded (once per focus id). Waiting for the
+  // fetch to settle matters: cached data from before the submission arrived wouldn't contain it.
+  const [autoOpenedFor, setAutoOpenedFor] = useState<string | null>(null);
+  if (focusSubmissionId && submissions && !isFetching && autoOpenedFor !== focusSubmissionId) {
+    setAutoOpenedFor(focusSubmissionId);
+    const focused = submissions.find((s) => s._id === focusSubmissionId);
+    if (focused) setViewing(focused);
+  }
 
   function getDraft(sub: SubmissionRow) {
     return drafts[sub._id] ?? { marks: sub.marks?.toString() ?? "", feedback: sub.feedback ?? "" };
@@ -60,6 +75,8 @@ export function TaskSubmissionsDialog({ task, onOpenChange }: TaskSubmissionsDia
 
         {isLoading ? (
           <Skeleton className="h-24 w-full" />
+        ) : isError ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">Failed to load submissions.</p>
         ) : !submissions || submissions.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">No submissions yet.</p>
         ) : (
@@ -78,19 +95,21 @@ export function TaskSubmissionsDialog({ task, onOpenChange }: TaskSubmissionsDia
                 {submissions.map((sub) => {
                   const draft = getDraft(sub);
                   return (
-                    <TableRow key={sub._id}>
+                    <TableRow
+                      key={sub._id}
+                      className={cn(sub._id === focusSubmissionId && "bg-secondary/10 hover:bg-secondary/15")}
+                    >
                       <TableCell>
                         <p className="font-medium">{sub.student.name}</p>
-                        {sub.fileUrl && (
-                          <a
-                            href={sub.fileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs text-primary hover:underline"
-                          >
-                            View submission
-                          </a>
-                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-1"
+                          onClick={() => setViewing(sub)}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          View Submission
+                        </Button>
                       </TableCell>
                       <TableCell>
                         <Badge className={statusBadgeClassName(sub.status)}>{sub.status}</Badge>
@@ -144,6 +163,13 @@ export function TaskSubmissionsDialog({ task, onOpenChange }: TaskSubmissionsDia
             </Table>
           </div>
         )}
+
+        <SubmissionViewDialog
+          submission={viewing}
+          taskTitle={task?.title}
+          maxMarks={task?.maxMarks}
+          onOpenChange={(open) => !open && setViewing(null)}
+        />
       </DialogContent>
     </Dialog>
   );

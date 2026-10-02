@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { SubmissionViewDialog } from "@/components/trainer/submission-view-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -37,6 +39,7 @@ export default function TrainerSubmissionsPage() {
   const queryClient = useQueryClient();
   const [drafts, setDrafts] = useState<Record<string, { marks: string; feedback: string }>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [viewing, setViewing] = useState<PendingSubmissionRow | null>(null);
 
   function getDraft(sub: PendingSubmissionRow) {
     return drafts[sub._id] ?? { marks: "", feedback: "" };
@@ -103,16 +106,15 @@ export default function TrainerSubmissionsPage() {
                       <TableRow key={sub._id}>
                         <TableCell>
                           <p className="font-medium">{sub.student.name}</p>
-                          {sub.fileUrl && (
-                            <a
-                              href={sub.fileUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs text-primary hover:underline"
-                            >
-                              View submission
-                            </a>
-                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-1"
+                            onClick={() => setViewing(sub)}
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            View Submission
+                          </Button>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
                           {sub.task.title}
@@ -168,6 +170,13 @@ export default function TrainerSubmissionsPage() {
           )}
         </CardContent>
       </Card>
+
+      <SubmissionViewDialog
+        submission={viewing}
+        taskTitle={viewing?.task.title}
+        maxMarks={viewing?.task.maxMarks}
+        onOpenChange={(open) => !open && setViewing(null)}
+      />
     </div>
   );
 }

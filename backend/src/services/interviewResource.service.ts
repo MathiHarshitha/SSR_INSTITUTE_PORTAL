@@ -75,7 +75,8 @@ export async function listInterviewResourcesForStudent(studentId: string) {
 
   if (unlockedCourseIds.length === 0) return [];
 
-  return InterviewResource.find({ course: { $in: unlockedCourseIds } })
+  // Only PUBLISHED resources are student-visible; COMING_SOON entries stay admin/trainer-only.
+  return InterviewResource.find({ course: { $in: unlockedCourseIds }, status: "PUBLISHED" })
     .sort({ createdAt: -1 })
     .lean();
 }

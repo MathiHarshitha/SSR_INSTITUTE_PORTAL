@@ -8,6 +8,8 @@ export interface AdminUserListItem {
   role: Role;
   status: UserStatus;
   isEmailVerified: boolean;
+  /** Internal QA account, excluded from counts and totals. */
+  isTestAccount?: boolean;
   rejectionReason?: string;
   lastLoginAt?: string;
   createdAt: string;

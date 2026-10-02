@@ -7,9 +7,16 @@ import { Payment } from "../models/Payment";
 import { Attendance } from "../models/Attendance";
 import { Certificate } from "../models/Certificate";
 import { JobApplication } from "../models/JobApplication";
+import { countableStudentIds } from "../utils/countableStudents";
 
-async function getEnrollmentsByCourse() {
+/** Every figure below only counts real, existing students — test accounts and rows left behind
+ * by deleted users are excluded (see countableStudentIds). */
+type Ids = Types.ObjectId[];
+const onlyCountable = (ids: Ids) => ({ $match: { student: { $in: ids } } });
+
+async function getEnrollmentsByCourse(ids: Ids) {
   const rows = await Enrollment.aggregate<{ _id: Types.ObjectId; count: number; courseName: string }>([
+    onlyCountable(ids),
     { $group: { _id: "$course", count: { $sum: 1 } } },
     { $lookup: { from: "courses", localField: "_id", foreignField: "_id", as: "course" } },
     { $unwind: "$course" },
@@ -19,9 +26,10 @@ async function getEnrollmentsByCourse() {
   return rows.map((r) => ({ courseId: String(r._id), courseName: r.courseName, enrolledCount: r.count }));
 }
 
-async function getFeeCollectionByBatch() {
+async function getFeeCollectionByBatch(ids: Ids) {
   const [finalFeeByBatch, collectedByBatch] = await Promise.all([
     Enrollment.aggregate<{ _id: Types.ObjectId; totalFinalFee: number }>([
+      onlyCountable(ids),
       { $lookup: { from: "courses", localField: "course", foreignField: "_id", as: "course" } },
       { $unwind: "$course" },
       {
@@ -32,6 +40,7 @@ async function getFeeCollectionByBatch() {
       },
     ]),
     Payment.aggregate<{ _id: Types.ObjectId; collected: number }>([
+      onlyCountable(ids),
       { $group: { _id: "$batch", collected: { $sum: "$amount" } } },
     ]),
   ]);
@@ -54,8 +63,9 @@ async function getFeeCollectionByBatch() {
     .sort((a, b) => b.collected + b.pending - (a.collected + a.pending));
 }
 
-async function getAttendanceByBatch() {
+async function getAttendanceByBatch(ids: Ids) {
   const rows = await Attendance.aggregate<{ _id: Types.ObjectId; total: number; present: number }>([
+    onlyCountable(ids),
     {
       $group: {
         _id: "$batch",
@@ -78,15 +88,17 @@ async function getAttendanceByBatch() {
     .sort((a, b) => a.batchName.localeCompare(b.batchName));
 }
 
-async function getApplicationsByStatus() {
+async function getApplicationsByStatus(ids: Ids) {
   const rows = await JobApplication.aggregate<{ _id: string; count: number }>([
+    onlyCountable(ids),
     { $group: { _id: "$status", count: { $sum: 1 } } },
   ]);
   return rows.map((r) => ({ status: r._id, count: r.count }));
 }
 
-async function getEnrollmentsOverTime() {
+async function getEnrollmentsOverTime(ids: Ids) {
   const rows = await Enrollment.aggregate<{ _id: string; count: number }>([
+    onlyCountable(ids),
     { $group: { _id: { $dateToString: { format: "%Y-%m", date: "$enrolledAt" } }, count: { $sum: 1 } } },
     { $sort: { _id: 1 } },
     { $limit: 12 },
@@ -95,6 +107,7 @@ async function getEnrollmentsOverTime() {
 }
 
 export async function getReportsOverview() {
+  const ids = await countableStudentIds();
   const [
     totalStudents,
     totalTrainers,
@@ -108,19 +121,20 @@ export async function getReportsOverview() {
     applicationsByStatus,
     enrollmentsOverTime,
   ] = await Promise.all([
-    User.countDocuments({ role: "STUDENT", status: "ACTIVE" }),
-    User.countDocuments({ role: "TRAINER", status: "ACTIVE" }),
+    User.countDocuments({ role: "STUDENT", status: "ACTIVE", isTestAccount: { $ne: true } }),
+    User.countDocuments({ role: "TRAINER", status: "ACTIVE", isTestAccount: { $ne: true } }),
     Course.countDocuments({ status: "PUBLISHED" }),
     Batch.countDocuments(),
     Payment.aggregate<{ _id: null; total: number }>([
+      onlyCountable(ids),
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]).then((r) => r[0]?.total ?? 0),
-    Certificate.countDocuments({ status: "ISSUED" }),
-    getEnrollmentsByCourse(),
-    getFeeCollectionByBatch(),
-    getAttendanceByBatch(),
-    getApplicationsByStatus(),
-    getEnrollmentsOverTime(),
+    Certificate.countDocuments({ status: "ISSUED", student: { $in: ids } }),
+    getEnrollmentsByCourse(ids),
+    getFeeCollectionByBatch(ids),
+    getAttendanceByBatch(ids),
+    getApplicationsByStatus(ids),
+    getEnrollmentsOverTime(ids),
   ]);
 
   const totalRevenuePending = feeCollectionByBatch.reduce((sum, b) => sum + b.pending, 0);

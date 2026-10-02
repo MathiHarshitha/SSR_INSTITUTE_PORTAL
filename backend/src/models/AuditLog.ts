@@ -2,7 +2,8 @@ import { Schema, model, Document, Types } from "mongoose";
 
 export interface IAuditLog extends Document {
   _id: Types.ObjectId;
-  user: Types.ObjectId;
+  /** Actor. Absent for events with no known account, e.g. a failed login for an unknown email. */
+  user?: Types.ObjectId;
   action: string;
   entity: string;
   entityId?: Types.ObjectId;
@@ -13,7 +14,7 @@ export interface IAuditLog extends Document {
 
 const auditLogSchema = new Schema<IAuditLog>(
   {
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: false, index: true },
     action: { type: String, required: true, index: true },
     entity: { type: String, required: true },
     entityId: { type: Schema.Types.ObjectId },

@@ -2,9 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Search, ChevronLeft, ChevronRight, MoreHorizontal, Plus, Pencil, ListTree } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, MoreHorizontal, Plus, Pencil, ListTree, Send } from "lucide-react";
 import { cn } from "cn";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,7 +28,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLinkItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -194,29 +193,37 @@ export default function AdminCoursesPage() {
                       <TableCell>
                         <Badge className={statusBadgeClassName(course.status)}>{course.status}</Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-2">
+                        {course.status !== "PUBLISHED" && (
+                          <Button
+                            size="sm"
+                            disabled={statusMutation.isPending}
+                            onClick={() => statusMutation.mutate({ id: course._id, status: "PUBLISHED" })}
+                          >
+                            <Send className="h-3.5 w-3.5" />
+                            Publish
+                          </Button>
+                        )}
+                        <Link
+                          href={`/admin/courses/${course._id}`}
+                          className={buttonVariants({ variant: "outline", size: "sm" })}
+                        >
+                          <ListTree className="h-3.5 w-3.5" />
+                          Curriculum
+                        </Link>
                         <DropdownMenu>
-                          <DropdownMenuTrigger className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted">
+                          <DropdownMenuTrigger
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md hover:bg-muted"
+                            aria-label="More actions"
+                          >
                             <MoreHorizontal className="h-4 w-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuLinkItem render={<Link href={`/admin/courses/${course._id}`} />}>
-                              <ListTree className="h-4 w-4" />
-                              Manage curriculum
-                            </DropdownMenuLinkItem>
                             <DropdownMenuItem onClick={() => openEdit(course)}>
                               <Pencil className="h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
-                            {course.status !== "PUBLISHED" && (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  statusMutation.mutate({ id: course._id, status: "PUBLISHED" })
-                                }
-                              >
-                                Publish
-                              </DropdownMenuItem>
-                            )}
                             {course.status !== "DRAFT" && (
                               <DropdownMenuItem
                                 onClick={() => statusMutation.mutate({ id: course._id, status: "DRAFT" })}
@@ -236,6 +243,7 @@ export default function AdminCoursesPage() {
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

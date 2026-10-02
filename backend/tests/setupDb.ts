@@ -7,7 +7,8 @@ import { MongoMemoryReplSet } from "mongodb-memory-server";
 let replset: MongoMemoryReplSet;
 
 beforeAll(async () => {
-  replset = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
+  // The 10s default launch timeout is too tight on slower dev machines.
+  replset = await MongoMemoryReplSet.create({ replSet: { count: 1 }, instanceOpts: [{ launchTimeout: 60000 }] });
   await mongoose.connect(replset.getUri());
 }, 120000);
 

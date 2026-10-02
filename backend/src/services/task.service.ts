@@ -3,10 +3,11 @@ import { Task, ITask } from "../models/Task";
 import { Submission } from "../models/Submission";
 import { Enrollment } from "../models/Enrollment";
 import { User } from "../models/User";
+import { Batch } from "../models/Batch";
 import { ApiError } from "../utils/ApiError";
 import { assertBatchAccess, listStudentBatchIds, listTrainerBatchIds } from "../utils/batchAccess";
 import { recordAudit } from "./auditLog.service";
-import { notifyUser, notifyUsers } from "./notification.service";
+import { notifySafely, notifyUser, notifyUsers } from "./notification.service";
 import { emailService } from "./email.service";
 import { Role } from "../constants/enums";
 import {
@@ -150,6 +151,8 @@ export async function deleteTask(userId: string, role: Role, id: string) {
 
 // --- Submissions ---
 
+const EVALUATED_SUBMISSION_MESSAGE = "This submission has already been evaluated and can no longer be changed";
+
 export async function listPendingSubmissions(userId: string, role: Role) {
   const batchIds = role === "TRAINER" ? await listTrainerBatchIds(userId) : undefined;
   const filter: Record<string, unknown> = { status: { $in: ["SUBMITTED", "LATE"] } };
@@ -187,20 +190,54 @@ export async function submitTask(
 
   const isLate = new Date() > task.dueDate;
 
-  const submission = await Submission.findOneAndUpdate(
-    { task: taskId, student: studentId },
-    {
-      $set: {
-        batch: task.batch,
-        content: input.content,
-        fileUrl: input.fileUrl,
-        comments: input.comments,
-        status: isLate ? "LATE" : "SUBMITTED",
-        submittedAt: new Date(),
+  const previous = await Submission.findOne({ task: taskId, student: studentId }).select("_id status").lean();
+  if (previous?.status === "EVALUATED") throw ApiError.conflict(EVALUATED_SUBMISSION_MESSAGE);
+
+  // The status guard makes this atomic: if the trainer evaluates in between, the filter no
+  // longer matches, the upsert collides with the unique (task, student) index, and we refuse.
+  let submission;
+  try {
+    submission = await Submission.findOneAndUpdate(
+      { task: taskId, student: studentId, status: { $ne: "EVALUATED" } },
+      {
+        $set: {
+          batch: task.batch,
+          content: input.content,
+          fileUrl: input.fileUrl,
+          comments: input.comments,
+          status: isLate ? "LATE" : "SUBMITTED",
+          submittedAt: new Date(),
+        },
       },
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+  } catch (error) {
+    if ((error as { code?: number }).code === 11000) throw ApiError.conflict(EVALUATED_SUBMISSION_MESSAGE);
+    throw error;
+  }
+
+  await recordAudit({
+    userId: studentId,
+    action: previous ? "TASK_RESUBMITTED" : "TASK_SUBMITTED",
+    entity: "Submission",
+    entityId: submission._id,
+    metadata: { task: taskId, late: isLate },
+  });
+
+  await notifySafely(async () => {
+    const [batch, student] = await Promise.all([
+      Batch.findById(task.batch).select("trainer name").lean(),
+      User.findById(studentId).select("name").lean(),
+    ]);
+    if (!batch?.trainer) return;
+    const action = previous ? "resubmitted" : "submitted";
+    await notifyUser(String(batch.trainer), {
+      type: "SUBMISSION_RECEIVED",
+      title: `New submission: ${task.title}`,
+      message: `${student?.name ?? "A student"} ${action} "${task.title}"${isLate ? " after the due date" : ""} (${batch.name}).`,
+      link: `/trainer/tasks?task=${task._id}&submission=${submission._id}`,
+    });
+  });
 
   return submission;
 }
@@ -243,7 +280,7 @@ export async function evaluateSubmission(
 
     const student = await User.findById(submission.student).select("name email").lean();
     if (student) {
-      await emailService.sendSubmissionEvaluated(student.email, student.name, task.title, marks, task.maxMarks);
+      await emailService.sendSubmissionEvaluated(student.email, student.name, task.title, marks, task.maxMarks, feedback);
     }
   }
 

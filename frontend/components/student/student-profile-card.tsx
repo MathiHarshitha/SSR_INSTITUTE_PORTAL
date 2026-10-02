@@ -314,6 +314,10 @@ export function StudentProfileCard({ profile }: { profile: StudentProfileData | 
                 <dt className="text-muted-foreground">Percentage / CGPA</dt>
                 <dd className="font-medium">{profile?.percentageOrCgpa ?? "—"}</dd>
               </div>
+              <div>
+                <dt className="text-muted-foreground">Parent / spouse mobile</dt>
+                <dd className="font-medium">{profile?.guardianPhone ?? "—"}</dd>
+              </div>
             </dl>
 
             {profile?.skills && profile.skills.length > 0 && (

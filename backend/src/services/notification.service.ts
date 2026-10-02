@@ -1,5 +1,7 @@
 import { Notification, NotificationType } from "../models/Notification";
+import { User } from "../models/User";
 import { ApiError } from "../utils/ApiError";
+import { logger } from "../utils/logger";
 
 interface NotifyInput {
   type: NotificationType;
@@ -15,6 +17,24 @@ export async function notifyUser(userId: string, input: NotifyInput) {
 export async function notifyUsers(userIds: string[], input: NotifyInput): Promise<void> {
   if (userIds.length === 0) return;
   await Notification.insertMany(userIds.map((user) => ({ user, ...input })));
+}
+
+export async function notifyActiveAdmins(input: NotifyInput): Promise<void> {
+  const admins = await User.find({ role: "ADMIN", status: "ACTIVE" }).select("_id").lean();
+  await notifyUsers(
+    admins.map((a) => String(a._id)),
+    input
+  );
+}
+
+/** For notifications that are a side effect: a failure is logged, never surfaced, so it can't
+ * fail the action that triggered it (a submission, a verification, ...). */
+export async function notifySafely(fn: () => Promise<void>): Promise<void> {
+  try {
+    await fn();
+  } catch (error) {
+    logger.error("Failed to create notification", error);
+  }
 }
 
 export async function listMyNotifications(
